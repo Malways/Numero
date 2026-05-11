@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Numero Dice</title>
+    <meta name="description" content="5턴 안에 숫자를 최대한 키우세요!" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="ambient-bg" aria-hidden="true"></div>
+
+    <main class="viewport-shell">
+        <section class="phone-frame" aria-label="게임 화면">
+            <div class="phone-screen">
+                <header class="top-panel">
+                    <p class="eyebrow">NUMERO DICE</p>
+                    <h1>5턴 안에 점수 폭발</h1>
+                    <p class="hint">가장 큰 숫자를 만드세요!</p>
+                </header>
+
+                <section class="status-panel" aria-live="polite">
+                    <div class="stat-card point-card">
+                        <div class="point-head">
+                            <p class="label">현재 값</p>
+                            <div class="calc-log-wrap">
+                                <button id="calcLogBtn" class="luck-info-btn calc-log-btn" type="button"
+                                    aria-label="계산 기록 열기" aria-expanded="false" aria-controls="calcLogFloat">
+                                    History
+                                </button>
+                                <div id="calcLogFloat" class="luck-info-float calc-log-float" role="dialog"
+                                    aria-hidden="true">
+                                    <p class="luck-info-title">계산 기록</p>
+                                    <div id="calcLogList" class="calc-log-list">
+                                        <p class="luck-info-line">아직 계산 기록이 없습니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="value-line">
+                            <p id="pointVal" class="value">-</p>
+                            <span id="rankPercent" class="value-rank">(현재 상위 ?%)</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="label">현재 턴 주사위 값</p>
+                        <p id="modVal" class="value">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="label">턴</p>
+                        <p id="turnDisplay" class="value">0 / 5</p>
+                    </div>
+                </section>
+
+                <section class="luck-panel" aria-label="등급 출현 확률">
+                    <div class="luck-head">
+                        <h2>행운 확률</h2>
+                        <div class="luck-info-wrap">
+                            <p id="luckScore">Luck 0</p>
+                            <button id="luckInfoBtn" class="luck-info-btn" type="button" aria-label="Luck 설명 열기"
+                                aria-expanded="false" aria-controls="luckInfoFloat">
+                                ?
+                            </button>
+                            <div id="luckInfoFloat" class="luck-info-float" role="dialog" aria-hidden="true">
+                                <p class="luck-info-title">Luck 동작 구조</p>
+                                <p class="luck-info-line">선택하지 않은 카드를 남기면 Luck이 올라갑니다.</p>
+                                <p class="luck-info-line">스킵을 선택하면 이번 턴에 보이는 모든 Luck의 2배를 획득합니다.</p>
+                                <p class="luck-info-line">Luck이 오를수록 일반 확률이 줄고, 희귀/특급/전설 확률이 올라갑니다.</p>
+                                <p class="luck-info-line">남는 소수점 보정은 전설 확률에 먼저 더해집니다.</p>
+                                <p class="luck-info-line">즉, 이번 턴에 참는 선택이 다음 턴 고등급 기회를 만듭니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rarity-bars" id="rarityBars"></div>
+                </section>
+
+                <section class="options-panel">
+                    <div id="options" class="options-grid"></div>
+                </section>
+
+                <footer class="footer-panel">
+                    <button id="startBtn" class="primary-btn" type="button">게임 시작</button>
+                    <p id="message" class="message">
+                        시작 버튼을 누르면 시작 값을 먼저 굴리고, 5턴 게임이 시작됩니다.
+                    </p>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+    <audio id="diceRollSound" preload="auto">
+        <source src="./JDSherbert - Tabletop Games SFX Pack - Dice Pickup - 1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script type="module" src="./js/main.js"></script>
+</body>
+
+</html>
