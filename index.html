@@ -20,8 +20,11 @@
         <section class="phone-frame" aria-label="게임 화면">
             <div class="phone-screen">
                 <header class="top-panel">
-                    <p class="eyebrow">NUMERO DICE</p>
-                    <h1>5턴 안에 점수 폭발</h1>
+                    <div class="top-panel-head">
+                        <h1>Numero Dice</h1>
+                        <button id="muteBtn" class="mute-btn" type="button" aria-label="음소거 토글" aria-pressed="false">소리
+                            ON</button>
+                    </div>
                     <p class="hint">가장 큰 숫자를 만드세요!</p>
                 </header>
 
@@ -69,11 +72,11 @@
                             </button>
                             <div id="luckInfoFloat" class="luck-info-float" role="dialog" aria-hidden="true">
                                 <p class="luck-info-title">Luck 동작 구조</p>
-                                <p class="luck-info-line">선택하지 않은 카드를 남기면 Luck이 올라갑니다.</p>
-                                <p class="luck-info-line">스킵을 선택하면 이번 턴에 보이는 모든 Luck의 2배를 획득합니다.</p>
-                                <p class="luck-info-line">Luck이 오를수록 일반 확률이 줄고, 희귀/특급/전설 확률이 올라갑니다.</p>
-                                <p class="luck-info-line">남는 소수점 보정은 전설 확률에 먼저 더해집니다.</p>
-                                <p class="luck-info-line">즉, 이번 턴에 참는 선택이 다음 턴 고등급 기회를 만듭니다.</p>
+                                <p class="luck-info-line">카드를 선택 시, 선택하지 않은 다른 카드에 적힌 만큼 Luck이 올라갑니다.</p>
+                                <p class="luck-info-line">스킵 시 이번 턴에 등장한 모든 선택지의 2배의 Luck을 획득합니다.</p>
+                                <p class="luck-info-line">Luck의 수치만큼 가장 낮은 등급의 확률이 감소하고, Luck/3만큼 다른 등급의 확률이 증가합니다.</p>
+                                <p class="luck-info-line">소수점은 절삭되며, 부족한 확률은 전설 확률에 먼저 더해집니다.</p>
+                                <p class="luck-info-line">즉, 이번 턴의 인내가 다음 턴의 고등급 출현 확률을 높입니다.</p>
                             </div>
                         </div>
                     </div>
@@ -86,16 +89,37 @@
 
                 <footer class="footer-panel">
                     <button id="startBtn" class="primary-btn" type="button">게임 시작</button>
+                    <div id="confirmButtons" class="confirm-buttons" style="display: none;">
+                        <p class="confirm-message">정말로 다시 플레이하시겠습니까?</p>
+                        <div class="confirm-button-row">
+                            <button id="confirmYes" class="confirm-btn confirm-btn-yes" type="button">예</button>
+                            <button id="confirmNo" class="confirm-btn confirm-btn-no" type="button">아니오</button>
+                        </div>
+                    </div>
                     <p id="message" class="message">
                         시작 버튼을 누르면 시작 값을 먼저 굴리고, 5턴 게임이 시작됩니다.
                     </p>
                 </footer>
+
+                <div id="modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="modalMessage">
+                    <div class="modal-content">
+                        <p id="modalMessage" class="modal-message"></p>
+                        <div class="modal-buttons">
+                            <button id="modalConfirm" class="modal-btn modal-btn-primary" type="button">네</button>
+                            <button id="modalCancel" class="modal-btn modal-btn-secondary" type="button">아니오</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
     <audio id="diceRollSound" preload="auto">
         <source src="./JDSherbert - Tabletop Games SFX Pack - Dice Pickup - 1.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="enhancedAppearSound" preload="auto">
+        <source src="./abs-pointer-6-verbed.mp3" type="audio/mpeg">
     </audio>
 
     <script type="module" src="./js/main.js"></script>

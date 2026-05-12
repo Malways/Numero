@@ -10,7 +10,10 @@
 
 const MAX_TURNS = 5; // 게임 총 5턴 진행
 const SAFE_INT_LIMIT = Number.MAX_SAFE_INTEGER; // 오버플로우 방지용 최대 안전 정수값
-
+const NEGATIVE_OPTION_CHANCE = 0; // 네거티브 선택지 등장 확률 (코더가 조정 가능)
+const ENHANCED_OPTION_CHANCE = 0.15; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
+const OPTION_APPEAR_INTERVAL_MS = 400; // 선택지 순차 등장 간격
+// 9,007,199,254,740,991이 최대값
 /**
  * 팩토리얼 계산 함수 (특급 및 전설 옵션에서 사용)
  * - n! = 1 * 2 * 3 * ... * n
@@ -90,13 +93,13 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 4,
         },
         {
-            formula: "pointVal / modVal (올림)",
-            compute: (a, b) => Math.ceil(a / b),
+            formula: "pointVal * -2",
+            compute: (a, b) => a * -2,
             unselectedLuckGain: 4,
         },
         {
-            formula: "pointVal + sqrt(modVal+pointVal)",
-            compute: (a, b) => a + Math.sqrt(b + a),
+            formula: "= 5",
+            compute: (a, b) => 5,
             unselectedLuckGain: 4
         },
     ],
@@ -121,6 +124,16 @@ const OPTION_LIBRARY = {
             compute: (a, b) => (a * 2) + b,
             unselectedLuckGain: 5,
         },
+        {
+            formula: "pointVal - modVal^3",
+            compute: (a, b) => a - Math.pow(b, 3),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "= 15",
+            compute: (a, b) => 15,
+            unselectedLuckGain: 5
+        },
     ],
     epic: [
         {
@@ -129,34 +142,289 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 7,
         },
         {
-            formula: "pointVal / 2 * (modVal * modVal) (올림)",
-            compute: (a, b) => Math.ceil(a / 2) * (b * b),
+            formula: "pointVal * modVal * 2",
+            compute: (a, b) => a * b * 2,
             unselectedLuckGain: 8,
         },
         {
-            formula: "(pointVal / 10) ^ (modVal / 2 ) (올림)",
-            compute: (a, b) => Math.pow(Math.ceil(a / 10), Math.ceil(b / 2)),
+            formula: "(pointVal / modVal) ^ 2 (올림)",
+            compute: (a, b) => Math.pow(Math.ceil(a / b), 2),
+            unselectedLuckGain: 8,
+        },
+        {
+            formula: "= 40",
+            compute: (a, b) => 40,
+            unselectedLuckGain: 8
+        },
+        {
+            formula: "-(pointVal ^ 3)",
+            compute: (a, b) => -Math.pow(a, 3),
+            unselectedLuckGain: 8,
+        },
+
+    ],
+    legend: [
+        {
+            formula: "(pointVal / (modVal+3)) ^ (modVal/2) (올림)",
+            compute: (a, b) => Math.pow(Math.ceil(a / (b + 3)), Math.ceil(b / 2)),
+            unselectedLuckGain: 11,
+        },
+        {
+            formula: "pointVal + (modVal + 6) ^ modVal",
+            compute: (a, b) => a + Math.pow(b + 6, b),
+            unselectedLuckGain: 11,
+        },
+        {
+            formula: "pointVal * (modVal + 1)!",
+            compute: (a, b) => a * factorial(b + 1),
+            unselectedLuckGain: 11,
+        },
+        {
+            formula: "pointVal ^ 2",
+            compute: (a, b) => Math.pow(a, 2),
+            unselectedLuckGain: 11,
+        },
+        {
+            formula: "= 1000",
+            compute: (a, b) => 1000,
+            unselectedLuckGain: 11,
+        },
+    ],
+};
+
+// 강화됨 전용 선택지 라이브러리 (하드코드)
+const ENHANCED_OPTION_LIBRARY = {
+    common: [
+        {
+            formula: "pointVal + modVal * 2",
+            compute: (a, b) => a + b * 2,
+            unselectedLuckGain: 6,
+        },
+
+        {
+            formula: "pointVal * 3",
+            compute: (a, b) => a * 3,
+            unselectedLuckGain: 6,
+        },
+
+        {
+            formula: "pointVal - modVal * 10",
+            compute: (a, b) => a - b * 10,
+            unselectedLuckGain: 6,
+        },
+        {
+            formula: "pointVal * -4",
+            compute: (a, b) => a * -4,
+            unselectedLuckGain: 6,
+        },
+        {
+            formula: "= 10",
+            compute: (a, b) => 5,
+            unselectedLuckGain: 6
+        },
+    ],
+    rare: [
+        {
+            formula: "(pointVal + modVal) * modVal",
+            compute: (a, b) => (a + b) * b,
+            unselectedLuckGain: 9,
+        },
+        {
+            formula: "(pointVal + modVal) * 3",
+            compute: (a, b) => (a + b) * 3,
+            unselectedLuckGain: 9,
+        },
+        {
+            formula: "pointVal + (modVal * 3)",
+            compute: (a, b) => a + (b * 3),
+            unselectedLuckGain: 9,
+        },
+        {
+            formula: "pointVal * 3 + modVal",
+            compute: (a, b) => (a * 3) + b,
+            unselectedLuckGain: 9,
+        },
+        {
+            formula: "pointVal - modVal^4",
+            compute: (a, b) => a - Math.pow(b, 4),
+            unselectedLuckGain: 9,
+        },
+        {
+            formula: "= 30",
+            compute: (a, b) => 30,
+            unselectedLuckGain: 9
+        },
+    ],
+    epic: [
+        {
+            formula: "pointVal + (modVal + 1)!",
+            compute: (a, b) => a + factorial(b + 1),
+            unselectedLuckGain: 12,
+        },
+        {
+            formula: "pointVal * modVal * 3",
+            compute: (a, b) => a * b * 3,
+            unselectedLuckGain: 12,
+        },
+        {
+            formula: "(pointVal / 2 ) ^ 2 (올림)",
+            compute: (a, b) => Math.pow(Math.ceil(a / 2), 2),
+            unselectedLuckGain: 12,
+        },
+        {
+            formula: "= 60",
+            compute: (a, b) => 60,
+            unselectedLuckGain: 12
+        },
+        {
+            formula: "-(pointVal ^ 4)",
+            compute: (a, b) => -Math.pow(a, 4),
+            unselectedLuckGain: 12,
+        },
+    ],
+    legend: [
+        {
+            formula: "(pointVal+modVal) ^ (modVal/2) (올림)",
+            compute: (a, b) => Math.pow(a + b, Math.ceil(b / 2)),
+            unselectedLuckGain: 15,
+        },
+        {
+            formula: "pointVal + (modVal*5) ^ modVal",
+            compute: (a, b) => a + Math.pow(b * 5, b),
+            unselectedLuckGain: 15,
+        },
+        {
+            formula: "pointVal * (modVal + 3)!",
+            compute: (a, b) => a * factorial(b + 3),
+            unselectedLuckGain: 15,
+        },
+        {
+            formula: "| pointVal ^ 2 |", // 수정 필요
+            compute: (a, b) => Math.abs(Math.pow(a, 2)),
+            unselectedLuckGain: 15,
+        },
+        {
+            formula: "= 2000",
+            compute: (a, b) => 2000,
+            unselectedLuckGain: 11,
+        },
+    ],
+};
+
+// 반전됨 전용 선택지 라이브러리 (하드코드)
+const NEGATIVE_OPTION_LIBRARY = {
+    common: [
+        {
+            formula: "pointVal + modVal", // 수정 필요
+            compute: (a, b) => a + b,
+            unselectedLuckGain: 2,
+        },
+
+        {
+            formula: "pointVal * 2", // 수정 필요
+            compute: (a, b) => a * 2,
+            unselectedLuckGain: 3,
+        },
+
+        {
+            formula: "pointVal - modVal", // 수정 필요
+            compute: (a, b) => a - b,
+            unselectedLuckGain: 4,
+        },
+        {
+            formula: "pointVal * -2", // 수정 필요
+            compute: (a, b) => a * -2,
+            unselectedLuckGain: 4,
+        },
+        {
+            formula: "= 5", // 수정 필요
+            compute: (a, b) => 5,
+            unselectedLuckGain: 4
+        },
+    ],
+    rare: [
+        {
+            formula: "pointVal * modVal", // 수정 필요
+            compute: (a, b) => a * b,
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "(pointVal + modVal) * 2", // 수정 필요
+            compute: (a, b) => (a + b) * 2,
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal + (modVal * 2)", // 수정 필요
+            compute: (a, b) => a + (b * 2),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal * 2 + modVal", // 수정 필요
+            compute: (a, b) => (a * 2) + b,
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal - modVal^3", // 수정 필요
+            compute: (a, b) => a - Math.pow(b, 3),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "= 15", // 수정 필요
+            compute: (a, b) => 15,
+            unselectedLuckGain: 5
+        },
+    ],
+    epic: [
+        {
+            formula: "pointVal + modVal!", // 수정 필요
+            compute: (a, b) => a + factorial(b),
+            unselectedLuckGain: 7,
+        },
+        {
+            formula: "pointVal * modVal * 2", // 수정 필요
+            compute: (a, b) => a * b * 2,
+            unselectedLuckGain: 8,
+        },
+        {
+            formula: "(pointVal / modVal) ^ 2 (올림)", // 수정 필요
+            compute: (a, b) => Math.pow(Math.ceil(a / b), 2),
+            unselectedLuckGain: 8,
+        },
+        {
+            formula: "= 40", // 수정 필요
+            compute: (a, b) => 40,
+            unselectedLuckGain: 8
+        },
+        {
+            formula: "-(pointVal ^ 3)", // 수정 필요
+            compute: (a, b) => -Math.pow(a, 3),
             unselectedLuckGain: 8,
         },
     ],
     legend: [
         {
-            formula: "pointVal ^ (modVal / 2) (올림)",
-            compute: (a, b) => Math.pow(a, Math.ceil(b / 2)),
+            formula: "pointVal/modVal ^ (modVal/2) (올림)", // 수정 필요
+            compute: (a, b) => Math.pow(Math.ceil(a / b), Math.ceil(b / 2)),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal * modVal * modVal",
-            compute: (a, b) => a * b * b,
+            formula: "pointVal + modVal^modVal", // 수정 필요
+            compute: (a, b) => a + Math.pow(b, b),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal * modVal!",
+            formula: "pointVal * modVal!", // 수정 필요
             compute: (a, b) => a * factorial(b),
+            unselectedLuckGain: 11,
+        },
+        {
+            formula: "| pointVal ^ 3 |", // 수정 필요
+            compute: (a, b) => Math.abs(Math.pow(a, 2)),
             unselectedLuckGain: 11,
         },
     ],
 };
+
 // 끝: OPTION_LIBRARY
 
 // ============================================================================
@@ -177,8 +445,18 @@ const els = {
     options: document.getElementById("options"), // 선택지 표시 영역
     footerPanel: document.querySelector(".footer-panel"), // 하단 버튼 영역
     startBtn: document.getElementById("startBtn"), // 게임 시작/주사위 굴리기 버튼
+    muteBtn: document.getElementById("muteBtn"), // 음소거 토글 버튼
     message: document.getElementById("message"), // 게임 메시지
     diceRollSound: document.getElementById("diceRollSound"), // 주사위 굴림 사운드
+    enhancedAppearSound: document.getElementById("enhancedAppearSound"), // 강화 선택지 등장 사운드
+    // modal
+    modal: document.getElementById("modal"),
+    modalMessage: document.getElementById("modalMessage"),
+    modalConfirm: document.getElementById("modalConfirm"),
+    modalCancel: document.getElementById("modalCancel"),
+    confirmButtons: document.getElementById("confirmButtons"),
+    confirmYes: document.getElementById("confirmYes"),
+    confirmNo: document.getElementById("confirmNo"),
     // supabaseBadge: document.getElementById("supabaseBadge"),
 };
 
@@ -196,9 +474,11 @@ const state = {
     options: [], // 현재 턴의 선택 가능한 3개 옵션 (option 객체 배열)
     history: [], // 모든 턴의 결정 기록 (디버깅/통계용)
     phase: "idle", // 게임 상태 머신: idle -> rolling-point -> ... -> finished
+    isMuted: false, // 전체 사운드 음소거 여부
     rollingTarget: null, // 현재 어느 주사위가 굴러가고 있는지 (pointVal or modVal)
     revealTarget: null, // 어느 주사위 결과를 보여주고 있는지 (미리보기 용)
     resolvingOptionId: null, // 선택 결과 적용 중인 옵션의 ID
+    enhancedSoundTimeoutIds: [], // 강화 선택지 등장 사운드 예약 타이머
 };
 
 // ============================================================================
@@ -236,6 +516,20 @@ function formatFormulaWithValues(formula, pointVal, modVal) {
     const modText = modVal === null ? "-" : formatNum(modVal);
 
     return formula.replace(/pointVal/g, pointText).replace(/modVal/g, modText);
+}
+
+/**
+ * 선택지 카드에서 사용할 수식 하이라이트 HTML 생성
+ * - pointVal: 빨간색
+ * - modVal: 파란색
+ */
+function formatFormulaWithHighlights(formula, pointVal, modVal) {
+    const pointText = pointVal === null ? "-" : formatNum(pointVal);
+    const modText = modVal === null ? "-" : formatNum(modVal);
+
+    return formula
+        .replace(/pointVal/g, `<span class="formula-point">${pointText}</span>`)
+        .replace(/modVal/g, `<span class="formula-mod">${modText}</span>`);
 }
 
 /**
@@ -337,10 +631,10 @@ function safeNumber(value) {
  */
 function buildRarityWeights(luck) {
     const base = {
-        common: 56,
-        rare: 28,
-        epic: 12,
-        legend: 4,
+        common: 50,
+        rare: 30,
+        epic: 15,
+        legend: 5,
     };
 
     const effect = Math.max(0, Math.trunc(luck));
@@ -474,8 +768,21 @@ function getAboveChance(weights, rarity) {
  * 4. 완성된 option 객체 반환 (ID, 등급, 공식, 계산함수 등)
  */
 function createOption(weights, usedFormulas = new Set()) {
+    let modifier = null;
+    const seed = Math.random();
+    if (seed < ENHANCED_OPTION_CHANCE) {
+        modifier = "enhanced";
+    } else if (seed < ENHANCED_OPTION_CHANCE + NEGATIVE_OPTION_CHANCE) {
+        modifier = "negative";
+    }
+
+    const activeLibrary = modifier === "negative"
+        ? NEGATIVE_OPTION_LIBRARY
+        : modifier === "enhanced"
+            ? ENHANCED_OPTION_LIBRARY
+            : OPTION_LIBRARY;
     const preferredRarity = pickRarity(weights);
-    const preferredPool = OPTION_LIBRARY[preferredRarity].filter(
+    const preferredPool = activeLibrary[preferredRarity].filter(
         (item) => !usedFormulas.has(item.formula),
     );
 
@@ -488,10 +795,12 @@ function createOption(weights, usedFormulas = new Set()) {
             compute: operation.compute,
             unselectedLuckGain: operation.unselectedLuckGain,
             gauge: getAboveChance(weights, preferredRarity),
+            isNegative: modifier === "negative",
+            isEnhanced: modifier === "enhanced",
         };
     }
 
-    const allAvailable = Object.entries(OPTION_LIBRARY)
+    const allAvailable = Object.entries(activeLibrary)
         .flatMap(([rarity, list]) =>
             list
                 .filter((item) => !usedFormulas.has(item.formula))
@@ -511,6 +820,8 @@ function createOption(weights, usedFormulas = new Set()) {
         compute: operation.compute,
         unselectedLuckGain: operation.unselectedLuckGain,
         gauge: getAboveChance(weights, operation.rarity),
+        isNegative: modifier === "negative",
+        isEnhanced: modifier === "enhanced",
     };
 }
 
@@ -568,6 +879,8 @@ function buildOptions() {
                 compute: fallback.compute,
                 unselectedLuckGain: fallback.unselectedLuckGain,
                 gauge: getAboveChance(weights, "rare"),
+                isNegative: false,
+                isEnhanced: false,
             };
         }
     }
@@ -597,6 +910,128 @@ function wait(ms) {
     return new Promise((resolve) => {
         window.setTimeout(resolve, ms);
     });
+}
+
+/**
+ * 모달 확인 다이얼로그 표시 (Promise 반환)
+ * resolve(true): 확인 버튼 클릭
+ * resolve(false): 취소 버튼 클릭
+ */
+function showConfirmModal(message) {
+    return new Promise((resolve) => {
+        els.modalMessage.textContent = message;
+        els.modal.setAttribute('aria-hidden', 'false');
+        els.modal.classList.add('is-visible');
+
+        let isResolved = false;
+
+        const handleConfirm = () => {
+            if (!isResolved) {
+                isResolved = true;
+                closeModal();
+                cleanup();
+                resolve(true);
+            }
+        };
+
+        const handleCancel = () => {
+            if (!isResolved) {
+                isResolved = true;
+                closeModal();
+                cleanup();
+                resolve(false);
+            }
+        };
+
+        const cleanup = () => {
+            els.modalConfirm.removeEventListener('click', handleConfirm);
+            els.modalCancel.removeEventListener('click', handleCancel);
+            document.removeEventListener('keydown', handleEscape);
+        };
+
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                handleCancel();
+            }
+        };
+
+        els.modalConfirm.addEventListener('click', handleConfirm);
+        els.modalCancel.addEventListener('click', handleCancel);
+        document.addEventListener('keydown', handleEscape);
+    });
+}
+
+/**
+ * 모달 닫기
+ */
+function closeModal() {
+    els.modal.classList.remove('is-visible');
+    els.modal.setAttribute('aria-hidden', 'true');
+}
+
+function applyAudioMuteState(isMuted) {
+    if (els.diceRollSound) {
+        els.diceRollSound.muted = isMuted;
+    }
+
+    if (els.enhancedAppearSound) {
+        els.enhancedAppearSound.muted = isMuted;
+    }
+}
+
+function updateMuteButtonUi() {
+    if (!els.muteBtn) {
+        return;
+    }
+
+    els.muteBtn.setAttribute("aria-pressed", String(state.isMuted));
+    els.muteBtn.textContent = state.isMuted ? "소리 OFF" : "소리 ON";
+}
+
+function setMuted(isMuted) {
+    state.isMuted = isMuted;
+    applyAudioMuteState(isMuted);
+    updateMuteButtonUi();
+}
+
+function playEnhancedAppearSound() {
+    if (!els.enhancedAppearSound) {
+        return;
+    }
+
+    els.enhancedAppearSound.playbackRate = 1.0;
+    els.enhancedAppearSound.currentTime = 0;
+    els.enhancedAppearSound.play().catch(() => {
+        // 사운드 재생 실패해도 게임은 계속 진행
+    });
+}
+
+function clearEnhancedAppearSoundSchedule() {
+    state.enhancedSoundTimeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+    });
+    state.enhancedSoundTimeoutIds = [];
+}
+
+function scheduleEnhancedAppearSounds(options) {
+    clearEnhancedAppearSoundSchedule();
+
+    options.forEach((option, index) => {
+        if (!option.isEnhanced) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            playEnhancedAppearSound();
+        }, index * OPTION_APPEAR_INTERVAL_MS);
+
+        state.enhancedSoundTimeoutIds.push(timeoutId);
+    });
+}
+
+function scheduleNextTurnRoll(delay = 260) {
+    // 1턴 이후는 자동 진행 제거 - 사용자 버튼 클릭 필요
+    // 이 함수는 더 이상 사용되지 않음
 }
 
 /**
@@ -656,6 +1091,8 @@ async function animateDiceRoll(targetKey, duration = 760, tick = 122) {
  * 4. 첫 턴의 modVal 주사위 굴림 준비
  */
 async function startGame() {
+    clearEnhancedAppearSoundSchedule();
+
     state.started = true;
     state.pointVal = null;
     state.modVal = null;
@@ -684,7 +1121,7 @@ async function startGame() {
 
     state.phase = "await-mod-roll";
 
-    els.message.textContent = `초기 시작 값 = ${state.pointVal}. ${state.turn + 1}턴 주사위를 굴려주세요.`;
+    els.message.textContent = `초기 시작 값 = ${state.pointVal}. 1턴 주사위를 굴려보세요.`;
     renderStatus();
 }
 
@@ -734,6 +1171,7 @@ async function rollModValForTurn() {
     state.phase = "await-option";
     els.message.textContent = `${state.turn}턴 주사위 값 = ${state.modVal}. 선택지를 고르세요.`;
     renderStatus();
+    scheduleEnhancedAppearSounds(state.options);
 }
 
 /**
@@ -762,6 +1200,7 @@ async function pickOption(optionIndex) {
 
     state.phase = "resolving-option";
     state.resolvingOptionId = selected.id;
+    clearEnhancedAppearSoundSchedule();
     renderStatus();
     await wait(700);
 
@@ -787,12 +1226,13 @@ async function pickOption(optionIndex) {
         turn: state.turn,
         modVal: state.modVal,
         expression: selected.formula,
+        isEnhanced: Boolean(selected.isEnhanced),
         from: prevPoint,
         to: nextPoint,
         gainedLuck: addedLuck,
     });
 
-    els.message.textContent = `${state.turn}턴: ${selected.formula} 적용 -> ${formatNum(prevPoint)} → ${formatNum(nextPoint)}`;
+    els.message.textContent = `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
 
     if (state.turn >= MAX_TURNS) {
         state.resolvingOptionId = null;
@@ -804,7 +1244,7 @@ async function pickOption(optionIndex) {
     state.options = [];
     state.resolvingOptionId = null;
     state.phase = "await-mod-roll";
-    els.message.textContent += ` | ${state.turn + 1}턴 주사위를 굴려주세요.`;
+    els.message.textContent = `${state.turn + 1}턴 주사위를 굴려보세요.`;
     renderStatus();
 }
 
@@ -830,6 +1270,7 @@ async function skipTurnTakeAllLuck() {
 
     state.phase = "resolving-option";
     state.resolvingOptionId = null;
+    clearEnhancedAppearSoundSchedule();
     renderStatus();
     await wait(700);
 
@@ -844,12 +1285,13 @@ async function skipTurnTakeAllLuck() {
         turn: state.turn,
         modVal: state.modVal,
         expression: "스킵(모든 행운 획득)",
+        isEnhanced: false,
         from: prevPoint,
         to: prevPoint,
         gainedLuck: addedLuck,
     });
 
-    els.message.textContent = `${state.turn}턴: 스킵 선택 -> Luck +${addedLuck}`;
+    els.message.textContent = `스킵을 적용했습니다. Luck +${addedLuck}`;
 
     if (state.turn >= MAX_TURNS) {
         state.resolvingOptionId = null;
@@ -861,7 +1303,7 @@ async function skipTurnTakeAllLuck() {
     state.options = [];
     state.resolvingOptionId = null;
     state.phase = "await-mod-roll";
-    els.message.textContent += ` | ${state.turn + 1}턴 주사위를 굴려주세요.`;
+    els.message.textContent = `${state.turn + 1}턴 주사위를 굴려보세요.`;
     renderStatus();
 }
 
@@ -874,16 +1316,82 @@ async function skipTurnTakeAllLuck() {
  * - 최종 메시지 생성 (히스토리 요약)
  */
 function finishGame() {
+    clearEnhancedAppearSoundSchedule();
+
     state.options = [];
     state.modVal = null;
     state.revealTarget = null;
     state.phase = "finished";
-    const summary = state.history
-        .map((item) => `${item.turn}턴 ${item.expression}`)
-        .join(" / ");
+    const reachedMaxLimit = state.pointVal === SAFE_INT_LIMIT;
+    const reachedMinLimit = state.pointVal === -SAFE_INT_LIMIT;
 
-    els.message.textContent = `게임 종료! 최종 pointVal ${formatNum(state.pointVal)} (${summary || "기록 없음"})`;
+    const finishLabel = reachedMaxLimit
+        ? "최대 한도 달성!"
+        : reachedMinLimit
+            ? "최소 한도 달성!"
+            : "게임 종료!";
+
+    els.message.textContent = `${finishLabel} 최종 pointVal ${formatNum(state.pointVal)}`;
     renderStatus();
+}
+
+async function copyTextToClipboard(text) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.setAttribute("readonly", "");
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+}
+
+function buildShareRecordText() {
+    const finalValue = state.pointVal ?? 0;
+    const finalRecordText = finalValue === SAFE_INT_LIMIT
+        ? "MAX LIMIT!!"
+        : finalValue === -SAFE_INT_LIMIT
+            ? "MIN LIMIT!!"
+            : formatNum(finalValue);
+
+    const lines = [
+        "🎲🎲 Numero 24/7 🎲🎲",
+        "",
+        `Final Record : ${finalRecordText}`,
+        "",
+    ];
+
+    state.history.forEach((item, index) => {
+        const turnHeader = item.isEnhanced ? `Turn ${item.turn} : (Enhanced)` : `Turn ${item.turn} :`;
+        const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
+        lines.push(`${turnHeader} ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)}`);
+        lines.push(`${formulaWithValues} = ${formatNum(item.to)}`);
+        if (index < state.history.length - 1) {
+            lines.push("");
+        }
+    });
+
+    lines.push("");
+    lines.push("Free To Play On");
+    lines.push("https://numerodagame.netlify.app/");
+
+    return lines.join("\n");
+}
+
+async function shareRecord() {
+    try {
+        const text = buildShareRecordText();
+        await copyTextToClipboard(text);
+        els.message.textContent = "공유 텍스트가 클립보드에 복사되었습니다.";
+    } catch {
+        els.message.textContent = "클립보드 복사에 실패했습니다.";
+    }
 }
 
 // ============================================================================
@@ -1020,12 +1528,17 @@ function renderFinishedPanel() {
      * 최종 점수, 순위(미구현) 표시
      */
     const finalValue = state.pointVal === null ? 0 : state.pointVal;
+    const reachedMaxLimit = finalValue === SAFE_INT_LIMIT;
+    const reachedMinLimit = finalValue === -SAFE_INT_LIMIT;
     const topPercentText = "상위 ?%";
 
     els.options.innerHTML = `
             <div class="finished-panel fade-in" role="status" aria-live="polite">
-                <p class="finished-title">게임 종료!</p>
+                ${reachedMinLimit
+            ? '<img class="finished-image" src="./undertaker.jpg" alt="Undertaker">'
+            : `<p class="finished-title">${reachedMaxLimit ? "최대 한도 달성!" : "게임 종료!"}</p>`}
                 <p class="finished-score">최종 값 ${formatNum(finalValue)}</p>
+                <button class="share-btn" type="button" data-action="share-record">공유하기</button>
                 <p class="finished-rank">${topPercentText}</p>
             </div>
         `;
@@ -1088,38 +1601,36 @@ function renderOptions() {
     els.options.innerHTML = state.options
         .map((option, index) => {
             const rarityData = RARITIES[option.rarity];
-            const displayFormula = formatFormulaWithValues(option.formula, state.pointVal, state.modVal);
+            const displayFormula = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal);
             const optionStateClass = state.phase === "resolving-option"
                 ? option.id === state.resolvingOptionId
                     ? "is-selected"
                     : "is-unselected"
                 : "";
             const isDisabled = state.phase === "resolving-option" ? "disabled" : "";
-            const staggerDelayMs = index * 170;
+            const staggerDelayMs = index * OPTION_APPEAR_INTERVAL_MS;
+            const negativeClass = option.isNegative ? "is-negative" : "";
+            const enhancedClass = option.isEnhanced ? "is-enhanced" : "";
+            const modifierTag = option.isNegative
+                ? `<span class="tag tag-negative">반전됨</span>`
+                : option.isEnhanced
+                    ? `<span class="tag tag-enhanced ${rarityData.className}">강화됨</span>`
+                    : "";
             return `
-                <button class="option-btn fade-in rarity-option-${option.rarity} ${optionStateClass}" type="button" data-index="${index}" style="animation-delay:${staggerDelayMs}ms;" ${isDisabled}>
-          <div class="option-gauge">
-            <div class="option-gauge-head">
-              <span>이 등급 이상 다음 확률</span>
-              <strong>${option.gauge}%</strong>
-            </div>
-            <div class="rarity-track">
-              <div class="rarity-fill" style="width:${option.gauge}%; background:${rarityData.color};"></div>
-            </div>
-          </div>
-                                        <p class="option-expression">${displayFormula}</p>
-          <div class="option-meta">
-            <span class="tag ${rarityData.className}">${rarityData.label}</span>
+                <button class="option-btn fade-in rarity-option-${option.rarity} ${negativeClass} ${enhancedClass} ${optionStateClass}" type="button" data-index="${index}" style="animation-delay:${staggerDelayMs}ms;" ${isDisabled}>
+                    <p class="option-expression">${displayFormula}</p>
+                    <div class="option-meta">
+                        <span class="option-tags"><span class="tag ${rarityData.className}">${rarityData.label}</span>${modifierTag}</span>
                         <span>선택 안 하면 Luck +${option.unselectedLuckGain}</span>
-          </div>
-        </button>
-      `;
+                    </div>
+                </button>
+            `;
         })
         .join("");
 
     const skipLuckGain = state.options.reduce((sum, option) => sum + option.unselectedLuckGain, 0) * 2;
     const skipDisabled = state.phase === "resolving-option" ? "disabled" : "";
-    const skipDelayMs = state.options.length * 170 + 120;
+    const skipDelayMs = state.options.length * OPTION_APPEAR_INTERVAL_MS;
 
     els.options.innerHTML += `
             <button class="skip-luck-btn fade-in" type="button" data-action="skip-turn" style="animation-delay:${skipDelayMs}ms;" ${skipDisabled}>
@@ -1143,7 +1654,9 @@ function renderStatus() {
      */
     els.pointVal.textContent = state.pointVal === null ? "-" : formatNum(state.pointVal);
     els.modVal.textContent = state.modVal === null ? "-" : formatNum(state.modVal);
-    els.turnDisplay.textContent = `${state.turn} / ${MAX_TURNS}`;
+    // await-mod-roll 상태에서는 다음 턴을 미리 표시
+    const displayTurn = state.phase === "await-mod-roll" ? state.turn + 1 : state.turn;
+    els.turnDisplay.textContent = `${displayTurn} / ${MAX_TURNS}`;
     els.luckScore.textContent = `Luck ${state.luck}`;
     fitPointValueFont();
     renderCalcHistory();
@@ -1169,10 +1682,11 @@ function renderCalcHistory() {
             const beforeValue = item.from;
             const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
             const resultValue = item.to;
+            const enhancedMark = item.isEnhanced ? ' <span class="tag tag-enhanced">강화됨</span>' : "";
 
             return `
                 <div class="calc-log-item">
-                    <p class="calc-log-row"><strong>${item.turn}턴</strong></p>
+                    <p class="calc-log-row"><strong>${item.turn}턴</strong>${enhancedMark}</p>
                     <p class="calc-log-row">· 굴린 주사위 값: ${formatNum(item.modVal)}</p>
                     <p class="calc-log-row">· 계산 전 현재 값: ${formatNum(beforeValue)}</p>
                     <p class="calc-log-row">· 계산식: ${formulaWithValues}</p>
@@ -1288,6 +1802,12 @@ function bindEvents() {
      */
     els.startBtn.addEventListener("click", () => {
         if (!state.started || state.phase === "finished") {
+            // 게임 끝났을 때: confirmButtons 표시
+            if (state.phase === "finished") {
+                els.startBtn.style.display = "none";
+                els.confirmButtons.style.display = "grid";
+                return;
+            }
             startGame();
             return;
         }
@@ -1297,7 +1817,25 @@ function bindEvents() {
         }
     });
 
+    // 다시 플레이 확인 버튼들
+    els.confirmYes.addEventListener("click", () => {
+        els.confirmButtons.style.display = "none";
+        els.startBtn.style.display = "block";
+        startGame();
+    });
+
+    els.confirmNo.addEventListener("click", () => {
+        els.confirmButtons.style.display = "none";
+        els.startBtn.style.display = "block";
+    });
+
     els.options.addEventListener("click", (event) => {
+        const shareButton = event.target.closest("button[data-action='share-record']");
+        if (shareButton) {
+            shareRecord();
+            return;
+        }
+
         const skipButton = event.target.closest("button[data-action='skip-turn']");
         if (skipButton) {
             skipTurnTakeAllLuck();
@@ -1316,6 +1854,12 @@ function bindEvents() {
 
         pickOption(index);
     });
+
+    if (els.muteBtn) {
+        els.muteBtn.addEventListener("click", () => {
+            setMuted(!state.isMuted);
+        });
+    }
 }
 
 // function bootstrapSupabaseBadge() {
@@ -1327,6 +1871,7 @@ function bindEvents() {
 
 function init() {
     // bootstrapSupabaseBadge();
+    setMuted(false);
     bindEvents();
     bindLuckInfoEvents();
     bindCalcLogEvents();
@@ -1369,7 +1914,7 @@ function renderControl() {
     if (!state.started || state.phase === "finished") {
         els.startBtn.disabled = false;
         els.startBtn.classList.remove("is-hidden");
-        els.startBtn.textContent = state.phase === "finished" ? "다시 시작" : "게임 시작";
+        els.startBtn.textContent = state.phase === "finished" ? "다시 플레이하기" : "게임 시작";
         return;
     }
 
