@@ -79,6 +79,10 @@ body {
     margin: 0;
 }
 
+.luck-head h2 {
+    font-weight: normal;
+}
+
 .eyebrow {
     margin: 0 0 4px;
     font-size: 12px;

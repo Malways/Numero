@@ -82,26 +82,43 @@ const OPTION_LIBRARY = {
         },
 
         {
-            formula: "pointVal * 2",
-            compute: (a, b) => a * 2,
-            unselectedLuckGain: 3,
+            formula: "| pointVal + modVal |",
+            compute: (a, b) => Math.abs(a + b),
+            unselectedLuckGain: 2,
         },
 
         {
-            formula: "pointVal - modVal",
-            compute: (a, b) => a - b,
-            unselectedLuckGain: 4,
+            formula: "pointVal * 2",
+            compute: (a, b) => a * 2,
+            unselectedLuckGain: 2,
+        },
+
+        {
+            formula: "pointVal - modVal*3",
+            compute: (a, b) => a - b * 3,
+            unselectedLuckGain: 2,
         },
         {
-            formula: "pointVal * -2",
-            compute: (a, b) => a * -2,
-            unselectedLuckGain: 4,
+            formula: "pointVal * (-modVal)",
+            compute: (a, b) => a * -b,
+            unselectedLuckGain: 2,
         },
         {
-            formula: "= 5",
-            compute: (a, b) => 5,
-            unselectedLuckGain: 4
+            formula: "= 15",
+            compute: (a, b) => 15,
+            unselectedLuckGain: 2
         },
+        {
+            formula: "= 20 - pointVal",
+            compute: (a, b) => 20 - a,
+            unselectedLuckGain: 2
+        },
+        {
+            formula: "Average of pointVal and pointVal*modVal (올림)",
+            compute: (a, b) => Math.ceil((a + a * b) / 2),
+            unselectedLuckGain: 2
+        },
+
     ],
     rare: [
         {
@@ -110,28 +127,38 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 5,
         },
         {
-            formula: "(pointVal + modVal) * 2",
-            compute: (a, b) => (a + b) * 2,
+            formula: "(pointVal + modVal) * 3",
+            compute: (a, b) => (a + b) * 3,
             unselectedLuckGain: 5,
         },
         {
-            formula: "pointVal + (modVal * 2)",
-            compute: (a, b) => a + (b * 2),
+            formula: "pointVal + (modVal * 3)",
+            compute: (a, b) => a + (b * 3),
             unselectedLuckGain: 5,
         },
         {
-            formula: "pointVal * 2 + modVal",
-            compute: (a, b) => (a * 2) + b,
+            formula: "pointVal * 3 + modVal",
+            compute: (a, b) => (a * 3) + b,
             unselectedLuckGain: 5,
         },
         {
-            formula: "pointVal - modVal^3",
-            compute: (a, b) => a - Math.pow(b, 3),
+            formula: "pointVal - modVal^2",
+            compute: (a, b) => a - Math.pow(b, 2),
             unselectedLuckGain: 5,
         },
         {
-            formula: "= 15",
-            compute: (a, b) => 15,
+            formula: "= 50",
+            compute: (a, b) => 50,
+            unselectedLuckGain: 5
+        },
+        {
+            formula: "pointVal + (100 - modVal * 10)",
+            compute: (a, b) => a + (100 - b * 10),
+            unselectedLuckGain: 5
+        },
+        {
+            formula: "= pointVal - modVal!",
+            compute: (a, b) => a - factorial(b),
             unselectedLuckGain: 5
         },
     ],
@@ -152,36 +179,36 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 8,
         },
         {
-            formula: "= 40",
-            compute: (a, b) => 40,
+            formula: "= 100",
+            compute: (a, b) => 100,
             unselectedLuckGain: 8
         },
         {
-            formula: "-(pointVal ^ 3)",
-            compute: (a, b) => -Math.pow(a, 3),
+            formula: "-(pointVal ^ 2)",
+            compute: (a, b) => -Math.pow(a, 2),
             unselectedLuckGain: 8,
         },
 
     ],
     legend: [
         {
-            formula: "(pointVal / (modVal+3)) ^ (modVal/2) (올림)",
-            compute: (a, b) => Math.pow(Math.ceil(a / (b + 3)), Math.ceil(b / 2)),
+            formula: "(pointVal + modVal) ^ 2",
+            compute: (a, b) => Math.pow(a + b, 2),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal + (modVal + 6) ^ modVal",
-            compute: (a, b) => a + Math.pow(b + 6, b),
+            formula: "pointVal + (modVal + 6) ^ (modVal/2) (올림)",
+            compute: (a, b) => a + Math.pow(b + 6, Math.ceil(b / 2)),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal * (modVal + 1)!",
-            compute: (a, b) => a * factorial(b + 1),
+            formula: "pointVal * (modVal-2)!",
+            compute: (a, b) => a * factorial(b - 2),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal ^ 2",
-            compute: (a, b) => Math.pow(a, 2),
+            formula: "-((pointVal*modVal) ^ 2)",
+            compute: (a, b) => -Math.pow(a * b, 2),
             unselectedLuckGain: 11,
         },
         {
@@ -198,110 +225,138 @@ const ENHANCED_OPTION_LIBRARY = {
         {
             formula: "pointVal + modVal * 2",
             compute: (a, b) => a + b * 2,
-            unselectedLuckGain: 6,
+            unselectedLuckGain: 2,
+        },
+
+        {
+            formula: "| pointVal + modVal * 2 |",
+            compute: (a, b) => Math.abs(a + b * 2),
+            unselectedLuckGain: 2,
         },
 
         {
             formula: "pointVal * 3",
             compute: (a, b) => a * 3,
-            unselectedLuckGain: 6,
+            unselectedLuckGain: 2,
         },
 
         {
-            formula: "pointVal - modVal * 10",
-            compute: (a, b) => a - b * 10,
-            unselectedLuckGain: 6,
+            formula: "pointVal - modVal*5",
+            compute: (a, b) => a - b * 5,
+            unselectedLuckGain: 2,
         },
         {
-            formula: "pointVal * -4",
-            compute: (a, b) => a * -4,
-            unselectedLuckGain: 6,
-        },
-        {
-            formula: "= 10",
-            compute: (a, b) => 5,
-            unselectedLuckGain: 6
-        },
-    ],
-    rare: [
-        {
-            formula: "(pointVal + modVal) * modVal",
-            compute: (a, b) => (a + b) * b,
-            unselectedLuckGain: 9,
-        },
-        {
-            formula: "(pointVal + modVal) * 3",
-            compute: (a, b) => (a + b) * 3,
-            unselectedLuckGain: 9,
-        },
-        {
-            formula: "pointVal + (modVal * 3)",
-            compute: (a, b) => a + (b * 3),
-            unselectedLuckGain: 9,
-        },
-        {
-            formula: "pointVal * 3 + modVal",
-            compute: (a, b) => (a * 3) + b,
-            unselectedLuckGain: 9,
-        },
-        {
-            formula: "pointVal - modVal^4",
-            compute: (a, b) => a - Math.pow(b, 4),
-            unselectedLuckGain: 9,
+            formula: "pointVal * (-(modVal+1))",
+            compute: (a, b) => a * -(b + 1),
+            unselectedLuckGain: 2,
         },
         {
             formula: "= 30",
             compute: (a, b) => 30,
-            unselectedLuckGain: 9
+            unselectedLuckGain: 2
+        },
+        {
+            formula: "= 30 - pointVal",
+            compute: (a, b) => 30 - a,
+            unselectedLuckGain: 2
+        },
+        {
+            formula: "Average of pointVal and pointVal*(modVal+1) (올림)",
+            compute: (a, b) => Math.ceil((a + a * (b + 1)) / 2),
+            unselectedLuckGain: 2
+        },
+
+    ],
+    rare: [
+        {
+            formula: "pointVal * (modVal + 1)",
+            compute: (a, b) => a * (b + 1),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "(pointVal + modVal) * 4",
+            compute: (a, b) => (a + b) * 4,
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal + (modVal * 5)",
+            compute: (a, b) => a + (b * 5),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal * 4 + modVal",
+            compute: (a, b) => (a * 4) + b,
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "pointVal - (modVal+1)^2",
+            compute: (a, b) => a - Math.pow(b + 1, 2),
+            unselectedLuckGain: 5,
+        },
+        {
+            formula: "= 100",
+            compute: (a, b) => 100,
+            unselectedLuckGain: 5
+        },
+        {
+            formula: "pointVal + (150 - modVal * 10)",
+            compute: (a, b) => a + (150 - b * 10),
+            unselectedLuckGain: 5
+        },
+        {
+            formula: "pointVal - (modVal+1)!",
+            compute: (a, b) => a - factorial(b + 1),
+            unselectedLuckGain: 5
         },
     ],
     epic: [
         {
-            formula: "pointVal + (modVal + 1)!",
+            formula: "pointVal + (modVal+1)!",
             compute: (a, b) => a + factorial(b + 1),
-            unselectedLuckGain: 12,
+            unselectedLuckGain: 7,
         },
         {
             formula: "pointVal * modVal * 3",
             compute: (a, b) => a * b * 3,
-            unselectedLuckGain: 12,
+            unselectedLuckGain: 8,
         },
         {
-            formula: "(pointVal / 2 ) ^ 2 (올림)",
-            compute: (a, b) => Math.pow(Math.ceil(a / 2), 2),
-            unselectedLuckGain: 12,
+            formula: "(pointVal-modVal*5) ^ 2 (올림)",
+            compute: (a, b) => Math.pow(Math.ceil((a - b * 5)), 2),
+            unselectedLuckGain: 8,
         },
         {
-            formula: "= 60",
-            compute: (a, b) => 60,
-            unselectedLuckGain: 12
+            formula: "= 200",
+            compute: (a, b) => 200,
+            unselectedLuckGain: 8
         },
         {
-            formula: "-(pointVal ^ 4)",
-            compute: (a, b) => -Math.pow(a, 4),
-            unselectedLuckGain: 12,
+            formula: "-((pointVal + modVal) ^ 2)",
+            compute: (a, b) => -Math.pow(a + b, 2),
+            unselectedLuckGain: 8,
         },
+
     ],
     legend: [
         {
-            formula: "(pointVal+modVal) ^ (modVal/2) (올림)",
-            compute: (a, b) => Math.pow(a + b, Math.ceil(b / 2)),
-            unselectedLuckGain: 15,
+            formula: "(pointVal) ^ (modVal/2) (내림)",
+            compute: (a, b) => Math.pow(a, Math.floor(b / 2)),
+            unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal + (modVal*5) ^ modVal",
-            compute: (a, b) => a + Math.pow(b * 5, b),
-            unselectedLuckGain: 15,
+            formula: "pointVal + (modVal-1) ^ (modVal-1) (올림)",
+            compute: (a, b) => a + Math.pow(b - 1, Math.ceil((b - 1) / 2)),
+            unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal * (modVal + 3)!",
-            compute: (a, b) => a * factorial(b + 3),
-            unselectedLuckGain: 15,
+            formula: "pointVal * (modVal-1)!",
+            compute: (a, b) => a * factorial(b - 1),
+            unselectedLuckGain: 11,
         },
         {
-            formula: "| pointVal ^ 2 |", // 수정 필요
-            compute: (a, b) => Math.abs(Math.pow(a, 2)),
-            unselectedLuckGain: 15,
+            formula: "-((pointVal*(modVal+1)) ^ 2)",
+            compute: (a, b) => -Math.pow(a * (b + 1), 2),
+            unselectedLuckGain: 11,
         },
         {
             formula: "= 2000",
@@ -1227,6 +1282,7 @@ async function pickOption(optionIndex) {
         modVal: state.modVal,
         expression: selected.formula,
         isEnhanced: Boolean(selected.isEnhanced),
+        isNegative: Boolean(selected.isNegative),
         from: prevPoint,
         to: nextPoint,
         gainedLuck: addedLuck,
@@ -1361,27 +1417,29 @@ function buildShareRecordText() {
             : formatNum(finalValue);
 
     const lines = [
-        "🎲🎲 Numero 24/7 🎲🎲",
-        "",
-        `Final Record : ${finalRecordText}`,
+        "🎲🎲 Numero Beta 1.2 🎲🎲",
         "",
     ];
 
     state.history.forEach((item, index) => {
-        const turnHeader = item.isEnhanced ? `Turn ${item.turn} : (Enhanced)` : `Turn ${item.turn} :`;
         const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
-        lines.push(`${turnHeader} ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)}`);
+        lines.push(`Turn ${item.turn} :  ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)}`);
         lines.push(`${formulaWithValues} = ${formatNum(item.to)}`);
-        if (index < state.history.length - 1) {
-            lines.push("");
+        if (item.isEnhanced) {
+            lines.push("(Enhanced)");
         }
+        if (item.isNegative) {
+            lines.push("(Negative)");
+        }
+        lines.push("");
     });
 
+    lines.push(`🔥 Final Record : ${finalRecordText} 🔥`);
     lines.push("");
     lines.push("Free To Play On");
     lines.push("https://numerodagame.netlify.app/");
 
-    return lines.join("\n");
+    return lines.join("\n").replaceAll("*", "x");
 }
 
 async function shareRecord() {
