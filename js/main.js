@@ -2009,7 +2009,7 @@ function buildShareRecordText() {
     lines.push(`🔥 Final Record : ${finalRecordText} 🔥`);
     lines.push("");
     lines.push("Free to play now!");
-    lines.push("https://numerodagame.netlify.app/");
+    lines.push("https://numerobeta.netlify.app/");
 
     return lines.join("\n").replaceAll("*", "x");
 }
