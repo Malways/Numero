@@ -13,6 +13,8 @@ const SAFE_INT_LIMIT = Number.MAX_SAFE_INTEGER; // 오버플로우 방지용 최
 const NEGATIVE_OPTION_CHANCE = 0; // 네거티브 선택지 등장 확률 (코더가 조정 가능)
 const ENHANCED_OPTION_CHANCE = 0.15; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
 const OPTION_APPEAR_INTERVAL_MS = 400; // 선택지 순차 등장 간격
+const PERK_CHOICE_COUNT = 3; // 표시할 특성 카드 수
+const DEFAULT_AUDIO_VOLUME = 0.25; // 초기 볼륨 25%
 // 9,007,199,254,740,991이 최대값
 /**
  * 팩토리얼 계산 함수 (특급 및 전설 옵션에서 사용)
@@ -78,45 +80,45 @@ const OPTION_LIBRARY = {
         {
             formula: "pointVal + modVal",
             compute: (a, b) => a + b,
-            unselectedLuckGain: 2,
+            unselectedLuckGain: 4,
         },
 
         {
             formula: "| pointVal + modVal |",
             compute: (a, b) => Math.abs(a + b),
-            unselectedLuckGain: 2,
+            unselectedLuckGain: 4,
         },
 
         {
             formula: "pointVal * 2",
             compute: (a, b) => a * 2,
-            unselectedLuckGain: 2,
+            unselectedLuckGain: 4,
         },
 
         {
-            formula: "pointVal - modVal*3",
+            formula: "pointVal - modVal * 3",
             compute: (a, b) => a - b * 3,
-            unselectedLuckGain: 2,
+            unselectedLuckGain: 4,
         },
         {
-            formula: "pointVal * (-modVal)",
+            formula: "pointVal * ( -modVal )",
             compute: (a, b) => a * -b,
-            unselectedLuckGain: 2,
+            unselectedLuckGain: 4,
         },
         {
             formula: "= 15",
             compute: (a, b) => 15,
-            unselectedLuckGain: 2
+            unselectedLuckGain: 4
         },
         {
             formula: "= 20 - pointVal",
             compute: (a, b) => 20 - a,
-            unselectedLuckGain: 2
+            unselectedLuckGain: 4
         },
         {
-            formula: "Average of pointVal and pointVal*modVal (올림)",
+            formula: "(pointVal + pointVal * modVal) / 2 (올림)",
             compute: (a, b) => Math.ceil((a + a * b) / 2),
-            unselectedLuckGain: 2
+            unselectedLuckGain: 4
         },
 
     ],
@@ -192,13 +194,13 @@ const OPTION_LIBRARY = {
     ],
     legend: [
         {
-            formula: "(pointVal + modVal) ^ 2",
-            compute: (a, b) => Math.pow(a + b, 2),
+            formula: "(pointVal/modVal) ^ 2",
+            compute: (a, b) => Math.pow(a / b, 2),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal + (modVal + 6) ^ (modVal/2) (올림)",
-            compute: (a, b) => a + Math.pow(b + 6, Math.ceil(b / 2)),
+            formula: "pointVal + (modVal-1) ^ (modVal-1)",
+            compute: (a, b) => a + Math.pow(b - 1, b - 1),
             unselectedLuckGain: 11,
         },
         {
@@ -261,7 +263,7 @@ const ENHANCED_OPTION_LIBRARY = {
             unselectedLuckGain: 2
         },
         {
-            formula: "Average of pointVal and pointVal*(modVal+1) (올림)",
+            formula: "(pointVal + pointVal * (modVal + 1)) / 2 (올림)",
             compute: (a, b) => Math.ceil((a + a * (b + 1)) / 2),
             unselectedLuckGain: 2
         },
@@ -321,7 +323,7 @@ const ENHANCED_OPTION_LIBRARY = {
             unselectedLuckGain: 8,
         },
         {
-            formula: "(pointVal-modVal*5) ^ 2 (올림)",
+            formula: "( pointVal - modVal * 5) ^ 2 (올림)",
             compute: (a, b) => Math.pow(Math.ceil((a - b * 5)), 2),
             unselectedLuckGain: 8,
         },
@@ -339,13 +341,13 @@ const ENHANCED_OPTION_LIBRARY = {
     ],
     legend: [
         {
-            formula: "(pointVal) ^ (modVal/2) (내림)",
-            compute: (a, b) => Math.pow(a, Math.floor(b / 2)),
+            formula: "(pointVal) ^ (3)",
+            compute: (a, b) => Math.pow(a, Math.floor(3)),
             unselectedLuckGain: 11,
         },
         {
-            formula: "pointVal + (modVal-1) ^ (modVal-1) (올림)",
-            compute: (a, b) => a + Math.pow(b - 1, Math.ceil((b - 1) / 2)),
+            formula: "pointVal + (modVal-1) ^ (modVal-1)",
+            compute: (a, b) => a + Math.pow(b - 1, (b - 1)),
             unselectedLuckGain: 11,
         },
         {
@@ -483,16 +485,88 @@ const NEGATIVE_OPTION_LIBRARY = {
 // 끝: OPTION_LIBRARY
 
 // ============================================================================
+// 3-1. 특성 라이브러리 (PERK_LIB)
+// ============================================================================
+// 기능 효과는 이후 구현 예정: 현재는 선택 UI/템플릿만 제공합니다.
+const PERK_LIB = [
+    {
+        id: "perk-clover",
+        name: "네잎클로버",
+        description: "게임 시작 전 20의 행운을 가지고 시작합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(213, 246, 239, 0.92), rgba(247, 255, 253, 0.96))",
+        glitterColor: "rgba(126, 238, 198, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#1c3436",
+        applyTemplate: (gameState) => {
+            gameState.luck = 20;
+        },
+    },
+    {
+        id: "perk-exchange",
+        name: "등가교환",
+        description: "매 턴이 끝날 때 행운을 절반으로 만들고, 그만큼 값에 더합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(210, 232, 255, 0.92), rgba(245, 251, 255, 0.96))",
+        glitterColor: "rgba(143, 201, 255, 1)",
+        glitterIntensity: 0.68,
+        textColor: "#1d2f45",
+        applyTemplate: (_gameState) => {
+            // TODO: 특전 효과 구현 예정
+        },
+    },
+    {
+        id: "perk-vento-aureo",
+        name: "황금의 바람",
+        description: "전설 특전이 등장할 때마다 값이 1.5배가 됩니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(244, 233, 179, 0.94), rgba(255, 250, 240, 0.97))",
+        glitterColor: "rgba(229,169,79, 1)",
+        glitterIntensity: 0.8,
+        textColor: "#463615",
+        applyTemplate: (_gameState) => {
+            // TODO: 특전 효과 구현 예정
+        },
+    },
+    {
+        id: "perk-67",
+        name: "67",
+        description: "주사위 숫자가 6이 나왔다면 7로 대체합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(224, 216, 255, 0.93), rgba(248, 246, 255, 0.97))",
+        glitterColor: "rgba(176, 150, 255, 1)",
+        glitterIntensity: 0.78,
+        textColor: "#2f2450",
+        applyTemplate: (_gameState) => {
+            // TODO: 특전 효과 구현 예정
+        },
+    },
+    {
+        id: "perk-reverse",
+        name: "술식 반전",
+        description: "매 턴마다 현재 값의 부호를 반전시킵니다.",
+        backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
+        glitterColor: "rgba(255, 255, 255, 0.9)",
+        glitterIntensity: 0.55,
+        textColor: "#f2f2f2",
+        applyTemplate: (_gameState) => {
+            // TODO: 특전 효과 구현 예정
+        },
+    },
+];
+
+// ============================================================================
 // 4. DOM 요소 캐시 (els)
 // ============================================================================
 // 게임 화면의 주요 HTML 요소들을 JavaScript에서 쉽게 접근할 수 있도록 미리 저장
 const els = {
+    phoneFrame: document.querySelector(".phone-frame"), // 기기 프레임 (데스크탑 중앙 정렬 보정용)
     pointVal: document.getElementById("pointVal"), // 현재 점수 표시
     modVal: document.getElementById("modVal"), // 현재 턴의 주사위 값
     turnDisplay: document.getElementById("turnDisplay"), // 턴 진행 상황 (n/5)
     luckScore: document.getElementById("luckScore"), // 행운값 표시
     luckInfoBtn: document.getElementById("luckInfoBtn"), // 행운값 설명 버튼
     luckInfoFloat: document.getElementById("luckInfoFloat"), // 행운값 설명 팝업
+    perkBadgeBtn: document.getElementById("perkBadgeBtn"), // 특성 배지 버튼
+    perkBadgeFloat: document.getElementById("perkBadgeFloat"), // 특성 설명 팝업
+    perkBadgeTitle: document.getElementById("perkBadgeTitle"), // 특성 제목
+    perkBadgeDesc: document.getElementById("perkBadgeDesc"), // 특성 설명
     calcLogBtn: document.getElementById("calcLogBtn"), // 계산 기록 버튼
     calcLogFloat: document.getElementById("calcLogFloat"), // 계산 기록 플로팅
     calcLogList: document.getElementById("calcLogList"), // 계산 기록 목록
@@ -500,10 +574,14 @@ const els = {
     options: document.getElementById("options"), // 선택지 표시 영역
     footerPanel: document.querySelector(".footer-panel"), // 하단 버튼 영역
     startBtn: document.getElementById("startBtn"), // 게임 시작/주사위 굴리기 버튼
-    muteBtn: document.getElementById("muteBtn"), // 음소거 토글 버튼
+    settingsBtn: document.getElementById("settingsBtn"), // 설정 패널 토글 버튼
+    settingsFloat: document.getElementById("settingsFloat"), // 설정 패널
+    audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
+    audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     message: document.getElementById("message"), // 게임 메시지
     diceRollSound: document.getElementById("diceRollSound"), // 주사위 굴림 사운드
     enhancedAppearSound: document.getElementById("enhancedAppearSound"), // 강화 선택지 등장 사운드
+    perkActivateSound: document.getElementById("perkActivateSound"), // 특성 발동 사운드
     // modal
     modal: document.getElementById("modal"),
     modalMessage: document.getElementById("modalMessage"),
@@ -527,13 +605,19 @@ const state = {
     turn: 0, // 현재 턴 번호 (1~5)
     luck: 0, // 누적 행운값 (0 이상, 확률 변화에 영향)
     options: [], // 현재 턴의 선택 가능한 3개 옵션 (option 객체 배열)
+    perkChoices: [], // 현재 표시 중인 특성 후보 3개
+    selectedPerkId: null, // 선택된 특성 ID
     history: [], // 모든 턴의 결정 기록 (디버깅/통계용)
-    phase: "idle", // 게임 상태 머신: idle -> rolling-point -> ... -> finished
-    isMuted: false, // 전체 사운드 음소거 여부
+    phase: "perk-select", // 게임 상태 머신: perk-select -> rolling-point -> ... -> finished
+    audioVolume: DEFAULT_AUDIO_VOLUME, // 현재 볼륨 (0~1)
     rollingTarget: null, // 현재 어느 주사위가 굴러가고 있는지 (pointVal or modVal)
     revealTarget: null, // 어느 주사위 결과를 보여주고 있는지 (미리보기 용)
     resolvingOptionId: null, // 선택 결과 적용 중인 옵션의 ID
     enhancedSoundTimeoutIds: [], // 강화 선택지 등장 사운드 예약 타이머
+    ventoEffectTimeoutIds: [], // 황금의 선풍 효과 예약 타이머
+    optionPredictionsReady: true, // 예상 결과 표시 가능 여부
+    perk67Previewing: false, // perk-67 발동 시 주사위 눈 전환 중 여부
+    audioWarmedUp: false, // 첫 사용자 입력에서 오디오 워밍업 여부
 };
 
 // ============================================================================
@@ -562,6 +646,30 @@ function formatNum(value) {
     return integerValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function formatExponentNotation(formula) {
+    return formula.replace(
+        /(\([^()]+\)|[^\s]+)\s*\^\s*(\([^()]+\)|[^\s)]+)/g,
+        "$1<sup>$2</sup>",
+    );
+}
+
+function formatFractionNotation(formula) {
+    const fractionMatch = formula.match(/^\((.+)\)\s*\/\s*([^\s]+)(.*)$/);
+
+    if (!fractionMatch) {
+        return formatExponentNotation(formula);
+    }
+
+    const [, numerator, denominator, suffix] = fractionMatch;
+
+    return `
+        <span class="formula-fraction">
+            <span class="formula-fraction-top">${formatExponentNotation(numerator)}</span>
+            <span class="formula-fraction-bottom">${formatExponentNotation(denominator)}</span>
+        </span>${suffix}
+    `.trim();
+}
+
 /**
  * 선택지 수식을 실제 값으로 치환해서 표시
  * 예: "pointVal + modVal" + pointVal=100, modVal=5 -> "100 + 5"
@@ -570,7 +678,18 @@ function formatFormulaWithValues(formula, pointVal, modVal) {
     const pointText = pointVal === null ? "-" : formatNum(pointVal);
     const modText = modVal === null ? "-" : formatNum(modVal);
 
-    return formula.replace(/pointVal/g, pointText).replace(/modVal/g, modText);
+    return formatFractionNotation(formula)
+        .replace(/pointVal/g, pointText)
+        .replace(/modVal/g, modText);
+}
+
+function formatFormulaWithValuesPlain(formula, pointVal, modVal) {
+    const pointText = pointVal === null ? "-" : formatNum(pointVal);
+    const modText = modVal === null ? "-" : formatNum(modVal);
+
+    return formula
+        .replace(/pointVal/g, pointText)
+        .replace(/modVal/g, modText);
 }
 
 /**
@@ -582,7 +701,7 @@ function formatFormulaWithHighlights(formula, pointVal, modVal) {
     const pointText = pointVal === null ? "-" : formatNum(pointVal);
     const modText = modVal === null ? "-" : formatNum(modVal);
 
-    return formula
+    return formatFractionNotation(formula)
         .replace(/pointVal/g, `<span class="formula-point">${pointText}</span>`)
         .replace(/modVal/g, `<span class="formula-mod">${modText}</span>`);
 }
@@ -776,6 +895,116 @@ function pickRarity(weights) {
  */
 function randomOf(list) {
     return list[Math.floor(Math.random() * list.length)];
+}
+
+function withAlpha(color, alpha) {
+    const match = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+)?\s*\)/i);
+    if (!match) {
+        return color;
+    }
+
+    return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`;
+}
+
+function createPerkChoices(count = PERK_CHOICE_COUNT) {
+    const pool = [...PERK_LIB];
+    const choices = [];
+
+    while (pool.length && choices.length < count) {
+        const index = Math.floor(Math.random() * pool.length);
+        choices.push(pool[index]);
+        pool.splice(index, 1);
+    }
+
+    return choices;
+}
+
+function getSelectedPerk() {
+    if (!state.selectedPerkId) {
+        return null;
+    }
+
+    return state.perkChoices.find((perk) => perk.id === state.selectedPerkId) ?? null;
+}
+
+function recordPerkSelectionHistory(perk) {
+    if (!perk) {
+        return;
+    }
+
+    state.history.push({
+        kind: "perk-selection",
+        perkId: perk.id,
+        perkName: perk.name,
+        perkDescription: perk.description,
+    });
+}
+
+function recordPerkActivationHistory(perk, detail) {
+    if (!perk) {
+        return;
+    }
+
+    state.history.push({
+        kind: "perk-activation",
+        perkId: perk.id,
+        perkName: perk.name,
+        detail,
+    });
+}
+
+function applyPerkBeforeInitialRoll() {
+    const selectedPerk = getSelectedPerk();
+    if (!selectedPerk || selectedPerk.id !== "perk-clover") {
+        return false;
+    }
+
+    selectedPerk.applyTemplate(state);
+    recordPerkActivationHistory(selectedPerk, `Luck을 ${state.luck}으로 변경`);
+    triggerPerkBadgeActivationFeedback();
+    return true;
+}
+
+function applyPerkAfterTurnResolved() {
+    const selectedPerk = getSelectedPerk();
+    if (!selectedPerk) {
+        return null;
+    }
+
+    if (selectedPerk.id === "perk-exchange") {
+        const prevPoint = state.pointVal ?? 0;
+        const prevLuck = Math.max(0, Math.trunc(state.luck));
+        const halvedLuck = Math.floor(prevLuck / 2);
+        const addedPoint = halvedLuck;
+
+        state.luck = halvedLuck;
+        state.pointVal = safeNumber((state.pointVal ?? 0) + addedPoint);
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: Luck ${formatNum(prevLuck)} -> ${formatNum(halvedLuck)}, 값 +${formatNum(addedPoint)}`,
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 +${formatNum(addedPoint)}`);
+        triggerPerkBadgeActivationFeedback();
+        return selectedPerk.name;
+    }
+
+    if (selectedPerk.id === "perk-reverse") {
+        const prevPoint = state.pointVal ?? 0;
+        const reversedPoint = safeNumber(prevPoint * -1);
+
+        state.pointVal = reversedPoint;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(reversedPoint)} (부호 반전됨)`,
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "부호 반전됨");
+        triggerPerkBadgeActivationFeedback();
+        return selectedPerk.name;
+    }
+
+    return null;
 }
 
 // ============================================================================
@@ -1024,29 +1253,92 @@ function closeModal() {
     els.modal.setAttribute('aria-hidden', 'true');
 }
 
-function applyAudioMuteState(isMuted) {
+function applyAudioVolumeState(volume) {
+    const safeVolume = clamp(volume, 0, 1);
+    const isMuted = safeVolume === 0;
+
     if (els.diceRollSound) {
+        els.diceRollSound.volume = safeVolume;
         els.diceRollSound.muted = isMuted;
     }
 
     if (els.enhancedAppearSound) {
+        els.enhancedAppearSound.volume = safeVolume;
         els.enhancedAppearSound.muted = isMuted;
+    }
+
+    if (els.perkActivateSound) {
+        els.perkActivateSound.volume = safeVolume;
+        els.perkActivateSound.muted = isMuted;
     }
 }
 
-function updateMuteButtonUi() {
-    if (!els.muteBtn) {
+function updateVolumeButtonUi() {
+    const percent = Math.round(clamp(state.audioVolume, 0, 1) * 100);
+
+    if (els.audioVolumeLabel) {
+        els.audioVolumeLabel.textContent = `소리 ${percent}%`;
+    }
+
+    if (!els.audioVolumeSlider) {
         return;
     }
 
-    els.muteBtn.setAttribute("aria-pressed", String(state.isMuted));
-    els.muteBtn.textContent = state.isMuted ? "소리 OFF" : "소리 ON";
+    els.audioVolumeSlider.value = String(percent);
 }
 
-function setMuted(isMuted) {
-    state.isMuted = isMuted;
-    applyAudioMuteState(isMuted);
-    updateMuteButtonUi();
+function setAudioVolume(volume) {
+    state.audioVolume = clamp(volume, 0, 1);
+    applyAudioVolumeState(state.audioVolume);
+    updateVolumeButtonUi();
+}
+
+function setSettingsOpen(isOpen) {
+    if (!els.settingsBtn || !els.settingsFloat) {
+        return;
+    }
+
+    els.settingsBtn.setAttribute("aria-expanded", String(isOpen));
+    els.settingsFloat.setAttribute("aria-hidden", String(!isOpen));
+    els.settingsFloat.classList.toggle("is-open", isOpen);
+}
+
+function bindSettingsEvents() {
+    if (!els.settingsBtn || !els.settingsFloat) {
+        return;
+    }
+
+    setSettingsOpen(false);
+
+    els.settingsBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isOpen = els.settingsFloat.classList.contains("is-open");
+        setSettingsOpen(!isOpen);
+    });
+
+    els.settingsFloat.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
+    if (els.audioVolumeSlider) {
+        els.audioVolumeSlider.addEventListener("input", (event) => {
+            const nextPercent = Number(event.target.value);
+            if (Number.isNaN(nextPercent)) {
+                return;
+            }
+            setAudioVolume(nextPercent / 100);
+        });
+    }
+
+    document.addEventListener("click", () => {
+        setSettingsOpen(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            setSettingsOpen(false);
+        }
+    });
 }
 
 function playEnhancedAppearSound() {
@@ -1061,15 +1353,80 @@ function playEnhancedAppearSound() {
     });
 }
 
+function playPerkActivateSound() {
+    if (!els.perkActivateSound) {
+        return;
+    }
+
+    els.perkActivateSound.playbackRate = 1.0;
+    els.perkActivateSound.currentTime = 0;
+    els.perkActivateSound.play().catch(() => {
+        // 사운드 재생 실패해도 게임은 계속 진행
+    });
+}
+
+function warmupAudioElement(audioEl) {
+    if (!audioEl) {
+        return;
+    }
+
+    const prevMuted = audioEl.muted;
+    const prevVolume = audioEl.volume;
+
+    audioEl.muted = true;
+    audioEl.volume = 0;
+
+    const restore = () => {
+        audioEl.pause();
+        try {
+            audioEl.currentTime = 0;
+        } catch {
+            // 브라우저가 currentTime 설정을 막아도 볼륨/뮤트는 복원
+        }
+        audioEl.volume = prevVolume;
+        audioEl.muted = prevMuted;
+    };
+
+    const playPromise = audioEl.play();
+    if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(restore).catch(() => {
+            audioEl.volume = prevVolume;
+            audioEl.muted = prevMuted;
+        });
+        return;
+    }
+
+    restore();
+}
+
+function warmupAudioOnFirstGesture() {
+    if (state.audioWarmedUp) {
+        return;
+    }
+
+    state.audioWarmedUp = true;
+    warmupAudioElement(els.diceRollSound);
+    warmupAudioElement(els.enhancedAppearSound);
+    warmupAudioElement(els.perkActivateSound);
+}
+
 function clearEnhancedAppearSoundSchedule() {
     state.enhancedSoundTimeoutIds.forEach((timeoutId) => {
         window.clearTimeout(timeoutId);
     });
     state.enhancedSoundTimeoutIds = [];
+
+    state.ventoEffectTimeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+    });
+    state.ventoEffectTimeoutIds = [];
+    state.optionPredictionsReady = true;
 }
 
 function scheduleEnhancedAppearSounds(options) {
     clearEnhancedAppearSoundSchedule();
+    const selectedPerk = getSelectedPerk();
+    const isVentoAureo = selectedPerk?.id === "perk-vento-aureo";
 
     options.forEach((option, index) => {
         if (!option.isEnhanced) {
@@ -1077,11 +1434,91 @@ function scheduleEnhancedAppearSounds(options) {
         }
 
         const timeoutId = window.setTimeout(() => {
+            if (isVentoAureo && option.rarity === "legend") {
+                return;
+            }
             playEnhancedAppearSound();
         }, index * OPTION_APPEAR_INTERVAL_MS);
 
         state.enhancedSoundTimeoutIds.push(timeoutId);
     });
+}
+
+function refreshOptionPredictedValueLabels() {
+    if (!els.options || !state.options.length) {
+        return;
+    }
+
+    const shouldShowPredictedValue = state.optionPredictionsReady || state.phase !== "await-option";
+    const predictedValueElements = els.options.querySelectorAll(".option-predicted-value");
+
+    predictedValueElements.forEach((element, index) => {
+        const option = state.options[index];
+        if (!option) {
+            return;
+        }
+
+        if (!shouldShowPredictedValue) {
+            element.textContent = "예상 결과 계산 중...";
+            return;
+        }
+
+        const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal));
+        element.textContent = `예상 결과 ${formatNum(predictedValue)}`;
+    });
+}
+
+function refreshPointValueAndHistoryUi() {
+    if (els.pointVal) {
+        els.pointVal.textContent = state.pointVal === null ? "-" : formatNum(state.pointVal);
+        fitPointValueFont();
+    }
+
+    renderCalcHistory();
+}
+
+function scheduleVentoAureoEffects(options) {
+    const selectedPerk = getSelectedPerk();
+    if (!selectedPerk || selectedPerk.id !== "perk-vento-aureo") {
+        return;
+    }
+
+    state.optionPredictionsReady = false;
+
+    const legendIndexes = options
+        .map((option, index) => (option.rarity === "legend" ? index : -1))
+        .filter((index) => index >= 0);
+
+    legendIndexes.forEach((index) => {
+        const timeoutId = window.setTimeout(() => {
+            if (state.phase !== "await-option") {
+                return;
+            }
+
+            const prevPoint = state.pointVal ?? 0;
+            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.5);
+            recordPerkActivationHistory(
+                selectedPerk,
+                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
+            );
+            refreshPointValueAndHistoryUi();
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.5");
+            triggerPerkBadgeActivationFeedback(true);
+        }, index * OPTION_APPEAR_INTERVAL_MS);
+
+        state.ventoEffectTimeoutIds.push(timeoutId);
+    });
+
+    const revealCompleteTimeoutId = window.setTimeout(() => {
+        if (state.phase !== "await-option") {
+            return;
+        }
+
+        state.optionPredictionsReady = true;
+        refreshOptionPredictedValueLabels();
+    }, options.length * OPTION_APPEAR_INTERVAL_MS);
+
+    state.ventoEffectTimeoutIds.push(revealCompleteTimeoutId);
 }
 
 function scheduleNextTurnRoll(delay = 260) {
@@ -1146,6 +1583,13 @@ async function animateDiceRoll(targetKey, duration = 760, tick = 122) {
  * 4. 첫 턴의 modVal 주사위 굴림 준비
  */
 async function startGame() {
+    if (!state.selectedPerkId) {
+        state.phase = "perk-select";
+        els.message.textContent = "특성을 선택하세요";
+        renderStatus();
+        return;
+    }
+
     clearEnhancedAppearSoundSchedule();
 
     state.started = true;
@@ -1155,9 +1599,18 @@ async function startGame() {
     state.luck = 0;
     state.options = [];
     state.history = [];
+    state.optionPredictionsReady = true;
     state.phase = "rolling-point";
 
-    els.message.textContent = "초기 시작 값 주사위를 굴리는 중...";
+    const confirmedPerk = getSelectedPerk();
+    updatePerkBadge(confirmedPerk);
+    recordPerkSelectionHistory(confirmedPerk);
+
+    const didActivatePerk = applyPerkBeforeInitialRoll();
+
+    els.message.textContent = didActivatePerk
+        ? `특성 발동! 네잎클로버로 Luck ${state.luck}. 초기 시작 값 주사위를 굴리는 중...`
+        : "초기 시작 값 주사위를 굴리는 중...";
     renderStatus();
 
     await animateDiceRoll("pointVal");
@@ -1166,18 +1619,81 @@ async function startGame() {
     state.phase = "rolled-point-preview";
     els.message.textContent = `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
     renderStatus();
-    await wait(1000);
+
+    const perk67point = getSelectedPerk();
+    const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
+    if (shouldActivate67point) {
+        await wait(250);
+        if (state.phase !== "rolled-point-preview") {
+            return;
+        }
+        state.perk67Previewing = true;
+        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`);
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
+        renderStatus();
+        await wait(1000);
+        await wait(250);
+    } else {
+        await wait(1000);
+    }
 
     if (state.phase !== "rolled-point-preview") {
         return;
     }
 
+    if (state.perk67Previewing) {
+        const prevPoint = state.pointVal;
+        state.pointVal = 7;
+        triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, "주사위 6 -> 7 적용");
+        state.perk67Previewing = false;
+    }
+
     state.revealTarget = null;
 
     state.phase = "await-mod-roll";
-
     els.message.textContent = `초기 시작 값 = ${state.pointVal}. 1턴 주사위를 굴려보세요.`;
     renderStatus();
+}
+
+function preparePerkSelection() {
+    clearEnhancedAppearSoundSchedule();
+
+    state.started = false;
+    state.pointVal = null;
+    state.modVal = null;
+    state.turn = 0;
+    state.luck = 0;
+    state.options = [];
+    state.history = [];
+    state.rollingTarget = null;
+    state.revealTarget = null;
+    state.resolvingOptionId = null;
+    state.optionPredictionsReady = true;
+    state.selectedPerkId = null;
+    state.perk67Previewing = false;
+    state.perkChoices = createPerkChoices();
+    state.phase = "perk-select";
+    updatePerkBadge(null);
+
+    els.message.textContent = "첫 주사위를 굴리기 전에 특성을 선택하세요.";
+    renderStatus();
+}
+
+function selectPerk(perkIndex) {
+    if (state.started || state.phase !== "perk-select") {
+        return;
+    }
+
+    const selectedPerk = state.perkChoices[perkIndex];
+    if (!selectedPerk) {
+        return;
+    }
+
+    state.selectedPerkId = selectedPerk.id;
+    els.message.textContent = `특성 '${selectedPerk.name}'을(를) 선택했습니다. 게임 시작 버튼을 눌러 진행하세요.`;
+    updatePerkSelectionHighlight();
+    renderControl();
 }
 
 /**
@@ -1214,19 +1730,44 @@ async function rollModValForTurn() {
     state.phase = "rolled-mod-preview";
     els.message.textContent = `${state.turn}턴 주사위 값 = ${state.modVal}. 주사위를 확인하세요.`;
     renderStatus();
-    await wait(1000);
+
+    const perk67 = getSelectedPerk();
+    const shouldActivate67 = state.modVal === 6 && perk67?.id === "perk-67";
+    if (shouldActivate67) {
+        await wait(250);
+        if (state.phase !== "rolled-mod-preview") {
+            return;
+        }
+        state.perk67Previewing = true;
+        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 6 → 7로 변경`);
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
+        renderStatus();
+        await wait(1000); // 스핀 애니메이션 1초
+        await wait(250); // 결과 확인 0.25초
+    } else {
+        await wait(1000);
+    }
 
     if (state.phase !== "rolled-mod-preview") {
         return;
     }
 
+    if (state.perk67Previewing) {
+        state.modVal = 7;
+        state.perk67Previewing = false;
+    }
+
     state.revealTarget = null;
 
     state.options = buildOptions();
+    const selectedPerk = getSelectedPerk();
+    state.optionPredictionsReady = selectedPerk?.id !== "perk-vento-aureo";
     state.phase = "await-option";
     els.message.textContent = `${state.turn}턴 주사위 값 = ${state.modVal}. 선택지를 고르세요.`;
     renderStatus();
     scheduleEnhancedAppearSounds(state.options);
+    scheduleVentoAureoEffects(state.options);
 }
 
 /**
@@ -1288,7 +1829,10 @@ async function pickOption(optionIndex) {
         gainedLuck: addedLuck,
     });
 
-    els.message.textContent = `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
+    const activatedPerkName = applyPerkAfterTurnResolved();
+    els.message.textContent = activatedPerkName
+        ? `선택이 적용되었습니다. ${activatedPerkName} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+        : `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
 
     if (state.turn >= MAX_TURNS) {
         state.resolvingOptionId = null;
@@ -1347,7 +1891,10 @@ async function skipTurnTakeAllLuck() {
         gainedLuck: addedLuck,
     });
 
-    els.message.textContent = `스킵을 적용했습니다. Luck +${addedLuck}`;
+    const activatedPerkName = applyPerkAfterTurnResolved();
+    els.message.textContent = activatedPerkName
+        ? `스킵 적용 후 ${activatedPerkName} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+        : `스킵을 적용했습니다. Luck +${addedLuck}`;
 
     if (state.turn >= MAX_TURNS) {
         state.resolvingOptionId = null;
@@ -1382,10 +1929,10 @@ function finishGame() {
     const reachedMinLimit = state.pointVal === -SAFE_INT_LIMIT;
 
     const finishLabel = reachedMaxLimit
-        ? "최대 한도 달성!"
+        ? "최대 한도 달성! (Overflow)"
         : reachedMinLimit
-            ? "최소 한도 달성!"
-            : "게임 종료!";
+            ? "최소 한도 달성! (Underflow)"
+            : "게임 오버!";
 
     els.message.textContent = `${finishLabel} 최종 pointVal ${formatNum(state.pointVal)}`;
     renderStatus();
@@ -1415,19 +1962,44 @@ function buildShareRecordText() {
         : finalValue === -SAFE_INT_LIMIT
             ? "MIN LIMIT!!"
             : formatNum(finalValue);
+    const selectedPerk = getSelectedPerk();
+    const perkShareEmojiMap = {
+        "perk-clover": "🍀",
+        "perk-exchange": "💱",
+        "perk-vento-aureo": "🐞",
+        "perk-67": "🤷",
+        "perk-reverse": "🔴",
+    };
+    const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 
     const lines = [
-        "🎲🎲 Numero Beta 1.2 🎲🎲",
+        `🎲🎲 ${headingText} 🎲🎲`,
         "",
     ];
 
-    state.history.forEach((item, index) => {
-        const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
-        lines.push(`Turn ${item.turn} :  ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)}`);
-        lines.push(`${formulaWithValues} = ${formatNum(item.to)}`);
-        if (item.isEnhanced) {
-            lines.push("(Enhanced)");
+    if (selectedPerk) {
+        const perkEmoji = perkShareEmojiMap[selectedPerk.id] || "✨";
+        lines.push(`특성 : ${perkEmoji} ${selectedPerk.name}`);
+        lines.push("");
+    }
+
+    state.history.forEach((item) => {
+        if (item.kind === "perk-selection") {
+            return;
         }
+
+        if (item.kind === "perk-activation") {
+            lines.push(`[특성 발동] ${item.perkName}`);
+            lines.push(item.detail);
+            lines.push("");
+            return;
+        }
+
+        const formulaWithValues = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal);
+        const gainedLuckText = formatNum(item.gainedLuck ?? 0);
+        const enhancedText = item.isEnhanced ? " / Enhanced" : "";
+        lines.push(`Turn ${item.turn} :  ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)} / Luck +${gainedLuckText}${enhancedText}`);
+        lines.push(`${formulaWithValues} = ${formatNum(item.to)}`);
         if (item.isNegative) {
             lines.push("(Negative)");
         }
@@ -1436,7 +2008,7 @@ function buildShareRecordText() {
 
     lines.push(`🔥 Final Record : ${finalRecordText} 🔥`);
     lines.push("");
-    lines.push("Free To Play On");
+    lines.push("Free to play now!");
     lines.push("https://numerodagame.netlify.app/");
 
     return lines.join("\n").replaceAll("*", "x");
@@ -1503,17 +2075,22 @@ function getDicePips(value) {
     return table[value] || [5];
 }
 
-function renderDiceFace(value, extraClass = "") {
+function renderDiceFace(value, extraClass = "", starCenter = false) {
     /**
      * 주사위 면 HTML 렌더링
      * 3x3 격자의 점(pip)들로 주사위 눈을 표시
      * 
      * @param value - 1~6 주사위 눈
      * @param extraClass - 추가 CSS 클래스 (예: "small", "idle-spin")
+     * @param starCenter - true이면 중앙(5번) pip를 별 모양으로 표시
      */
     const pips = new Set(getDicePips(value));
     const cells = Array.from({ length: 9 }, (_, idx) => idx + 1)
-        .map((cellIndex) => `<span class="dice-pip${pips.has(cellIndex) ? " on" : ""}"></span>`)
+        .map((cellIndex) => {
+            const isOn = pips.has(cellIndex);
+            const isStar = isOn && starCenter && cellIndex === 5;
+            return `<span class="dice-pip${isOn ? " on" : ""}${isStar ? " star" : ""}"></span>`;
+        })
         .join("");
 
     return `
@@ -1567,14 +2144,17 @@ function renderRolledDicePreview() {
      * pointVal 또는 modVal의 최종 값을 크게 표시 (1초간 유지)
      */
     const target = state.revealTarget === "pointVal" ? "pointVal" : "modVal";
-    const rolledValue = clamp(state[target], 1, 6);
-    const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정`;
+    const is67Transition = state.perk67Previewing;
+    const rolledValue = is67Transition ? 1 : clamp(state[target], 1, 6);
+    const titleSuffix = is67Transition ? " → 7!" : "";
+    const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
+    const transitionClass = is67Transition ? " perk67-flash" : "";
 
     els.options.innerHTML = `
             <div class="options-placeholder rolled-dice-preview fade-in" role="status" aria-live="polite">
                 <p class="placeholder-title">${title}</p>
                 <div class="reveal-dice-wrap">
-                    <div class="dice-card reveal-card">${renderDiceFace(rolledValue)}</div>
+                    <div class="dice-card reveal-card${transitionClass}">${renderDiceFace(rolledValue, "", is67Transition)}</div>
                 </div>
             </div>
         `;
@@ -1602,6 +2182,83 @@ function renderFinishedPanel() {
         `;
 }
 
+function renderPerkSelection() {
+    const selectedId = state.selectedPerkId;
+
+    els.options.innerHTML = state.perkChoices
+        .map((perk, index) => {
+            const selectedClass = selectedId === perk.id ? "is-perk-selected" : "";
+            const staggerDelayMs = index * OPTION_APPEAR_INTERVAL_MS;
+            const accentShadow = withAlpha(perk.glitterColor, 0.18 + perk.glitterIntensity * 0.22);
+            const cardStyle = `--perk-bg:${perk.backgroundStyle}; --perk-glitter:${perk.glitterColor}; --perk-glitter-opacity:${perk.glitterIntensity}; --perk-accent:${perk.glitterColor}; --perk-accent-shadow:${accentShadow}; animation-delay:${staggerDelayMs}ms;`;
+
+            return `
+                <button class="option-btn perk-option-btn fade-in ${selectedClass}" type="button" data-action="select-perk" data-perk-id="${perk.id}" data-index="${index}" style="${cardStyle}">
+                    <p class="perk-name">${perk.name}</p>
+                    <p class="perk-description">${perk.description}</p>
+                </button>
+            `;
+        })
+        .join("");
+}
+
+function updatePerkSelectionHighlight() {
+    const selectedId = state.selectedPerkId;
+    const perkButtons = els.options.querySelectorAll("button[data-action='select-perk']");
+
+    perkButtons.forEach((button, index) => {
+        const perk = state.perkChoices[index];
+        if (!perk) {
+            return;
+        }
+
+        button.classList.toggle("is-perk-selected", perk.id === selectedId);
+    });
+}
+
+function updatePerkBadge(perk) {
+    if (!perk) {
+        els.perkBadgeBtn.textContent = "특성 선택 대기중";
+        els.perkBadgeBtn.style.background = "";
+        els.perkBadgeBtn.style.color = "";
+        els.perkBadgeBtn.style.removeProperty("--perk-glitter");
+        els.perkBadgeBtn.style.removeProperty("--perk-glitter-opacity");
+        els.perkBadgeBtn.style.removeProperty("--perk-text-color");
+        els.perkBadgeTitle.textContent = "특성";
+        els.perkBadgeDesc.textContent = "특성을 선택해주세요.";
+        return;
+    }
+
+    els.perkBadgeBtn.textContent = `특성 : ${perk.name}`;
+    els.perkBadgeBtn.style.background = perk.backgroundStyle;
+    els.perkBadgeBtn.style.color = perk.textColor || "#13272b";
+    els.perkBadgeBtn.style.setProperty("--perk-glitter", perk.glitterColor);
+    els.perkBadgeBtn.style.setProperty("--perk-glitter-opacity", perk.glitterIntensity);
+    els.perkBadgeBtn.style.setProperty("--perk-text-color", perk.textColor || "#13272b");
+
+    els.perkBadgeTitle.textContent = `특성 : ${perk.name}`;
+    els.perkBadgeDesc.textContent = perk.description;
+}
+
+function centerPhoneFrameOnDesktop() {
+    if (!els.phoneFrame || window.innerWidth < 760) {
+        return;
+    }
+
+    const frameRect = els.phoneFrame.getBoundingClientRect();
+    const viewportCenterY = window.innerHeight / 2;
+    const frameCenterY = frameRect.top + frameRect.height / 2;
+    const deltaY = frameCenterY - viewportCenterY;
+
+    if (Math.abs(deltaY) < 1) {
+        return;
+    }
+
+    const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const targetY = clamp(window.scrollY + deltaY, 0, maxScrollY);
+    window.scrollTo({ top: targetY, behavior: "auto" });
+}
+
 function renderOptions() {
     /**
      * 선택지 또는 게임 상태에 따른 옵션 영역 전체 렌더링
@@ -1619,6 +2276,12 @@ function renderOptions() {
     };
 
     if (!state.started) {
+        if (state.phase === "perk-select") {
+            setOptionsCentered(false);
+            renderPerkSelection();
+            return;
+        }
+
         setOptionsCentered(false);
         els.options.innerHTML = "";
         return;
@@ -1655,11 +2318,17 @@ function renderOptions() {
     }
 
     setOptionsCentered(false);
+    const shouldShowPredictedValue = state.optionPredictionsReady || state.phase !== "await-option";
 
     els.options.innerHTML = state.options
         .map((option, index) => {
             const rarityData = RARITIES[option.rarity];
             const displayFormula = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal);
+            const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal));
+            const predictedValueText = formatNum(predictedValue);
+            const predictedValueLabel = shouldShowPredictedValue
+                ? `예상 결과 ${predictedValueText}`
+                : "예상 결과 계산 중...";
             const optionStateClass = state.phase === "resolving-option"
                 ? option.id === state.resolvingOptionId
                     ? "is-selected"
@@ -1679,7 +2348,10 @@ function renderOptions() {
                     <p class="option-expression">${displayFormula}</p>
                     <div class="option-meta">
                         <span class="option-tags"><span class="tag ${rarityData.className}">${rarityData.label}</span>${modifierTag}</span>
-                        <span>선택 안 하면 Luck +${option.unselectedLuckGain}</span>
+                        <span class="option-side-info">
+                            <span class="option-predicted-value">${predictedValueLabel}</span>
+                            <span>선택 안 하면 Luck +${option.unselectedLuckGain}</span>
+                        </span>
                     </div>
                 </button>
             `;
@@ -1737,9 +2409,30 @@ function renderCalcHistory() {
     const items = [...state.history];
     els.calcLogList.innerHTML = items
         .map((item) => {
+            if (item.kind === "perk-selection") {
+                return `
+                <div class="calc-log-item">
+                    <p class="calc-log-row"><strong>특성 선택</strong></p>
+                    <p class="calc-log-row">· 선택한 특성: ${item.perkName}</p>
+                    <p class="calc-log-row">· 설명: ${item.perkDescription}</p>
+                </div>
+            `;
+            }
+
+            if (item.kind === "perk-activation") {
+                return `
+                <div class="calc-log-item">
+                    <p class="calc-log-row"><strong>특성 발동</strong></p>
+                    <p class="calc-log-row">· ${item.perkName}</p>
+                    <p class="calc-log-row">· ${item.detail}</p>
+                </div>
+            `;
+            }
+
             const beforeValue = item.from;
             const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
             const resultValue = item.to;
+            const gainedLuckText = formatNum(item.gainedLuck ?? 0);
             const enhancedMark = item.isEnhanced ? ' <span class="tag tag-enhanced">강화됨</span>' : "";
 
             return `
@@ -1748,6 +2441,7 @@ function renderCalcHistory() {
                     <p class="calc-log-row">· 굴린 주사위 값: ${formatNum(item.modVal)}</p>
                     <p class="calc-log-row">· 계산 전 현재 값: ${formatNum(beforeValue)}</p>
                     <p class="calc-log-row">· 계산식: ${formulaWithValues}</p>
+                    <p class="calc-log-row">· 턴 종료 획득 Luck: +${gainedLuckText}</p>
                     <p class="calc-log-row">· 계산 결과: ${formatNum(resultValue)}</p>
                 </div>
             `;
@@ -1769,6 +2463,120 @@ function setLuckInfoOpen(isOpen) {
     els.luckInfoBtn.setAttribute("aria-expanded", String(isOpen));
     els.luckInfoFloat.setAttribute("aria-hidden", String(!isOpen));
     els.luckInfoFloat.classList.toggle("is-open", isOpen);
+}
+
+function setPerkBadgeOpen(isOpen) {
+    /**
+     * 특성 배지 설명 팝업의 표시/숨김 토글
+     */
+    if (!els.perkBadgeBtn || !els.perkBadgeFloat) {
+        return;
+    }
+
+    els.perkBadgeBtn.setAttribute("aria-expanded", String(isOpen));
+    els.perkBadgeFloat.setAttribute("aria-hidden", String(!isOpen));
+    els.perkBadgeFloat.classList.toggle("is-open", isOpen);
+}
+
+function triggerPerkBadgeActivationFeedback(playSound = true) {
+    if (!els.perkBadgeBtn || !state.selectedPerkId) {
+        return;
+    }
+
+    const activePerk = state.perkChoices.find((perk) => perk.id === state.selectedPerkId) ?? null;
+
+    els.perkBadgeBtn.classList.remove("is-activated");
+    // Reflow to restart animation on repeated clicks.
+    void els.perkBadgeBtn.offsetWidth;
+    els.perkBadgeBtn.classList.add("is-activated");
+
+    const host = els.perkBadgeBtn.parentElement;
+    if (!host) {
+        return;
+    }
+
+    const existingToast = host.querySelector(".perk-activation-toast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement("span");
+    toast.className = "perk-activation-toast";
+    toast.textContent = "특성 발동!!";
+
+    if (activePerk) {
+        toast.style.setProperty("--perk-toast-bg", activePerk.backgroundStyle);
+        toast.style.setProperty("--perk-toast-color", activePerk.textColor || "#13272b");
+        toast.style.setProperty("--perk-toast-border", withAlpha(activePerk.glitterColor, 0.54));
+        toast.style.setProperty("--perk-toast-shadow", withAlpha(activePerk.glitterColor, 0.34));
+        toast.style.setProperty("--perk-toast-glitter", activePerk.glitterColor);
+        toast.style.setProperty("--perk-toast-glitter-opacity", String(Math.min(0.9, activePerk.glitterIntensity + 0.15)));
+    }
+
+    const toastLeft = els.perkBadgeBtn.offsetLeft + els.perkBadgeBtn.offsetWidth + 6;
+    const toastTop = els.perkBadgeBtn.offsetTop + els.perkBadgeBtn.offsetHeight / 2;
+    toast.style.left = `${toastLeft}px`;
+    toast.style.top = `${toastTop}px`;
+    host.appendChild(toast);
+
+    toast.addEventListener("animationend", () => {
+        toast.remove();
+    }, { once: true });
+
+    if (playSound) {
+        playPerkActivateSound();
+    }
+
+    window.setTimeout(() => {
+        els.perkBadgeBtn.classList.remove("is-activated");
+    }, 540);
+}
+
+function triggerPerkPointChangeFeedback(perk, fromValue, toValue, actionText = "") {
+    if (!els.pointVal) {
+        return;
+    }
+
+    if (fromValue === toValue) {
+        return;
+    }
+
+    const host = els.pointVal.closest(".point-card");
+    if (!host) {
+        return;
+    }
+
+    const existingToast = host.querySelector(".point-change-toast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement("span");
+    toast.className = "point-change-toast";
+    const actionLabel = actionText || "값 변경 적용";
+    toast.textContent = `${perk?.name ?? "특성"} 발동! ${actionLabel}`;
+
+    if (perk) {
+        toast.style.setProperty("--perk-toast-bg", perk.backgroundStyle);
+        toast.style.setProperty("--perk-toast-color", perk.textColor || "#13272b");
+        toast.style.setProperty("--perk-toast-border", withAlpha(perk.glitterColor, 0.54));
+        toast.style.setProperty("--perk-toast-shadow", withAlpha(perk.glitterColor, 0.34));
+        toast.style.setProperty("--perk-toast-glitter", perk.glitterColor);
+        toast.style.setProperty("--perk-toast-glitter-opacity", String(Math.min(0.9, perk.glitterIntensity + 0.15)));
+    }
+
+    const hostRect = host.getBoundingClientRect();
+    const pointLabel = host.querySelector(".point-head .label");
+    const anchorRect = pointLabel ? pointLabel.getBoundingClientRect() : els.pointVal.getBoundingClientRect();
+    const toastLeft = anchorRect.right - hostRect.left + 8;
+    const toastTop = anchorRect.top - hostRect.top + anchorRect.height / 2;
+    toast.style.left = `${toastLeft}px`;
+    toast.style.top = `${toastTop}px`;
+    host.appendChild(toast);
+
+    toast.addEventListener("animationend", () => {
+        toast.remove();
+    }, { once: true });
 }
 
 function bindLuckInfoEvents() {
@@ -1797,13 +2605,28 @@ function bindLuckInfoEvents() {
         event.stopPropagation();
     });
 
+    setPerkBadgeOpen(false);
+
+    els.perkBadgeBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isOpen = els.perkBadgeFloat.classList.contains("is-open");
+        setPerkBadgeOpen(!isOpen);
+        triggerPerkBadgeActivationFeedback(false);
+    });
+
+    els.perkBadgeFloat.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
     document.addEventListener("click", () => {
         setLuckInfoOpen(false);
+        setPerkBadgeOpen(false);
     });
 
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             setLuckInfoOpen(false);
+            setPerkBadgeOpen(false);
         }
     });
 }
@@ -1859,6 +2682,8 @@ function bindEvents() {
      * - 스킵 버튼 클릭: skipTurnTakeAllLuck() 호출
      */
     els.startBtn.addEventListener("click", () => {
+        warmupAudioOnFirstGesture();
+
         if (!state.started || state.phase === "finished") {
             // 게임 끝났을 때: confirmButtons 표시
             if (state.phase === "finished") {
@@ -1866,6 +2691,12 @@ function bindEvents() {
                 els.confirmButtons.style.display = "grid";
                 return;
             }
+
+            if (state.phase === "perk-select" && !state.selectedPerkId) {
+                els.message.textContent = "게임 시작 전에 특성 1개를 선택하세요.";
+                return;
+            }
+
             startGame();
             return;
         }
@@ -1879,7 +2710,7 @@ function bindEvents() {
     els.confirmYes.addEventListener("click", () => {
         els.confirmButtons.style.display = "none";
         els.startBtn.style.display = "block";
-        startGame();
+        preparePerkSelection();
     });
 
     els.confirmNo.addEventListener("click", () => {
@@ -1888,6 +2719,15 @@ function bindEvents() {
     });
 
     els.options.addEventListener("click", (event) => {
+        const perkButton = event.target.closest("button[data-action='select-perk']");
+        if (perkButton) {
+            const perkIndex = Number(perkButton.dataset.index);
+            if (!Number.isNaN(perkIndex)) {
+                selectPerk(perkIndex);
+            }
+            return;
+        }
+
         const shareButton = event.target.closest("button[data-action='share-record']");
         if (shareButton) {
             shareRecord();
@@ -1913,11 +2753,6 @@ function bindEvents() {
         pickOption(index);
     });
 
-    if (els.muteBtn) {
-        els.muteBtn.addEventListener("click", () => {
-            setMuted(!state.isMuted);
-        });
-    }
 }
 
 // function bootstrapSupabaseBadge() {
@@ -1929,14 +2764,19 @@ function bindEvents() {
 
 function init() {
     // bootstrapSupabaseBadge();
-    setMuted(false);
+    setAudioVolume(DEFAULT_AUDIO_VOLUME);
+    bindSettingsEvents();
     bindEvents();
     bindLuckInfoEvents();
     bindCalcLogEvents();
-    renderStatus();
+    preparePerkSelection();
+    window.requestAnimationFrame(() => {
+        centerPhoneFrameOnDesktop();
+    });
 
     window.addEventListener("resize", () => {
         fitPointValueFont();
+        centerPhoneFrameOnDesktop();
     });
 }
 
@@ -1972,7 +2812,13 @@ function renderControl() {
     if (!state.started || state.phase === "finished") {
         els.startBtn.disabled = false;
         els.startBtn.classList.remove("is-hidden");
-        els.startBtn.textContent = state.phase === "finished" ? "다시 플레이하기" : "게임 시작";
+        if (state.phase === "finished") {
+            els.startBtn.textContent = "다시 플레이하기";
+        } else if (state.phase === "perk-select") {
+            els.startBtn.textContent = state.selectedPerkId ? "특성 확정 후 게임 시작" : "특성 선택 후 시작";
+        } else {
+            els.startBtn.textContent = "게임 시작";
+        }
         return;
     }
 

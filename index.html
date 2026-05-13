@@ -21,9 +21,20 @@
             <div class="phone-screen">
                 <header class="top-panel">
                     <div class="top-panel-head">
-                        <h1>Numero Ver 1.2</h1>
-                        <button id="muteBtn" class="mute-btn" type="button" aria-label="음소거 토글" aria-pressed="false">소리
-                            ON</button>
+                        <h1>Numero <span class="title-version">v0.3b</span></h1>
+                        <div class="top-settings-wrap">
+                            <button id="settingsBtn" class="settings-btn" type="button" aria-label="설정 열기"
+                                aria-expanded="false" aria-controls="settingsFloat">⚙️</button>
+                            <div id="settingsFloat" class="settings-float" role="dialog" aria-hidden="true">
+                                <div class="audio-volume-row">
+                                    <span id="audioVolumeLabel" class="audio-volume-label">소리 25%</span>
+                                    <input id="audioVolumeSlider" class="audio-volume-slider" type="range" min="0"
+                                        max="100" step="25" value="25" aria-label="소리 크기" />
+                                </div>
+                                <a class="settings-credit-link" href="https://github.com/Malways" target="_blank"
+                                    rel="noopener noreferrer">Made with ❤️ by Malways</a>
+                            </div>
+                        </div>
                     </div>
                     <p class="hint">가장 큰 숫자를 만드세요!</p>
                 </header>
@@ -63,7 +74,18 @@
 
                 <section class="luck-panel" aria-label="등급 출현 확률">
                     <div class="luck-head">
-                        <h2>행운 확률</h2>
+                        <div class="luck-head-title">
+                            <h2>확률 / 특성</h2>
+                            <button id="perkBadgeBtn" class="perk-badge-btn" type="button" aria-label="선택된 특성 정보"
+                                aria-expanded="false" aria-controls="perkBadgeFloat">
+                                특성 선택 대기중
+                            </button>
+                            <div id="perkBadgeFloat" class="luck-info-float perk-badge-float" role="dialog"
+                                aria-hidden="true">
+                                <p class="luck-info-title" id="perkBadgeTitle">특성</p>
+                                <p class="luck-info-line" id="perkBadgeDesc">특성을 선택해주세요.</p>
+                            </div>
+                        </div>
                         <div class="luck-info-wrap">
                             <p id="luckScore">Luck 0</p>
                             <button id="luckInfoBtn" class="luck-info-btn" type="button" aria-label="Luck 설명 열기"
@@ -72,11 +94,12 @@
                             </button>
                             <div id="luckInfoFloat" class="luck-info-float" role="dialog" aria-hidden="true">
                                 <p class="luck-info-title">Luck 동작 구조</p>
-                                <p class="luck-info-line">카드를 선택 시, 선택하지 않은 다른 카드에 적힌 만큼 Luck이 올라갑니다.</p>
-                                <p class="luck-info-line">스킵 시 이번 턴에 등장한 모든 선택지의 2배의 Luck을 획득합니다.</p>
-                                <p class="luck-info-line">Luck의 수치만큼 가장 낮은 등급의 확률이 감소하고, Luck/3만큼 다른 등급의 확률이 증가합니다.</p>
-                                <p class="luck-info-line">소수점은 절삭되며, 부족한 확률은 전설 확률에 먼저 더해집니다.</p>
-                                <p class="luck-info-line">즉, 이번 턴의 인내가 다음 턴의 고등급 출현 확률을 높입니다.</p>
+                                <p class="luck-info-line">선택지를 고를 시, 버린 옵션들에 적힌 만큼 Luck이 올라갑니다.</p>
+                                <p class="luck-info-line">스킵 시 등장했던 모든 선택지의 2배의 Luck을 획득합니다.</p>
+                                <p class="luck-info-line">Luck의 수치만큼 가장 낮은 등급의 확률이 감소하고,</p>
+                                <p class="luck-info-line">Luck/3만큼 다른 등급의 확률이 증가합니다.</p>
+                                <p class="luck-info-line">소수점은 절삭되며, 부족한 만큼 전설 확률에 먼저 더해집니다.</p>
+                                <p class="luck-info-line">즉, 스킵할수록 높은 등급 선택지가 더 자주 등장합니다.</p>
                             </div>
                         </div>
                     </div>
@@ -115,11 +138,15 @@
     </main>
 
     <audio id="diceRollSound" preload="auto">
-        <source src="./JDSherbert - Tabletop Games SFX Pack - Dice Pickup - 1.mp3" type="audio/mpeg">
+        <source src="./Dice_Roll.mp3" type="audio/mpeg">
     </audio>
 
     <audio id="enhancedAppearSound" preload="auto">
-        <source src="./abs-pointer-6-verbed.mp3" type="audio/mpeg">
+        <source src="./Enhanced_Reveal.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="perkActivateSound" preload="auto">
+        <source src="./Perk_Sparking.mp3" type="audio/mpeg">
     </audio>
 
     <script type="module" src="./js/main.js"></script>
