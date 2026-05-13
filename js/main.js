@@ -516,7 +516,7 @@ const PERK_LIB = [
     {
         id: "perk-vento-aureo",
         name: "황금의 바람",
-        description: "전설 특전이 등장할 때마다 값이 1.5배가 됩니다.",
+        description: "전설 선택지가 등장할 때마다 값이 1.25배가 됩니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(244, 233, 179, 0.94), rgba(255, 250, 240, 0.97))",
         glitterColor: "rgba(229,169,79, 1)",
         glitterIntensity: 0.8,
@@ -540,7 +540,7 @@ const PERK_LIB = [
     {
         id: "perk-reverse",
         name: "술식 반전",
-        description: "매 턴마다 현재 값의 부호를 반전시킵니다.",
+        description: "턴 종료 시 값이 양수라면 음수로 전환합니다. (마지막 턴 제외)",
         backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
         glitterColor: "rgba(255, 255, 255, 0.9)",
         glitterIntensity: 0.55,
@@ -991,6 +991,12 @@ function applyPerkAfterTurnResolved() {
 
     if (selectedPerk.id === "perk-reverse") {
         const prevPoint = state.pointVal ?? 0;
+
+        // 마지막 턴에는 발동하지 않고, 양수 값일 때만 음수로 전환
+        if (state.turn >= MAX_TURNS || prevPoint <= 0) {
+            return null;
+        }
+
         const reversedPoint = safeNumber(prevPoint * -1);
 
         state.pointVal = reversedPoint;
@@ -1496,13 +1502,13 @@ function scheduleVentoAureoEffects(options) {
             }
 
             const prevPoint = state.pointVal ?? 0;
-            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.5);
+            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.25);
             recordPerkActivationHistory(
                 selectedPerk,
-                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
+                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.25 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
             );
             refreshPointValueAndHistoryUi();
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.5");
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.25");
             triggerPerkBadgeActivationFeedback(true);
         }, index * OPTION_APPEAR_INTERVAL_MS);
 
