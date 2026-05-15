@@ -11,7 +11,7 @@
 const MAX_TURNS = 5; // 게임 총 5턴 진행
 const SAFE_INT_LIMIT = Number.MAX_SAFE_INTEGER; // 오버플로우 방지용 최대 안전 정수값
 const NEGATIVE_OPTION_CHANCE = 0; // 네거티브 선택지 등장 확률 (코더가 조정 가능)
-const ENHANCED_OPTION_CHANCE = 0.15; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
+const ENHANCED_OPTION_CHANCE = 0; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
 const OPTION_APPEAR_INTERVAL_MS = 400; // 선택지 순차 등장 간격
 const PERK_CHOICE_COUNT = 3; // 표시할 특성 카드 수
 const DEFAULT_AUDIO_VOLUME = 0.25; // 초기 볼륨 25%
@@ -176,8 +176,8 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 8,
         },
         {
-            formula: "(pointVal / modVal) ^ 2 (올림)",
-            compute: (a, b) => Math.pow(Math.ceil(a / b), 2),
+            formula: "(pointVal / modVal * 2) ^ 2",
+            compute: (a, b) => Math.pow(a / b * 2, 2),
             unselectedLuckGain: 8,
         },
         {
@@ -492,19 +492,19 @@ const PERK_LIB = [
     {
         id: "perk-clover",
         name: "네잎클로버",
-        description: "게임 시작 전 20의 행운을 가지고 시작합니다.",
+        description: "게임 시작 전 10의 행운을 가지고 시작합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(213, 246, 239, 0.92), rgba(247, 255, 253, 0.96))",
         glitterColor: "rgba(126, 238, 198, 1)",
         glitterIntensity: 0.72,
         textColor: "#1c3436",
         applyTemplate: (gameState) => {
-            gameState.luck = 20;
+            gameState.luck = 10;
         },
     },
     {
         id: "perk-exchange",
         name: "등가교환",
-        description: "매 턴이 끝날 때 행운을 절반으로 만들고, 그만큼 값에 더합니다.",
+        description: "매 턴이 끝날 때 행운을 절반으로 만들고, 값을 2배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(210, 232, 255, 0.92), rgba(245, 251, 255, 0.96))",
         glitterColor: "rgba(143, 201, 255, 1)",
         glitterIntensity: 0.68,
@@ -516,7 +516,7 @@ const PERK_LIB = [
     {
         id: "perk-vento-aureo",
         name: "황금의 바람",
-        description: "전설 선택지가 등장할 때마다 값이 1.25배가 됩니다.",
+        description: "전설 선택지가 등장할 때마다 값이 1.5배가 됩니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(244, 233, 179, 0.94), rgba(255, 250, 240, 0.97))",
         glitterColor: "rgba(229,169,79, 1)",
         glitterIntensity: 0.8,
@@ -540,13 +540,73 @@ const PERK_LIB = [
     {
         id: "perk-reverse",
         name: "술식 반전",
-        description: "턴 종료 시 값이 양수라면 음수로 전환합니다. (마지막 턴 제외)",
+        description: "게임당 한 번, 턴 종료 시 값이 음수라면 양수로 부호 반전합니다.",
         backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
         glitterColor: "rgba(255, 255, 255, 0.9)",
         glitterIntensity: 0.55,
         textColor: "#f2f2f2",
         applyTemplate: (_gameState) => {
             // TODO: 특전 효과 구현 예정
+        },
+    },
+    {
+        id: "perk-piggy-bank",
+        name: "적금 통장",
+        description: "4턴까지 매 턴 종료마다 값의 절반을 저금하고, 1.5배로 만듭니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(221, 245, 221, 0.96), rgba(244, 255, 244, 0.99))",
+        glitterColor: "rgba(120, 194, 120, 1)",
+        glitterIntensity: 0.42,
+        textColor: "#2f5a2f",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
+        },
+    },
+    {
+        id: "perk-placeholder-2",
+        name: "플레이스홀더 2",
+        description: "기능이 준비되지 않은 자리입니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(230, 230, 230, 0.92), rgba(245, 245, 245, 0.98))",
+        glitterColor: "rgba(155, 155, 155, 1)",
+        glitterIntensity: 0.24,
+        textColor: "#505050",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
+        },
+    },
+    {
+        id: "perk-placeholder-3",
+        name: "플레이스홀더 3",
+        description: "기능이 준비되지 않은 자리입니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(242, 242, 242, 0.92), rgba(252, 252, 252, 0.98))",
+        glitterColor: "rgba(186, 186, 186, 1)",
+        glitterIntensity: 0.22,
+        textColor: "#555555",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
+        },
+    },
+    {
+        id: "perk-placeholder-4",
+        name: "플레이스홀더 4",
+        description: "기능이 준비되지 않은 자리입니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(228, 228, 228, 0.92), rgba(244, 244, 244, 0.98))",
+        glitterColor: "rgba(166, 166, 166, 1)",
+        glitterIntensity: 0.2,
+        textColor: "#494949",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
+        },
+    },
+    {
+        id: "perk-placeholder-5",
+        name: "플레이스홀더 5",
+        description: "기능이 준비되지 않은 자리입니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(240, 240, 240, 0.92), rgba(247, 247, 247, 0.98))",
+        glitterColor: "rgba(178, 178, 178, 1)",
+        glitterIntensity: 0.26,
+        textColor: "#525252",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
         },
     },
 ];
@@ -618,6 +678,9 @@ const state = {
     optionPredictionsReady: true, // 예상 결과 표시 가능 여부
     perk67Previewing: false, // perk-67 발동 시 주사위 눈 전환 중 여부
     audioWarmedUp: false, // 첫 사용자 입력에서 오디오 워밍업 여부
+    perkReverseUsed: false, // 술식 반전 특성 게임당 한 번 사용 여부
+    allOptionsRevealed: false, // 모든 선택지가 표시되었는지 여부
+    piggyBankStored: 0, // 저금통에 저장된 누적 값
 };
 
 // ============================================================================
@@ -971,32 +1034,84 @@ function applyPerkAfterTurnResolved() {
         return null;
     }
 
+    if (selectedPerk.id === "perk-piggy-bank") {
+        const prevPoint = state.pointVal ?? 0;
+        let activationMessageText = "";
+
+        if (state.turn >= MAX_TURNS) {
+            return null;
+        }
+
+        const bankedAmount = safeNumber(prevPoint / 2);
+        const remainingPoint = safeNumber(prevPoint - bankedAmount);
+        const messagePrefix = `[저금 ${formatNum(bankedAmount)}]`;
+        const prevStored = state.piggyBankStored ?? 0;
+        const afterDepositStored = safeNumber(prevStored + bankedAmount);
+        const boostedStored = safeNumber(afterDepositStored * 1.5);
+        const savedMessageText = `${formatNum(bankedAmount)}만큼 저금 / 1.5배로 총액 ${formatNum(boostedStored)}`;
+
+        state.pointVal = remainingPoint;
+        state.piggyBankStored = boostedStored;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: ${savedMessageText} (${formatNum(prevPoint)} -> ${formatNum(remainingPoint)})`,
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, savedMessageText);
+        triggerPerkBadgeActivationFeedback();
+        activationMessageText = savedMessageText;
+
+        if (state.turn === 4) {
+            const storedAmount = state.piggyBankStored;
+            const beforeReleasePoint = state.pointVal ?? 0;
+            const releasedPoint = safeNumber(beforeReleasePoint + storedAmount);
+
+            state.pointVal = releasedPoint;
+            state.piggyBankStored = 0;
+            activationMessageText = `적금 만기! ${formatNum(storedAmount)}만큼 받음`;
+
+            recordPerkActivationHistory(
+                selectedPerk,
+                `Turn ${state.turn} 종료: 적금 만기! ${formatNum(storedAmount)}만큼 받음 (${formatNum(beforeReleasePoint)} -> ${formatNum(releasedPoint)})`,
+            );
+            triggerPerkPointChangeFeedback(selectedPerk, beforeReleasePoint, state.pointVal, activationMessageText);
+        }
+
+        return { messageText: activationMessageText, messagePrefix };
+    }
+
     if (selectedPerk.id === "perk-exchange") {
         const prevPoint = state.pointVal ?? 0;
         const prevLuck = Math.max(0, Math.trunc(state.luck));
         const halvedLuck = Math.floor(prevLuck / 2);
-        const addedPoint = halvedLuck;
+        const doubledPoint = safeNumber((state.pointVal ?? 0) * 2);
 
         state.luck = halvedLuck;
-        state.pointVal = safeNumber((state.pointVal ?? 0) + addedPoint);
+        state.pointVal = doubledPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: Luck ${formatNum(prevLuck)} -> ${formatNum(halvedLuck)}, 값 +${formatNum(addedPoint)}`,
+            `Turn ${state.turn} 종료: Luck ${formatNum(prevLuck)} -> ${formatNum(halvedLuck)}, 값 ${formatNum(prevPoint)} -> ${formatNum(doubledPoint)} (2배)`,
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 +${formatNum(addedPoint)}`);
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 x2`);
         triggerPerkBadgeActivationFeedback();
-        return selectedPerk.name;
+        return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
     if (selectedPerk.id === "perk-reverse") {
-        const prevPoint = state.pointVal ?? 0;
-
-        // 마지막 턴에는 발동하지 않고, 양수 값일 때만 음수로 전환
-        if (state.turn >= MAX_TURNS || prevPoint <= 0) {
+        // 게임당 한 번만 실행
+        if (state.perkReverseUsed) {
             return null;
         }
 
+        const prevPoint = state.pointVal ?? 0;
+
+        // 음수 값일 때만 양수로 반전
+        if (prevPoint >= 0) {
+            return null;
+        }
+
+        state.perkReverseUsed = true;
         const reversedPoint = safeNumber(prevPoint * -1);
 
         state.pointVal = reversedPoint;
@@ -1007,7 +1122,7 @@ function applyPerkAfterTurnResolved() {
         );
         triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "부호 반전됨");
         triggerPerkBadgeActivationFeedback();
-        return selectedPerk.name;
+        return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
     return null;
@@ -1474,12 +1589,32 @@ function refreshOptionPredictedValueLabels() {
     });
 }
 
+function refreshOptionExpressionLabels() {
+    if (!els.options || !state.options.length) {
+        return;
+    }
+
+    const expressionElements = els.options.querySelectorAll(".option-expression");
+
+    expressionElements.forEach((element, index) => {
+        const option = state.options[index];
+        if (!option) {
+            return;
+        }
+
+        element.innerHTML = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal);
+    });
+}
+
 function refreshPointValueAndHistoryUi() {
     if (els.pointVal) {
         els.pointVal.textContent = state.pointVal === null ? "-" : formatNum(state.pointVal);
         fitPointValueFont();
     }
 
+    // 옵션 카드 전체 재렌더 없이 표시 숫자만 갱신
+    refreshOptionPredictedValueLabels();
+    refreshOptionExpressionLabels();
     renderCalcHistory();
 }
 
@@ -1502,13 +1637,13 @@ function scheduleVentoAureoEffects(options) {
             }
 
             const prevPoint = state.pointVal ?? 0;
-            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.25);
+            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.5);
             recordPerkActivationHistory(
                 selectedPerk,
-                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.25 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
+                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
             );
             refreshPointValueAndHistoryUi();
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.25");
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.5");
             triggerPerkBadgeActivationFeedback(true);
         }, index * OPTION_APPEAR_INTERVAL_MS);
 
@@ -1522,6 +1657,7 @@ function scheduleVentoAureoEffects(options) {
 
         state.optionPredictionsReady = true;
         refreshOptionPredictedValueLabels();
+        refreshOptionExpressionLabels();
     }, options.length * OPTION_APPEAR_INTERVAL_MS);
 
     state.ventoEffectTimeoutIds.push(revealCompleteTimeoutId);
@@ -1606,6 +1742,8 @@ async function startGame() {
     state.options = [];
     state.history = [];
     state.optionPredictionsReady = true;
+    state.perkReverseUsed = false;
+    state.piggyBankStored = 0;
     state.phase = "rolling-point";
 
     const confirmedPerk = getSelectedPerk();
@@ -1769,11 +1907,24 @@ async function rollModValForTurn() {
     state.options = buildOptions();
     const selectedPerk = getSelectedPerk();
     state.optionPredictionsReady = selectedPerk?.id !== "perk-vento-aureo";
+    state.allOptionsRevealed = false;
     state.phase = "await-option";
     els.message.textContent = `${state.turn}턴 주사위 값 = ${state.modVal}. 선택지를 고르세요.`;
     renderStatus();
     scheduleEnhancedAppearSounds(state.options);
     scheduleVentoAureoEffects(state.options);
+
+    // 마지막 선택지(스킵 버튼)가 완전히 나타난 후에 선택 가능하게 설정
+    const revealCompleteMs = state.options.length * OPTION_APPEAR_INTERVAL_MS + 240;
+    window.setTimeout(() => {
+        if (state.phase === "await-option") {
+            state.allOptionsRevealed = true;
+            // 옵션 버튼과 스킵 버튼의 disabled 속성 제거
+            document.querySelectorAll(".option-btn, .skip-luck-btn").forEach((btn) => {
+                btn.removeAttribute("disabled");
+            });
+        }
+    }, revealCompleteMs);
 }
 
 /**
@@ -1835,9 +1986,10 @@ async function pickOption(optionIndex) {
         gainedLuck: addedLuck,
     });
 
-    const activatedPerkName = applyPerkAfterTurnResolved();
-    els.message.textContent = activatedPerkName
-        ? `선택이 적용되었습니다. ${activatedPerkName} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+    const activatedPerkResult = applyPerkAfterTurnResolved();
+    const messagePrefix = activatedPerkResult?.messagePrefix ? `${activatedPerkResult.messagePrefix} ` : "";
+    els.message.textContent = activatedPerkResult
+        ? `${messagePrefix}선택이 적용되었습니다. ${activatedPerkResult.messageText} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
         : `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
 
     if (state.turn >= MAX_TURNS) {
@@ -1897,9 +2049,10 @@ async function skipTurnTakeAllLuck() {
         gainedLuck: addedLuck,
     });
 
-    const activatedPerkName = applyPerkAfterTurnResolved();
-    els.message.textContent = activatedPerkName
-        ? `스킵 적용 후 ${activatedPerkName} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+    const activatedPerkResult = applyPerkAfterTurnResolved();
+    const skipMessagePrefix = activatedPerkResult?.messagePrefix ? `${activatedPerkResult.messagePrefix} ` : "";
+    els.message.textContent = activatedPerkResult
+        ? `${skipMessagePrefix}스킵 적용 후 ${activatedPerkResult.messageText} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
         : `스킵을 적용했습니다. Luck +${addedLuck}`;
 
     if (state.turn >= MAX_TURNS) {
@@ -1970,6 +2123,7 @@ function buildShareRecordText() {
             : formatNum(finalValue);
     const selectedPerk = getSelectedPerk();
     const perkShareEmojiMap = {
+        "perk-piggy-bank": "🐷",
         "perk-clover": "🍀",
         "perk-exchange": "💱",
         "perk-vento-aureo": "🐞",
@@ -2243,7 +2397,11 @@ function updatePerkBadge(perk) {
     els.perkBadgeBtn.style.setProperty("--perk-text-color", perk.textColor || "#13272b");
 
     els.perkBadgeTitle.textContent = `특성 : ${perk.name}`;
-    els.perkBadgeDesc.textContent = perk.description;
+    if (perk.id === "perk-piggy-bank") {
+        els.perkBadgeDesc.innerHTML = `${perk.description}<br>현재 저금액: ${formatNum(state.piggyBankStored ?? 0)}`;
+    } else {
+        els.perkBadgeDesc.textContent = perk.description;
+    }
 }
 
 function centerPhoneFrameOnDesktop() {
@@ -2340,7 +2498,7 @@ function renderOptions() {
                     ? "is-selected"
                     : "is-unselected"
                 : "";
-            const isDisabled = state.phase === "resolving-option" ? "disabled" : "";
+            const isDisabled = state.phase === "resolving-option" || !state.allOptionsRevealed ? "disabled" : "";
             const staggerDelayMs = index * OPTION_APPEAR_INTERVAL_MS;
             const negativeClass = option.isNegative ? "is-negative" : "";
             const enhancedClass = option.isEnhanced ? "is-enhanced" : "";
@@ -2365,7 +2523,7 @@ function renderOptions() {
         .join("");
 
     const skipLuckGain = state.options.reduce((sum, option) => sum + option.unselectedLuckGain, 0) * 2;
-    const skipDisabled = state.phase === "resolving-option" ? "disabled" : "";
+    const skipDisabled = state.phase === "resolving-option" || !state.allOptionsRevealed ? "disabled" : "";
     const skipDelayMs = state.options.length * OPTION_APPEAR_INTERVAL_MS;
 
     els.options.innerHTML += `
@@ -2616,8 +2774,33 @@ function bindLuckInfoEvents() {
     els.perkBadgeBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         const isOpen = els.perkBadgeFloat.classList.contains("is-open");
+        updatePerkBadge(getSelectedPerk());
         setPerkBadgeOpen(!isOpen);
         triggerPerkBadgeActivationFeedback(false);
+    });
+
+    els.perkBadgeBtn.addEventListener("mouseenter", () => {
+        updatePerkBadge(getSelectedPerk());
+        setPerkBadgeOpen(true);
+    });
+
+    els.perkBadgeBtn.addEventListener("mouseleave", (event) => {
+        const nextTarget = event.relatedTarget;
+        if (!nextTarget || !els.perkBadgeFloat.contains(nextTarget)) {
+            setPerkBadgeOpen(false);
+        }
+    });
+
+    els.perkBadgeFloat.addEventListener("mouseenter", () => {
+        updatePerkBadge(getSelectedPerk());
+        setPerkBadgeOpen(true);
+    });
+
+    els.perkBadgeFloat.addEventListener("mouseleave", (event) => {
+        const nextTarget = event.relatedTarget;
+        if (!nextTarget || !els.perkBadgeBtn.contains(nextTarget)) {
+            setPerkBadgeOpen(false);
+        }
     });
 
     els.perkBadgeFloat.addEventListener("click", (event) => {
