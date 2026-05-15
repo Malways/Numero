@@ -21,7 +21,7 @@
             <div class="phone-screen">
                 <header class="top-panel">
                     <div class="top-panel-head">
-                        <h1>Numero <span class="title-version">v0.4b</span></h1>
+                        <h1>Numero <span class="title-version">v0.5b</span></h1>
                         <div class="top-settings-wrap">
                             <button id="settingsBtn" class="settings-btn" type="button" aria-label="설정 열기"
                                 aria-expanded="false" aria-controls="settingsFloat">⚙️</button>
@@ -31,6 +31,7 @@
                                     <input id="audioVolumeSlider" class="audio-volume-slider" type="range" min="0"
                                         max="100" step="25" value="25" aria-label="소리 크기" />
                                 </div>
+                                <button id="patchLogBtn" class="settings-action-btn" type="button">패치노트 보기</button>
                                 <a class="settings-credit-link" href="https://github.com/Malways" target="_blank"
                                     rel="noopener noreferrer">Made with ❤️ by Malways</a>
                             </div>
@@ -130,6 +131,20 @@
                         <div class="modal-buttons">
                             <button id="modalConfirm" class="modal-btn modal-btn-primary" type="button">네</button>
                             <button id="modalCancel" class="modal-btn modal-btn-secondary" type="button">아니오</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="patchLogModal" class="modal patchlog-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="patchLogTitle">
+                    <div class="modal-content patchlog-content-wrap">
+                        <div class="patchlog-head">
+                            <h2 id="patchLogTitle" class="patchlog-title">패치노트</h2>
+                            <button id="patchLogClose" class="patchlog-close" type="button"
+                                aria-label="패치노트 닫기">닫기</button>
+                        </div>
+                        <div id="patchLogContent" class="patchlog-content">
+                            <p class="patchlog-loading">패치노트를 불러오는 중...</p>
                         </div>
                     </div>
                 </div>

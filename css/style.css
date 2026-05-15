@@ -176,6 +176,23 @@ body {
     accent-color: #0a6f69;
 }
 
+.settings-action-btn {
+    border: 1px solid rgba(20, 35, 38, 0.2);
+    border-radius: 9px;
+    background: rgba(245, 252, 251, 0.96);
+    color: #1d3539;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 10px;
+    cursor: pointer;
+}
+
+.settings-action-btn:hover,
+.settings-action-btn:focus-visible {
+    border-color: rgba(10, 111, 105, 0.65);
+    color: #0a6f69;
+}
+
 .settings-credit-link {
     display: block;
     text-align: center;
@@ -1022,6 +1039,48 @@ body {
     color: #f2f2f2;
 }
 
+.perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-name,
+.perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-description {
+    color: #ffffff;
+}
+
+.perk-option-btn[data-perk-id="perk-last-shooting"] {
+    background: linear-gradient(160deg, rgba(252, 252, 252, 0.97), rgba(239, 239, 239, 0.99));
+}
+
+.perk-option-btn[data-perk-id="perk-last-shooting"]::before {
+    --last-shooting-color: #fff867;
+    background: linear-gradient(115deg,
+            transparent 38%,
+            var(--last-shooting-color) 50%,
+            transparent 62%);
+    opacity: 0.92;
+    animation:
+        last-shooting-tricolor-pass 2.2s linear infinite,
+        last-shooting-color-step 6.6s steps(1, end) infinite;
+}
+
+.perk-badge-btn.is-last-shooting-glint::before,
+.perk-activation-toast.is-last-shooting-glint::before,
+.point-change-toast.is-last-shooting-glint::before {
+    --last-shooting-color: #fff867;
+    background: linear-gradient(115deg,
+            transparent 38%,
+            var(--last-shooting-color) 50%,
+            transparent 62%);
+    animation:
+        last-shooting-tricolor-pass 2.2s linear infinite,
+        last-shooting-color-step 6.6s steps(1, end) infinite;
+}
+
+.option-btn.perk-option-btn[data-perk-id="perk-last-shooting"].is-perk-selected {
+    border-color: rgba(255, 212, 56, 0.82);
+    box-shadow:
+        0 0 0 2px rgba(255, 212, 56, 0.24),
+        0 8px 20px rgba(244, 59, 59, 0.18),
+        0 12px 28px rgba(48, 120, 255, 0.16);
+}
+
 .perk-meta {
     display: inline-flex;
     flex-direction: column;
@@ -1489,7 +1548,7 @@ body {
 .message {
     margin: 8px 0 0;
     font-size: 12px;
-    color: var(--ink-soft);
+    color: #ffffff;
     line-height: 1.45;
 }
 
@@ -1656,6 +1715,118 @@ body {
     color: var(--ink);
 }
 
+.patchlog-modal {
+    z-index: 1010;
+}
+
+.patchlog-content-wrap {
+    max-width: min(680px, 94vw);
+    max-height: min(78vh, 780px);
+    height: min(78vh, 780px);
+    text-align: left;
+    padding: 16px;
+    gap: 12px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.patchlog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.patchlog-title {
+    margin: 0;
+    font-size: 20px;
+    color: #163036;
+}
+
+.patchlog-close {
+    border: 1px solid rgba(20, 35, 38, 0.24);
+    border-radius: 9px;
+    background: rgba(245, 252, 251, 0.96);
+    color: #1d3539;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.patchlog-close:hover,
+.patchlog-close:focus-visible {
+    border-color: rgba(10, 111, 105, 0.65);
+    color: #0a6f69;
+}
+
+.patchlog-content {
+    min-height: 0;
+    height: 100%;
+    overflow: auto;
+    border: 1px solid rgba(20, 35, 38, 0.14);
+    border-radius: 11px;
+    padding: 12px;
+    background: #ffffff;
+    line-height: 1.6;
+    color: #1b3338;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.patchlog-loading {
+    margin: 0;
+    color: rgba(27, 51, 56, 0.7);
+    font-size: 13px;
+}
+
+.patchlog-content h1,
+.patchlog-content h2,
+.patchlog-content h3 {
+    margin: 0 0 8px;
+    color: #133038;
+    line-height: 1.35;
+}
+
+.patchlog-content h1 {
+    font-size: 20px;
+}
+
+.patchlog-content h2 {
+    font-size: 17px;
+}
+
+.patchlog-content h3 {
+    font-size: 15px;
+}
+
+.patchlog-content p {
+    margin: 0 0 8px;
+}
+
+.patchlog-content ul {
+    margin: 0 0 10px 18px;
+    padding: 0;
+}
+
+.patchlog-content li {
+    margin: 0 0 6px;
+}
+
+.patchlog-content code {
+    font-family: "IBM Plex Mono", "Consolas", monospace;
+    font-size: 0.9em;
+    background: rgba(22, 48, 54, 0.08);
+    border-radius: 5px;
+    padding: 1px 5px;
+}
+
+.patchlog-content a {
+    color: #0a6f69;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 @keyframes modal-fade-in {
     from {
         opacity: 0;
@@ -1675,5 +1846,43 @@ body {
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@keyframes last-shooting-tricolor-pass {
+    0% {
+        transform: translateX(-58%) rotate(8deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.92;
+    }
+
+    90% {
+        opacity: 0.92;
+    }
+
+    100% {
+        transform: translateX(58%) rotate(8deg);
+        opacity: 0;
+    }
+}
+
+@keyframes last-shooting-color-step {
+
+    0%,
+    33.333% {
+        --last-shooting-color: #fff867;
+    }
+
+    33.334%,
+    66.666% {
+        --last-shooting-color: #fb2f38;
+    }
+
+    66.667%,
+    100% {
+        --last-shooting-color: #2c52b3;
     }
 }
