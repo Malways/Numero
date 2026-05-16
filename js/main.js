@@ -78,150 +78,157 @@ const RARITIES = {
 // - 전설(legend): 폭발적 배율 (×15~1000000+)
 const OPTION_LIBRARY = {
     common: [
-        {
+        { //1
             formula: "pointVal + modVal",
             compute: (a, b) => a + b,
-            unselectedLuckGain: 4,
+            unselectedLuckGain: 3,
         },
-
-        {
+        { //2
             formula: "| pointVal + modVal |",
             compute: (a, b) => Math.abs(a + b),
-            unselectedLuckGain: 4,
+            unselectedLuckGain: 3,
         },
-
-        {
-            formula: "pointVal * 2",
-            compute: (a, b) => a * 2,
-            unselectedLuckGain: 4,
+        { //3
+            formula: "pointVal - ( modVal * 3 ) ",
+            compute: (a, b) => a - (b * 3),
+            unselectedLuckGain: 3,
         },
-
-        {
-            formula: "pointVal - modVal * 3",
-            compute: (a, b) => a - b * 3,
-            unselectedLuckGain: 4,
+        { //4
+            formula: "pointVal * modVal",
+            compute: (a, b) => a * b,
+            unselectedLuckGain: 3,
         },
-        {
-            formula: "pointVal * ( -modVal )",
-            compute: (a, b) => a * -b,
-            unselectedLuckGain: 4,
+        { //5
+            formula: "pointVal * -( modVal * 2 )",
+            compute: (a, b) => a * -(b * 2),
+            unselectedLuckGain: 3
         },
-        {
+        { //6
             formula: "= 15",
             compute: (a, b) => 15,
-            unselectedLuckGain: 4
+            unselectedLuckGain: 3
         },
-        {
-            formula: "= 20 - pointVal",
-            compute: (a, b) => 20 - a,
-            unselectedLuckGain: 4
-        },
-        {
+        { //7
             formula: "(pointVal + pointVal * modVal) / 2 (올림)",
             compute: (a, b) => Math.ceil((a + a * b) / 2),
-            unselectedLuckGain: 4
+            unselectedLuckGain: 3
         },
 
     ],
     rare: [
-        {
-            formula: "pointVal * modVal",
-            compute: (a, b) => a * b,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "(pointVal + modVal) * 3",
-            compute: (a, b) => (a + b) * 3,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal + (modVal * 3)",
+        { //1
+            formula: "pointVal + ( modVal * 3 )",
             compute: (a, b) => a + (b * 3),
-            unselectedLuckGain: 5,
+            unselectedLuckGain: 6,
         },
-        {
+        { //2
+            formula: "| pointVal - ( modVal * 3 ) |",
+            compute: (a, b) => Math.abs(a - (b * 3)),
+            unselectedLuckGain: 6,
+        },
+        { //3
+            formula: "pointVal * modVal * 2",
+            compute: (a, b) => a * b * 2,
+            unselectedLuckGain: 6,
+        },
+        { //4
+            formula: "pointVal * -(modVal * 4)",
+            compute: (a, b) => a * -(b * 4),
+            unselectedLuckGain: 6
+        },
+        { //5
             formula: "pointVal * 3 + modVal",
             compute: (a, b) => (a * 3) + b,
-            unselectedLuckGain: 5,
+            unselectedLuckGain: 6,
         },
-        {
+        { //6
             formula: "pointVal - modVal^2",
             compute: (a, b) => a - Math.pow(b, 2),
-            unselectedLuckGain: 5,
+            unselectedLuckGain: 6,
         },
-        {
-            formula: "= 50",
-            compute: (a, b) => 50,
-            unselectedLuckGain: 5
-        },
-        {
-            formula: "pointVal + (100 - modVal * 10)",
+        { //7
+            formula: "pointVal + ( 100 - modVal * 10 )",
             compute: (a, b) => a + (100 - b * 10),
-            unselectedLuckGain: 5
-        },
-        {
-            formula: "= pointVal - modVal!",
-            compute: (a, b) => a - factorial(b),
-            unselectedLuckGain: 5
+            unselectedLuckGain: 6
         },
     ],
     epic: [
-        {
+        { //1
             formula: "pointVal + modVal!",
             compute: (a, b) => a + factorial(b),
-            unselectedLuckGain: 7,
+            unselectedLuckGain: 9,
         },
-        {
-            formula: "pointVal * modVal * 2",
-            compute: (a, b) => a * b * 2,
-            unselectedLuckGain: 8,
+        { //2
+            formula: "pointVal + modVal^3",
+            compute: (a, b) => a + Math.pow(b, 3),
+            unselectedLuckGain: 9,
         },
-        {
-            formula: "(pointVal / modVal * 2) ^ 2",
-            compute: (a, b) => Math.pow(a / b * 2, 2),
-            unselectedLuckGain: 8,
+        { //3
+            formula: "pointVal - modVal!",
+            compute: (a, b) => a - factorial(b),
+            unselectedLuckGain: 9,
         },
-        {
+        { //4
+            formula: "pointVal - modVal^3",
+            compute: (a, b) => a - Math.pow(b, 3),
+            unselectedLuckGain: 9,
+        },
+        { //5
+            formula: "pointVal * modVal^2",
+            compute: (a, b) => a * Math.pow(b, 2),
+            unselectedLuckGain: 9
+        },
+        { //6
             formula: "= 100",
             compute: (a, b) => 100,
-            unselectedLuckGain: 8
+            unselectedLuckGain: 9
         },
-        {
-            formula: "-(pointVal ^ 2)",
-            compute: (a, b) => -Math.pow(a, 2),
-            unselectedLuckGain: 8,
+        { //7 -()로 했더니 양수처나와서 -1 곱해봄
+            formula: "-(pointVal * modVal^2)",
+            compute: (a, b) => -1 * (a * Math.pow(b, 2)),
+            unselectedLuckGain: 9,
         },
 
     ],
     legend: [
-        {
-            formula: "(pointVal/modVal) ^ 2",
-            compute: (a, b) => Math.pow(a / b, 2),
-            unselectedLuckGain: 11,
+        { //1 식 표시가 이상함
+            formula: "( pointVal / modVal^3 ) ^ 2",
+            compute: (a, b) => Math.pow(a / Math.pow(b, 3), 2),
+            unselectedLuckGain: 12,
         },
-        {
-            formula: "pointVal + (modVal-1) ^ (modVal-1)",
-            compute: (a, b) => a + Math.pow(b - 1, b - 1),
-            unselectedLuckGain: 11,
+        { //2
+            formula: "pointVal + modVal^modVal",
+            compute: (a, b) => a + (Math.pow(b, b)) / 2,
+            unselectedLuckGain: 12,
         },
-        {
-            formula: "pointVal * (modVal-2)!",
-            compute: (a, b) => a * factorial(b - 2),
-            unselectedLuckGain: 11,
+        { //3
+            formula: "pointVal - ( modVal^modVal * 2 )",
+            compute: (a, b) => a - (Math.pow(b, b) * 2),
+            unselectedLuckGain: 12,
         },
-        {
-            formula: "-((pointVal*modVal) ^ 2)",
-            compute: (a, b) => -Math.pow(a * b, 2),
-            unselectedLuckGain: 11,
+        { //4
+            formula: "pointVal * (modVal-1)!",
+            compute: (a, b) => a * factorial(b - 1),
+            unselectedLuckGain: 12,
         },
-        {
-            formula: "= 1000",
-            compute: (a, b) => 1000,
-            unselectedLuckGain: 11,
+
+        { //5
+            formula: "-(pointVal * (modVal)!)",
+            compute: (a, b) => -(a * factorial(b)),
+            unselectedLuckGain: 12,
+        },
+        { //6
+            formula: "-(pointVal^2)",
+            compute: (a, b) => -(Math.pow(a, 2)),
+            unselectedLuckGain: 12,
+        },
+        { //7
+            formula: "= 500",
+            compute: (a, b) => 500,
+            unselectedLuckGain: 12,
         },
     ],
 };
-
 // 강화됨 전용 선택지 라이브러리 (하드코드)
 const ENHANCED_OPTION_LIBRARY = {
     common: [
@@ -493,13 +500,13 @@ const PERK_LIB = [
     {
         id: "perk-clover",
         name: "네잎클로버",
-        description: "게임 시작 전 10의 행운을 가지고 시작합니다.",
+        description: "게임 시작 전 15의 행운을 가지고 시작합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(213, 246, 239, 0.92), rgba(247, 255, 253, 0.96))",
         glitterColor: "rgba(126, 238, 198, 1)",
         glitterIntensity: 0.72,
         textColor: "#1c3436",
         applyTemplate: (gameState) => {
-            gameState.luck = 10;
+            gameState.luck = 15;
         },
     },
     {
@@ -517,7 +524,7 @@ const PERK_LIB = [
     {
         id: "perk-vento-aureo",
         name: "황금의 바람",
-        description: "전설 선택지가 등장할 때마다 값이 1.5배가 됩니다.",
+        description: "전설 선택지가 등장할 때마다 값이 2배가 됩니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(244, 233, 179, 0.94), rgba(255, 250, 240, 0.97))",
         glitterColor: "rgba(229,169,79, 1)",
         glitterIntensity: 0.8,
@@ -1951,13 +1958,13 @@ function scheduleVentoAureoEffects(options) {
             }
 
             const prevPoint = state.pointVal ?? 0;
-            state.pointVal = safeNumber((state.pointVal ?? 0) * 1.5);
+            state.pointVal = safeNumber((state.pointVal ?? 0) * 2);
             recordPerkActivationHistory(
                 selectedPerk,
-                `Turn ${state.turn} 공개: 전설 등장으로 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
+                `Turn ${state.turn} 공개: 전설 등장으로 값 x2 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
             );
             refreshPointValueAndHistoryUi();
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x1.5");
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x2");
             triggerPerkBadgeActivationFeedback(true);
         }, index * OPTION_APPEAR_INTERVAL_MS);
 
