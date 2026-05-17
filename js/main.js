@@ -1537,25 +1537,44 @@ async function openLeaderboardModal() {
         const rank = i + 1;
         const rankClass = rank <= 3 ? "leaderboard-rank leaderboard-rank-top" : "leaderboard-rank";
         const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+        const usernameClass = rank === 1 ? "lb-username lb-username-1"
+            : rank === 2 ? "lb-username lb-username-2"
+            : rank === 3 ? "lb-username lb-username-3"
+            : "lb-username";
         const perk = perkMap[entry.perk_id];
-        const perkCell = perk
-            ? `<span class="lb-perk-badge" data-perk-id="${perk.id}" style="
-                background: ${perk.backgroundStyle};
-                color: ${perk.textColor};
-                --perk-glitter: ${perk.glitterColor};
-                --perk-glitter-opacity: ${perk.glitterIntensity};
-               ">${escapeHtml(perk.name)}</span>`
+        const perkBadge = (p) => p
+            ? `<span class="lb-perk-badge" data-perk-id="${p.id}" style="background:${p.backgroundStyle};color:${p.textColor};--perk-glitter:${p.glitterColor};--perk-glitter-opacity:${p.glitterIntensity};">${escapeHtml(p.name)}</span>`
             : escapeHtml(entry.perk_id);
         return `<tr>
             <td class="${rankClass}">${medal}</td>
-            <td>${escapeHtml(entry.username)}</td>
-            <td>${perkCell}</td>
+            <td class="${usernameClass}">${escapeHtml(entry.username)}</td>
+            <td>${perkBadge(perk)}</td>
             <td class="leaderboard-score">${formatNum(entry.score)}</td>
         </tr>`;
     }).join("");
 
+    const cards = data.map((entry, i) => {
+        const rank = i + 1;
+        const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}위`;
+        const rankNameClass = rank === 1 ? "lb-card-rank-name lb-card-rank-1"
+            : rank === 2 ? "lb-card-rank-name lb-card-rank-2"
+            : rank === 3 ? "lb-card-rank-name lb-card-rank-3"
+            : "lb-card-rank-name";
+        const perk = perkMap[entry.perk_id];
+        const perkBadge = perk
+            ? `<span class="lb-perk-badge" data-perk-id="${perk.id}" style="background:${perk.backgroundStyle};color:${perk.textColor};--perk-glitter:${perk.glitterColor};--perk-glitter-opacity:${perk.glitterIntensity};">${escapeHtml(perk.name)}</span>`
+            : escapeHtml(entry.perk_id);
+        return `<div class="lb-card">
+            <div class="lb-card-left">
+                <div class="${rankNameClass}">${medal} / ${escapeHtml(entry.username)}</div>
+                <div class="lb-card-perk">${perkBadge}</div>
+            </div>
+            <div class="lb-card-score">${formatNum(entry.score)}</div>
+        </div>`;
+    }).join("");
+
     els.leaderboardContent.innerHTML = `
-        <table class="leaderboard-table">
+        <table class="leaderboard-table lb-desktop-only">
             <thead>
                 <tr>
                     <th>#</th>
@@ -1565,7 +1584,8 @@ async function openLeaderboardModal() {
                 </tr>
             </thead>
             <tbody>${rows}</tbody>
-        </table>`;
+        </table>
+        <div class="lb-cards lb-mobile-only">${cards}</div>`;
 }
 
 function escapeHtml(value) {

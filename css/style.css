@@ -1840,6 +1840,75 @@ body {
     color: #0a6f69;
 }
 
+.lb-username {
+    color: #000;
+}
+
+.lb-username-1 { color: #c9981a; font-weight: 700; }
+.lb-username-2 { color: #8e9aaa; font-weight: 700; }
+.lb-username-3 { color: #a0633a; font-weight: 700; }
+
+.lb-mobile-only {
+    display: none;
+}
+
+@media (max-width: 759px) {
+    .lb-desktop-only {
+        display: none !important;
+    }
+
+    .lb-mobile-only {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .lb-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(20, 35, 38, 0.02);
+        border: 1px solid rgba(20, 35, 38, 0.05);
+    }
+
+    .lb-card-left {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .lb-card-rank-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #000;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .lb-card-rank-1 { color: #c9981a; }
+    .lb-card-rank-2 { color: #8e9aaa; }
+    .lb-card-rank-3 { color: #a0633a; }
+
+    .lb-card-perk {
+        line-height: 1;
+    }
+
+    .lb-card-score {
+        font-size: 22px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #0a6f69;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+
 .lb-perk-badge {
     display: inline-block;
     position: relative;
