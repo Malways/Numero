@@ -23,6 +23,7 @@
                     <div class="top-panel-head">
                         <h1>Numero <span class="title-version">v0.55b</span></h1>
                         <div class="top-settings-wrap">
+                            <span id="seedStatusDot" class="seed-status-dot" data-state="idle"></span>
                             <button id="settingsBtn" class="settings-btn" type="button" aria-label="설정 열기"
                                 aria-expanded="false" aria-controls="settingsFloat">⚙️</button>
                             <div id="settingsFloat" class="settings-float" role="dialog" aria-hidden="true">
@@ -31,7 +32,14 @@
                                     <input id="audioVolumeSlider" class="audio-volume-slider" type="range" min="0"
                                         max="100" step="25" value="25" aria-label="소리 크기" />
                                 </div>
+                                <div class="settings-username-row">
+                                    <label class="settings-username-label" for="userNameInput">유저 이름</label>
+                                    <input id="userNameInput" class="settings-username-input" type="text"
+                                        placeholder="이름을 입력하세요" maxlength="10" autocomplete="off" spellcheck="false" />
+                                </div>
+                                <button id="leaderboardBtn" class="settings-action-btn" type="button">리더보드 보기</button>
                                 <button id="patchLogBtn" class="settings-action-btn" type="button">패치노트 보기</button>
+                                <p class="settings-db-status">DB : <span id="dbStatusValue" class="db-status-value">"Disconnected"</span></p>
                                 <a class="settings-credit-link" href="https://github.com/Malways" target="_blank"
                                     rel="noopener noreferrer">Made with ❤️ by Malways</a>
                             </div>
@@ -145,6 +153,20 @@
                         </div>
                         <div id="patchLogContent" class="patchlog-content">
                             <p class="patchlog-loading">패치노트를 불러오는 중...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="leaderboardModal" class="modal leaderboard-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="leaderboardTitle">
+                    <div class="modal-content patchlog-content-wrap">
+                        <div class="patchlog-head">
+                            <h2 id="leaderboardTitle" class="patchlog-title">리더보드</h2>
+                            <button id="leaderboardClose" class="patchlog-close" type="button"
+                                aria-label="리더보드 닫기">닫기</button>
+                        </div>
+                        <div id="leaderboardContent" class="patchlog-content leaderboard-content">
+                            <p class="patchlog-loading">불러오는 중...</p>
                         </div>
                     </div>
                 </div>

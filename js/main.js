@@ -2,7 +2,8 @@
 // NUMERO GAME - 5턴 안에 가장 큰 숫자를 만드는 게임
 // ============================================================================
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
-// import { getSupabaseStatus } from "./supabase.js";
+import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard } from "./supabase.js";
+import { APP_CONFIG } from "./config.js";
 
 // ============================================================================
 // 1. 게임 상수 및 유틸 함수
@@ -10,12 +11,39 @@
 
 const MAX_TURNS = 5; // 게임 총 5턴 진행
 const SAFE_INT_LIMIT = Number.MAX_SAFE_INTEGER; // 오버플로우 방지용 최대 안전 정수값
-const NEGATIVE_OPTION_CHANCE = 0; // 네거티브 선택지 등장 확률 (코더가 조정 가능)
 const ENHANCED_OPTION_CHANCE = 0; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
 const OPTION_APPEAR_INTERVAL_MS = 400; // 선택지 순차 등장 간격
 const PERK_CHOICE_COUNT = 3; // 표시할 특성 카드 수
 const DEFAULT_AUDIO_VOLUME = 0.25; // 초기 볼륨 25%
 const AUDIO_VOLUME_STORAGE_KEY = "numero.audioVolume";
+const USERNAME_STORAGE_KEY = "numero.username";
+
+// ============================================================================
+// 시드 기반 PRNG (mulberry32)
+// ============================================================================
+let _rng = () => Math.random(); // 시드 초기화 전 폴백
+
+function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s = (s + 0x6D2B79F5) >>> 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+// int8 시드 문자열(부호 있는 64비트 정수)을 mulberry32용 uint32로 변환
+function seedInt8ToUint32(int8Str) {
+    const big = BigInt(int8Str);
+    const lo = Number(big & 0xFFFFFFFFn) >>> 0;
+    const hi = Number((big >> 32n) & 0xFFFFFFFFn) >>> 0;
+    return (lo ^ hi) >>> 0;
+}
+
+function initRng(seed) {
+    _rng = mulberry32(seed >>> 0);
+}
 // 9,007,199,254,740,991이 최대값
 /**
  * 팩토리얼 계산 함수 (특급 및 전설 옵션에서 사용)
@@ -191,40 +219,61 @@ const OPTION_LIBRARY = {
 
     ],
     legend: [
-        { //1 식 표시가 이상함
-            formula: "( pointVal / modVal^3 ) ^ 2",
-            compute: (a, b) => Math.pow(a / Math.pow(b, 3), 2),
+        // { //1 식 표시가 이상함
+        //     formula: "( pointVal / modVal^3 ) ^ 2",
+        //     compute: (a, b) => Math.pow(a / Math.pow(b, 3), 2),
+        //     unselectedLuckGain: 12,
+        // },
+        // { //2
+        //     formula: "pointVal + modVal^modVal",
+        //     compute: (a, b) => a + (Math.pow(b, b)) / 2,
+        //     unselectedLuckGain: 12,
+        // },
+        // { //3
+        //     formula: "pointVal - ( modVal^modVal * 2 )",
+        //     compute: (a, b) => a - (Math.pow(b, b) * 2),
+        //     unselectedLuckGain: 12,
+        // },
+        // { //4
+        //     formula: "pointVal * (modVal-1)!",
+        //     compute: (a, b) => a * factorial(b - 1),
+        //     unselectedLuckGain: 12,
+        // },
+
+        // { //5
+        //     formula: "-(pointVal * (modVal)!)",
+        //     compute: (a, b) => -(a * factorial(b)),
+        //     unselectedLuckGain: 12,
+        // },
+        // { //6
+        //     formula: "-(pointVal^2)",
+        //     compute: (a, b) => -(Math.pow(a, 2)),
+        //     unselectedLuckGain: 12,
+        // },
+        // { //7
+        //     formula: "= 500",
+        //     compute: (a, b) => 500,
+        //     unselectedLuckGain: 12,
+        // },
+        { //1
+            formula: "5^modVal",
+            compute: (a, b) => Math.pow(5, b),
             unselectedLuckGain: 12,
         },
         { //2
-            formula: "pointVal + modVal^modVal",
-            compute: (a, b) => a + (Math.pow(b, b)) / 2,
+            formula: "pointVal * (modVal-1)^(modVal-1)",
+            compute: (a, b) => a * Math.pow(b - 1, b - 1),
             unselectedLuckGain: 12,
         },
-        { //3
-            formula: "pointVal - ( modVal^modVal * 2 )",
-            compute: (a, b) => a - (Math.pow(b, b) * 2),
-            unselectedLuckGain: 12,
-        },
-        { //4
-            formula: "pointVal * (modVal-1)!",
-            compute: (a, b) => a * factorial(b - 1),
-            unselectedLuckGain: 12,
-        },
-
-        { //5
-            formula: "-(pointVal * (modVal)!)",
+        { //2
+            formula: "-(pointVal * modVal!)",
             compute: (a, b) => -(a * factorial(b)),
             unselectedLuckGain: 12,
         },
-        { //6
-            formula: "-(pointVal^2)",
-            compute: (a, b) => -(Math.pow(a, 2)),
-            unselectedLuckGain: 12,
-        },
-        { //7
-            formula: "= 500",
-            compute: (a, b) => 500,
+
+        { //2
+            formula: "pointVal * (modVal-1)!",
+            compute: (a, b) => a * factorial(b - 1),
             unselectedLuckGain: 12,
         },
     ],
@@ -348,144 +397,26 @@ const ENHANCED_OPTION_LIBRARY = {
 
     ],
     legend: [
-        {
-            formula: "(pointVal) ^ (3)",
-            compute: (a, b) => Math.pow(a, Math.floor(3)),
-            unselectedLuckGain: 11,
+        { //1
+            formula: "7^modVal",
+            compute: (a, b) => Math.pow(7, b),
+            unselectedLuckGain: 12,
         },
-        {
-            formula: "pointVal + (modVal-1) ^ (modVal-1)",
-            compute: (a, b) => a + Math.pow(b - 1, (b - 1)),
-            unselectedLuckGain: 11,
+        { //2
+            formula: "pointVal * (modVal-1)^(modVal-1)",
+            compute: (a, b) => a * Math.pow(b - 1, b - 1),
+            unselectedLuckGain: 12,
         },
-        {
+        { //2
+            formula: "-(pointVal * modVal!)",
+            compute: (a, b) => -(a * factorial(b)),
+            unselectedLuckGain: 12,
+        },
+
+        { //2
             formula: "pointVal * (modVal-1)!",
             compute: (a, b) => a * factorial(b - 1),
-            unselectedLuckGain: 11,
-        },
-        {
-            formula: "-((pointVal*(modVal+1)) ^ 2)",
-            compute: (a, b) => -Math.pow(a * (b + 1), 2),
-            unselectedLuckGain: 11,
-        },
-        {
-            formula: "= 2000",
-            compute: (a, b) => 2000,
-            unselectedLuckGain: 11,
-        },
-    ],
-};
-
-// 반전됨 전용 선택지 라이브러리 (하드코드)
-const NEGATIVE_OPTION_LIBRARY = {
-    common: [
-        {
-            formula: "pointVal + modVal", // 수정 필요
-            compute: (a, b) => a + b,
-            unselectedLuckGain: 2,
-        },
-
-        {
-            formula: "pointVal * 2", // 수정 필요
-            compute: (a, b) => a * 2,
-            unselectedLuckGain: 3,
-        },
-
-        {
-            formula: "pointVal - modVal", // 수정 필요
-            compute: (a, b) => a - b,
-            unselectedLuckGain: 4,
-        },
-        {
-            formula: "pointVal * -2", // 수정 필요
-            compute: (a, b) => a * -2,
-            unselectedLuckGain: 4,
-        },
-        {
-            formula: "= 5", // 수정 필요
-            compute: (a, b) => 5,
-            unselectedLuckGain: 4
-        },
-    ],
-    rare: [
-        {
-            formula: "pointVal * modVal", // 수정 필요
-            compute: (a, b) => a * b,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "(pointVal + modVal) * 2", // 수정 필요
-            compute: (a, b) => (a + b) * 2,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal + (modVal * 2)", // 수정 필요
-            compute: (a, b) => a + (b * 2),
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal * 2 + modVal", // 수정 필요
-            compute: (a, b) => (a * 2) + b,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal - modVal^3", // 수정 필요
-            compute: (a, b) => a - Math.pow(b, 3),
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "= 15", // 수정 필요
-            compute: (a, b) => 15,
-            unselectedLuckGain: 5
-        },
-    ],
-    epic: [
-        {
-            formula: "pointVal + modVal!", // 수정 필요
-            compute: (a, b) => a + factorial(b),
-            unselectedLuckGain: 7,
-        },
-        {
-            formula: "pointVal * modVal * 2", // 수정 필요
-            compute: (a, b) => a * b * 2,
-            unselectedLuckGain: 8,
-        },
-        {
-            formula: "(pointVal / modVal) ^ 2 (올림)", // 수정 필요
-            compute: (a, b) => Math.pow(Math.ceil(a / b), 2),
-            unselectedLuckGain: 8,
-        },
-        {
-            formula: "= 40", // 수정 필요
-            compute: (a, b) => 40,
-            unselectedLuckGain: 8
-        },
-        {
-            formula: "-(pointVal ^ 3)", // 수정 필요
-            compute: (a, b) => -Math.pow(a, 3),
-            unselectedLuckGain: 8,
-        },
-    ],
-    legend: [
-        {
-            formula: "pointVal/modVal ^ (modVal/2) (올림)", // 수정 필요
-            compute: (a, b) => Math.pow(Math.ceil(a / b), Math.ceil(b / 2)),
-            unselectedLuckGain: 11,
-        },
-        {
-            formula: "pointVal + modVal^modVal", // 수정 필요
-            compute: (a, b) => a + Math.pow(b, b),
-            unselectedLuckGain: 11,
-        },
-        {
-            formula: "pointVal * modVal!", // 수정 필요
-            compute: (a, b) => a * factorial(b),
-            unselectedLuckGain: 11,
-        },
-        {
-            formula: "| pointVal ^ 3 |", // 수정 필요
-            compute: (a, b) => Math.abs(Math.pow(a, 2)),
-            unselectedLuckGain: 11,
+            unselectedLuckGain: 12,
         },
     ],
 };
@@ -607,8 +538,30 @@ const PERK_LIB = [
         },
     },
     {
-        id: "perk-placeholder-5",
-        name: "플레이스홀더 5",
+        id: "perk-sunbang",
+        name: "순방",
+        description: "주사위가 6이 아니면 주사위 값이 1 증가합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(255, 237, 210, 0.95), rgba(255, 248, 235, 0.98))",
+        glitterColor: "rgba(255, 155, 60, 1)",
+        glitterIntensity: 0.6,
+        textColor: "#6a2e00",
+        applyTemplate: (_gameState) => {
+            // 기능 없음
+        },
+    },
+    {
+        id: "perk-red-comet",
+        name: "붉은 혜성",
+        description: "첫 3턴간 턴 종료시 값이 3배가 되고, 행운이 3분의 1만큼 감소합니다.",
+        backgroundStyle: "linear-gradient(145deg, rgba(70,5,5,0.99) 0%, rgba(150,12,12,0.97) 28%, rgba(215,30,30,0.95) 48%, rgba(175,14,14,0.97) 68%, rgba(70,5,5,0.99) 100%)",
+        glitterColor: "rgba(255, 160, 160, 1)",
+        glitterIntensity: 0.92,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-placeholder-3",
+        name: "플레이스홀더 3",
         description: "기능이 준비되지 않은 자리입니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(240, 240, 240, 0.92), rgba(247, 247, 247, 0.98))",
         glitterColor: "rgba(178, 178, 178, 1)",
@@ -644,9 +597,12 @@ const els = {
     options: document.getElementById("options"), // 선택지 표시 영역
     footerPanel: document.querySelector(".footer-panel"), // 하단 버튼 영역
     startBtn: document.getElementById("startBtn"), // 게임 시작/주사위 굴리기 버튼
+    seedStatusDot: document.getElementById("seedStatusDot"), // 시드 연결 상태 도트
     settingsBtn: document.getElementById("settingsBtn"), // 설정 패널 토글 버튼
     settingsFloat: document.getElementById("settingsFloat"), // 설정 패널
     patchLogBtn: document.getElementById("patchLogBtn"), // 패치노트 열기 버튼
+    dbStatusEl: document.getElementById("dbStatusValue"), // DB 연결 상태 텍스트
+    userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     message: document.getElementById("message"), // 게임 메시지
@@ -661,6 +617,10 @@ const els = {
     patchLogModal: document.getElementById("patchLogModal"),
     patchLogContent: document.getElementById("patchLogContent"),
     patchLogClose: document.getElementById("patchLogClose"),
+    leaderboardBtn: document.getElementById("leaderboardBtn"),
+    leaderboardModal: document.getElementById("leaderboardModal"),
+    leaderboardContent: document.getElementById("leaderboardContent"),
+    leaderboardClose: document.getElementById("leaderboardClose"),
     confirmButtons: document.getElementById("confirmButtons"),
     confirmYes: document.getElementById("confirmYes"),
     confirmNo: document.getElementById("confirmNo"),
@@ -681,6 +641,7 @@ const state = {
     options: [], // 현재 턴의 선택 가능한 3개 옵션 (option 객체 배열)
     perkChoices: [], // 현재 표시 중인 특성 후보 3개
     selectedPerkId: null, // 선택된 특성 ID
+    gameId: null, // 게임 세션 ID (시드 요청 / 검증용)
     history: [], // 모든 턴의 결정 기록 (디버깅/통계용)
     phase: "perk-select", // 게임 상태 머신: perk-select -> rolling-point -> ... -> finished
     audioVolume: DEFAULT_AUDIO_VOLUME, // 현재 볼륨 (0~1)
@@ -691,6 +652,8 @@ const state = {
     ventoEffectTimeoutIds: [], // 황금의 선풍 효과 예약 타이머
     optionPredictionsReady: true, // 예상 결과 표시 가능 여부
     perk67Previewing: false, // perk-67 발동 시 주사위 눈 전환 중 여부
+    perkSunbangPreviewing: false, // perk-sunbang 발동 시 전환 중 여부
+    perkSunbangDirection: null, // perk-sunbang 방향: 'right' | 'left'
     audioWarmedUp: false, // 첫 사용자 입력에서 오디오 워밍업 여부
     perkReverseUsed: false, // 술식 반전 특성 게임당 한 번 사용 여부
     allOptionsRevealed: false, // 모든 선택지가 표시되었는지 여부
@@ -713,7 +676,7 @@ function clamp(value, min, max) {
  * 1~6 범위의 주사위 눈 생성
  */
 function rollDice() {
-    return Math.floor(Math.random() * 6) + 1;
+    return Math.floor(_rng() * 6) + 1;
 }
 
 /**
@@ -955,7 +918,7 @@ function buildRarityWeights(luck) {
  * 예: 희귀 확률이 30%라면, 0~0.3 범위에서는 희귀가 선택됨
  */
 function pickRarity(weights) {
-    const seed = Math.random();
+    const seed = _rng();
     let cursor = 0;
 
     for (const key of ["common", "rare", "epic", "legend"]) {
@@ -972,7 +935,7 @@ function pickRarity(weights) {
  * 배열에서 무작위로 요소 하나 선택
  */
 function randomOf(list) {
-    return list[Math.floor(Math.random() * list.length)];
+    return list[Math.floor(_rng() * list.length)];
 }
 
 function withAlpha(color, alpha) {
@@ -989,7 +952,7 @@ function createPerkChoices(count = PERK_CHOICE_COUNT) {
     const choices = [];
 
     while (pool.length && choices.length < count) {
-        const index = Math.floor(Math.random() * pool.length);
+        const index = Math.floor(_rng() * pool.length);
         choices.push(pool[index]);
         pool.splice(index, 1);
     }
@@ -1164,6 +1127,26 @@ function applyPerkAfterTurnResolved() {
         return { messageText: `${selectedPerk.name} (Luck 절반)`, messagePrefix: "" };
     }
 
+    if (selectedPerk.id === "perk-red-comet") {
+        if (state.turn > 3) return null;
+
+        const prevPoint = state.pointVal ?? 0;
+        const prevLuck = Math.max(0, Math.trunc(state.luck));
+        const tripledPoint = safeNumber(prevPoint * 3);
+        const reducedLuck = Math.floor(prevLuck * 2 / 3);
+
+        state.pointVal = tripledPoint;
+        state.luck = reducedLuck;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(tripledPoint)} (x3), Luck ${formatNum(prevLuck)} -> ${formatNum(reducedLuck)} (-1/3)`,
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 x3`);
+        triggerPerkBadgeActivationFeedback();
+        return { messageText: `${selectedPerk.name} (값 x3, Luck -1/3)`, messagePrefix: "" };
+    }
+
     return null;
 }
 
@@ -1315,19 +1298,11 @@ function getAboveChance(weights, rarity) {
  * 4. 완성된 option 객체 반환 (ID, 등급, 공식, 계산함수 등)
  */
 function createOption(weights, usedFormulas = new Set()) {
-    let modifier = null;
-    const seed = Math.random();
-    if (seed < ENHANCED_OPTION_CHANCE) {
-        modifier = "enhanced";
-    } else if (seed < ENHANCED_OPTION_CHANCE + NEGATIVE_OPTION_CHANCE) {
-        modifier = "negative";
-    }
+    const modifier = _rng() < ENHANCED_OPTION_CHANCE ? "enhanced" : null;
 
-    const activeLibrary = modifier === "negative"
-        ? NEGATIVE_OPTION_LIBRARY
-        : modifier === "enhanced"
-            ? ENHANCED_OPTION_LIBRARY
-            : OPTION_LIBRARY;
+    const activeLibrary = modifier === "enhanced"
+        ? ENHANCED_OPTION_LIBRARY
+        : OPTION_LIBRARY;
     const preferredRarity = pickRarity(weights);
     const preferredPool = activeLibrary[preferredRarity].filter(
         (item) => !usedFormulas.has(item.formula),
@@ -1342,7 +1317,6 @@ function createOption(weights, usedFormulas = new Set()) {
             compute: operation.compute,
             unselectedLuckGain: operation.unselectedLuckGain,
             gauge: getAboveChance(weights, preferredRarity),
-            isNegative: modifier === "negative",
             isEnhanced: modifier === "enhanced",
         };
     }
@@ -1367,7 +1341,6 @@ function createOption(weights, usedFormulas = new Set()) {
         compute: operation.compute,
         unselectedLuckGain: operation.unselectedLuckGain,
         gauge: getAboveChance(weights, operation.rarity),
-        isNegative: modifier === "negative",
         isEnhanced: modifier === "enhanced",
     };
 }
@@ -1426,7 +1399,6 @@ function buildOptions() {
                 compute: fallback.compute,
                 unselectedLuckGain: fallback.unselectedLuckGain,
                 gauge: getAboveChance(weights, "rare"),
-                isNegative: false,
                 isEnhanced: false,
             };
         }
@@ -1527,6 +1499,73 @@ function setPatchLogModalOpen(isOpen) {
 
 function closePatchLogModal() {
     setPatchLogModalOpen(false);
+}
+
+function setLeaderboardModalOpen(isOpen) {
+    if (!els.leaderboardModal) return;
+    els.leaderboardModal.classList.toggle("is-visible", isOpen);
+    els.leaderboardModal.setAttribute("aria-hidden", String(!isOpen));
+}
+
+function closeLeaderboardModal() {
+    setLeaderboardModalOpen(false);
+}
+
+async function openLeaderboardModal() {
+    if (!els.leaderboardModal || !els.leaderboardContent) return;
+
+    els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+    setLeaderboardModalOpen(true);
+
+    const { data, error } = await fetchLeaderboard(50);
+
+    if (error || !data) {
+        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
+        return;
+    }
+
+    if (data.length === 0) {
+        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">아직 기록이 없습니다.</p>';
+        return;
+    }
+
+    const perkMap = Object.fromEntries(
+        PERK_LIB.map((p) => [p.id, p])
+    );
+
+    const rows = data.map((entry, i) => {
+        const rank = i + 1;
+        const rankClass = rank <= 3 ? "leaderboard-rank leaderboard-rank-top" : "leaderboard-rank";
+        const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+        const perk = perkMap[entry.perk_id];
+        const perkCell = perk
+            ? `<span class="lb-perk-badge" data-perk-id="${perk.id}" style="
+                background: ${perk.backgroundStyle};
+                color: ${perk.textColor};
+                --perk-glitter: ${perk.glitterColor};
+                --perk-glitter-opacity: ${perk.glitterIntensity};
+               ">${escapeHtml(perk.name)}</span>`
+            : escapeHtml(entry.perk_id);
+        return `<tr>
+            <td class="${rankClass}">${medal}</td>
+            <td>${escapeHtml(entry.username)}</td>
+            <td>${perkCell}</td>
+            <td class="leaderboard-score">${formatNum(entry.score)}</td>
+        </tr>`;
+    }).join("");
+
+    els.leaderboardContent.innerHTML = `
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>유저명</th>
+                    <th>특성</th>
+                    <th>점수</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
 }
 
 function escapeHtml(value) {
@@ -1750,6 +1789,13 @@ function bindSettingsEvents() {
         });
     }
 
+    if (els.userNameInput) {
+        els.userNameInput.value = localStorage.getItem(USERNAME_STORAGE_KEY) ?? "";
+        els.userNameInput.addEventListener("input", () => {
+            localStorage.setItem(USERNAME_STORAGE_KEY, els.userNameInput.value.trim());
+        });
+    }
+
     if (els.patchLogBtn) {
         els.patchLogBtn.addEventListener("click", () => {
             setSettingsOpen(false);
@@ -1767,6 +1813,27 @@ function bindSettingsEvents() {
         els.patchLogModal.addEventListener("click", (event) => {
             if (event.target === els.patchLogModal) {
                 closePatchLogModal();
+            }
+        });
+    }
+
+    if (els.leaderboardBtn) {
+        els.leaderboardBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openLeaderboardModal();
+        });
+    }
+
+    if (els.leaderboardClose) {
+        els.leaderboardClose.addEventListener("click", () => {
+            closeLeaderboardModal();
+        });
+    }
+
+    if (els.leaderboardModal) {
+        els.leaderboardModal.addEventListener("click", (event) => {
+            if (event.target === els.leaderboardModal) {
+                closeLeaderboardModal();
             }
         });
     }
@@ -2053,20 +2120,39 @@ async function startGame() {
         return;
     }
 
+    // 게임 렌더 이전에 시드 수신
+    const gameId = crypto.randomUUID();
+    const { seedInt8, source } = await fetchGameSeed(gameId);
+    initRng(seedInt8ToUint32(seedInt8));
+
+    if (els.seedStatusDot) {
+        const ok = source === "supabase";
+        els.seedStatusDot.dataset.state = ok ? "ok" : "fail";
+        els.seedStatusDot.dataset.tooltip = ok
+            ? "시드 수신 완료, 리더보드 검증 가능"
+            : "시드 수신 실패, 오프라인 모드로 리더보드 검증 불가";
+    }
+
     clearEnhancedAppearSoundSchedule();
 
     state.started = true;
+    state.gameId = gameId;
     state.pointVal = null;
     state.modVal = null;
     state.turn = 0;
     state.luck = 0;
     state.options = [];
     state.history = [];
+    state.leaderboardRank = null;
     state.optionPredictionsReady = true;
     state.perkReverseUsed = false;
     state.piggyBankStored = 0;
     state.initialPointRollValue = null;
+    state.perkSunbangPreviewing = false;
+    state.perkSunbangDirection = null;
     state.phase = "rolling-point";
+
+    state.history.push({ kind: "seed", source, seedInt8 });
 
     const confirmedPerk = getSelectedPerk();
     updatePerkBadge(confirmedPerk);
@@ -2092,6 +2178,7 @@ async function startGame() {
 
     const perk67point = getSelectedPerk();
     const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
+    const shouldActivateSunbangPoint = perk67point?.id === "perk-sunbang" && state.pointVal !== 6;
     if (shouldActivate67point) {
         await wait(250);
         if (state.phase !== "rolled-point-preview") {
@@ -2101,6 +2188,19 @@ async function startGame() {
         recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`);
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
+        renderStatus();
+        await wait(1000);
+        await wait(250);
+    } else if (shouldActivateSunbangPoint) {
+        await wait(250);
+        if (state.phase !== "rolled-point-preview") {
+            return;
+        }
+        state.perkSunbangPreviewing = true;
+        state.perkSunbangDirection = "right";
+        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 ${state.pointVal} → ${state.pointVal + 1}`);
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 순방: 주사위 +1`;
         renderStatus();
         await wait(1000);
         await wait(250);
@@ -2117,6 +2217,16 @@ async function startGame() {
         state.pointVal = 7;
         triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, "주사위 6 -> 7 적용");
         state.perk67Previewing = false;
+    }
+
+    if (state.perkSunbangPreviewing) {
+        const prevPoint = state.pointVal;
+        const delta = state.perkSunbangDirection === "right" ? 1 : -1;
+        state.pointVal = safeNumber(prevPoint + delta);
+        const actionText = delta > 0 ? "값 +1" : "값 -1";
+        triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, actionText);
+        state.perkSunbangPreviewing = false;
+        state.perkSunbangDirection = null;
     }
 
     state.initialPointRollValue = state.pointVal;
@@ -2138,12 +2248,15 @@ function preparePerkSelection() {
     state.luck = 0;
     state.options = [];
     state.history = [];
+    state.leaderboardRank = null;
     state.rollingTarget = null;
     state.revealTarget = null;
     state.resolvingOptionId = null;
     state.optionPredictionsReady = true;
     state.selectedPerkId = null;
     state.perk67Previewing = false;
+    state.perkSunbangPreviewing = false;
+    state.perkSunbangDirection = null;
     state.initialPointRollValue = null;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
@@ -2210,6 +2323,7 @@ async function rollModValForTurn() {
 
     const perk67 = getSelectedPerk();
     const shouldActivate67 = state.modVal === 6 && perk67?.id === "perk-67";
+    const shouldActivateSunbang = perk67?.id === "perk-sunbang" && state.modVal !== 6;
     if (shouldActivate67) {
         await wait(250);
         if (state.phase !== "rolled-mod-preview") {
@@ -2222,6 +2336,19 @@ async function rollModValForTurn() {
         renderStatus();
         await wait(1000); // 스핀 애니메이션 1초
         await wait(250); // 결과 확인 0.25초
+    } else if (shouldActivateSunbang) {
+        await wait(250);
+        if (state.phase !== "rolled-mod-preview") {
+            return;
+        }
+        state.perkSunbangPreviewing = true;
+        state.perkSunbangDirection = "right";
+        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 ${state.modVal} → ${state.modVal + 1}`);
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 순방: 주사위 +1`;
+        renderStatus();
+        await wait(1000); // 애니메이션 1초
+        await wait(250); // 결과 확인 0.25초
     } else {
         await wait(1000);
     }
@@ -2233,6 +2360,13 @@ async function rollModValForTurn() {
     if (state.perk67Previewing) {
         state.modVal = 7;
         state.perk67Previewing = false;
+    }
+
+    if (state.perkSunbangPreviewing) {
+        const delta = state.perkSunbangDirection === "right" ? 1 : -1;
+        state.modVal = clamp(state.modVal + delta, 1, 6);
+        state.perkSunbangPreviewing = false;
+        state.perkSunbangDirection = null;
     }
 
     state.revealTarget = null;
@@ -2316,7 +2450,6 @@ async function pickOption(optionIndex) {
         modVal: state.modVal,
         expression: selected.formula,
         isEnhanced: Boolean(selected.isEnhanced),
-        isNegative: Boolean(selected.isNegative),
         from: prevPoint,
         to: nextPoint,
         gainedLuck: addedLuck,
@@ -2443,6 +2576,42 @@ function finishGame() {
 
     els.message.textContent = `${finishLabel} 최종 pointVal ${formatNum(state.pointVal)}`;
     renderStatus();
+
+    // 게임 결과 서버 전송 (fire-and-forget)
+    const seedEntry = state.history.find((e) => e.kind === "seed");
+    if (seedEntry?.source !== "supabase") {
+        console.info("리더보드 업로드 생략: 로컬 시드");
+    } else {
+        const shareBtn = document.querySelector("button[data-action='share-record']");
+        const rankEl = document.querySelector(".finished-rank");
+        if (shareBtn) shareBtn.disabled = true;
+        if (rankEl) rankEl.textContent = "데이터 업로드 중...";
+
+        const username = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim() || "익명";
+        uploadResult({
+            username,
+            seedInt8: seedEntry.seedInt8,
+            perkId: state.selectedPerkId ?? "",
+            score: state.pointVal ?? 0,
+            log: buildGameplayLog(),
+        }).then((result) => {
+            const btn = document.querySelector("button[data-action='share-record']");
+            if (btn) btn.disabled = false;
+
+            if (result.error) {
+                console.warn("리더보드 업로드 실패:", result.error);
+                const el = document.querySelector(".finished-rank");
+                if (el) el.textContent = "";
+                return;
+            }
+
+            console.info("리더보드 업로드 성공");
+            const { rank, total } = result.data;
+            state.leaderboardRank = rank;
+            const el = document.querySelector(".finished-rank");
+            if (el) el.textContent = `${rank}등`;
+        });
+    }
 }
 
 async function copyTextToClipboard(text) {
@@ -2460,6 +2629,30 @@ async function copyTextToClipboard(text) {
     textArea.select();
     document.execCommand("copy");
     document.body.removeChild(textArea);
+}
+
+function buildGameplayLog() {
+    const lines = [];
+    state.history.forEach((item) => {
+        if (item.kind === "seed") {
+            const label = item.source === "supabase" ? "온라인 시드" : "오프라인 시드";
+            lines.push(`[시드] ${label} :${item.seedInt8}`);
+            return;
+        }
+        if (item.kind === "perk-selection") {
+            lines.push(`[특성 선택] ${item.perkName} - ${item.perkDescription}`);
+            return;
+        }
+        if (item.kind === "perk-activation") {
+            lines.push(`[특성 발동] ${item.perkName} - ${item.detail}`);
+            return;
+        }
+        const enhanced = item.isEnhanced ? " [강화됨]" : "";
+        const formula = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal);
+        lines.push(`Turn ${item.turn}${enhanced}: dice=${item.modVal}, from=${item.from}, formula=${formula}, to=${item.to}, luck+=${item.gainedLuck ?? 0}`);
+    });
+    lines.push(`[결과] ${state.pointVal ?? 0}`);
+    return lines.join("\n");
 }
 
 function buildShareRecordText() {
@@ -2480,6 +2673,8 @@ function buildShareRecordText() {
         "perk-rigged-dice": "🎲",
         "perk-jackpot": "🎰",
         "perk-last-shooting": "🤖",
+        "perk-sunbang": "🛡️",
+        "perk-red-comet": "☄️",
     };
     const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 
@@ -2495,7 +2690,7 @@ function buildShareRecordText() {
     }
 
     state.history.forEach((item) => {
-        if (item.kind === "perk-selection") {
+        if (item.kind === "seed" || item.kind === "perk-selection") {
             return;
         }
 
@@ -2511,13 +2706,13 @@ function buildShareRecordText() {
         const enhancedText = item.isEnhanced ? " / Enhanced" : "";
         lines.push(`Turn ${item.turn} :  ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)} / Luck +${gainedLuckText}${enhancedText}`);
         lines.push(`${formulaWithValues} = ${formatNum(item.to)}`);
-        if (item.isNegative) {
-            lines.push("(Negative)");
-        }
         lines.push("");
     });
 
     lines.push(`🔥 Final Record : ${finalRecordText} 🔥`);
+    if (state.leaderboardRank !== null && state.leaderboardRank <= 100) {
+        lines.push(`(리더보드 ${state.leaderboardRank}위!)`);
+    }
     lines.push("");
     lines.push("Free to play now!");
     lines.push("https://numerobeta.netlify.app/");
@@ -2656,7 +2851,13 @@ function renderRolledDicePreview() {
      */
     const target = state.revealTarget === "pointVal" ? "pointVal" : "modVal";
     const is67Transition = state.perk67Previewing;
-    const rolledValue = is67Transition ? 1 : clamp(state[target], 1, 6);
+    const isSunbangTransition = state.perkSunbangPreviewing;
+    const sunbangDelta = state.perkSunbangDirection === "right" ? 1 : -1;
+    const rolledValue = is67Transition
+        ? 1
+        : isSunbangTransition
+            ? clamp(state[target] + sunbangDelta, 1, 6)
+            : clamp(state[target], 1, 6);
     const titleSuffix = is67Transition ? " → 7!" : "";
     const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
     const transitionClass = is67Transition ? " perk67-flash" : "";
@@ -2857,15 +3058,12 @@ function renderOptions() {
                 : "";
             const isDisabled = state.phase === "resolving-option" || !state.allOptionsRevealed ? "disabled" : "";
             const staggerDelayMs = index * OPTION_APPEAR_INTERVAL_MS;
-            const negativeClass = option.isNegative ? "is-negative" : "";
             const enhancedClass = option.isEnhanced ? "is-enhanced" : "";
-            const modifierTag = option.isNegative
-                ? `<span class="tag tag-negative">반전됨</span>`
-                : option.isEnhanced
-                    ? `<span class="tag tag-enhanced ${rarityData.className}">강화됨</span>`
-                    : "";
+            const modifierTag = option.isEnhanced
+                ? `<span class="tag tag-enhanced ${rarityData.className}">강화됨</span>`
+                : "";
             return `
-                <button class="option-btn fade-in rarity-option-${option.rarity} ${negativeClass} ${enhancedClass} ${optionStateClass}" type="button" data-index="${index}" style="animation-delay:${staggerDelayMs}ms;" ${isDisabled}>
+                <button class="option-btn fade-in rarity-option-${option.rarity} ${enhancedClass} ${optionStateClass}" type="button" data-index="${index}" style="animation-delay:${staggerDelayMs}ms;" ${isDisabled}>
                     <p class="option-expression">${displayFormula}</p>
                     <div class="option-meta">
                         <span class="option-tags"><span class="tag ${rarityData.className}">${rarityData.label}</span>${modifierTag}</span>
@@ -2903,8 +3101,15 @@ function renderStatus() {
      * 
      * 게임 흐름 중에 계속 호출됨 (상태 변화마다)
      */
-    els.pointVal.textContent = state.pointVal === null ? "-" : formatNum(state.pointVal);
-    els.modVal.textContent = state.modVal === null ? "-" : formatNum(state.modVal);
+    const sunbangPreviewDelta = state.perkSunbangPreviewing ? (state.perkSunbangDirection === "right" ? 1 : -1) : 0;
+    const displayPointVal = (state.perkSunbangPreviewing && state.revealTarget === "pointVal")
+        ? safeNumber((state.pointVal ?? 0) + sunbangPreviewDelta)
+        : state.pointVal;
+    const displayModVal = (state.perkSunbangPreviewing && state.revealTarget === "modVal")
+        ? clamp((state.modVal ?? 0) + sunbangPreviewDelta, 1, 6)
+        : state.modVal;
+    els.pointVal.textContent = displayPointVal === null ? "-" : formatNum(displayPointVal);
+    els.modVal.textContent = displayModVal === null ? "-" : formatNum(displayModVal);
     // await-mod-roll 상태에서는 다음 턴을 미리 표시
     const displayTurn = state.phase === "await-mod-roll" ? state.turn + 1 : state.turn;
     els.turnDisplay.textContent = `${displayTurn} / ${MAX_TURNS}`;
@@ -2930,6 +3135,15 @@ function renderCalcHistory() {
     const items = [...state.history];
     els.calcLogList.innerHTML = items
         .map((item) => {
+            if (item.kind === "seed") {
+                const label = item.source === "supabase" ? "온라인 시드" : "오프라인 시드";
+                return `
+                <div class="calc-log-item">
+                    <p class="calc-log-row"><strong>${label}</strong> :${item.seedInt8}</p>
+                </div>
+            `;
+            }
+
             if (item.kind === "perk-selection") {
                 return `
                 <div class="calc-log-item">
@@ -3308,15 +3522,19 @@ function bindEvents() {
 
 }
 
-// function bootstrapSupabaseBadge() {
-//     const status = getSupabaseStatus();
-//     els.supabaseBadge.textContent = status.message;
-//     els.supabaseBadge.classList.remove("badge-on", "badge-off");
-//     els.supabaseBadge.classList.add(status.ready ? "badge-on" : "badge-off");
-// }
+function bootstrapDbStatus() {
+    if (!els.dbStatusEl) return;
+    const { ready } = getSupabaseStatus();
+    els.dbStatusEl.textContent = ready ? 'Connected' : 'Disconnected';
+    els.dbStatusEl.classList.toggle("is-connected", ready);
+    els.dbStatusEl.classList.toggle("is-disconnected", !ready);
+}
 
 function init() {
-    // bootstrapSupabaseBadge();
+    const versionEl = document.querySelector(".title-version");
+    if (versionEl) versionEl.textContent = APP_CONFIG.version;
+
+    bootstrapDbStatus();
     const storedAudioVolume = loadStoredAudioVolume();
     setAudioVolume(storedAudioVolume ?? DEFAULT_AUDIO_VOLUME, { persist: false });
     bindSettingsEvents();
