@@ -4,8 +4,8 @@ import { APP_CONFIG } from "./config.js";
 export const supabase =
     APP_CONFIG.supabaseEnabled && APP_CONFIG.supabaseUrl && APP_CONFIG.supabaseAnonKey
         ? createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey, {
-              global: { headers: { apikey: APP_CONFIG.supabaseAnonKey } },
-          })
+            global: { headers: { apikey: APP_CONFIG.supabaseAnonKey } },
+        })
         : null;
 
 export function getSupabaseStatus() {
@@ -35,9 +35,47 @@ function localSeedInt8() {
 }
 
 // 리더보드 상위 n개를 가져옵니다.
-export async function fetchLeaderboard(n = 50) {
+// 특성 픽률 로깅 — 표시된 3개 특성과 선택된 특성을 서버에 기록합니다.
+export async function logPerkPick(choices, selectedId) {
+    if (!supabase) return;
+    const [id1, id2, id3] = choices.map((p) => p.id);
+    supabase.rpc("pick_perk", {
+        perk_id1: id1 ?? null,
+        perk_id2: id2 ?? null,
+        perk_id3: id3 ?? null,
+        selected_perk: selectedId,
+    }).then(({ error }) => {
+        if (error) console.warn("pick_perk 실패:", error.message);
+    });
+}
+
+export async function fetchLeaderboard(n = 100) {
     if (!supabase) return { data: null, error: "no_connection" };
     const { data, error } = await supabase.rpc("get_leaderboard", { n });
+    return { data, error: error?.message ?? null };
+}
+
+// hall of fame 반환 행을 리더보드 공통 포맷으로 변환합니다.
+function normalizeHallOfFameEntry(entry) {
+    return {
+        username: entry.username ?? entry.user_name ?? entry.player_name ?? "알 수 없음",
+        perk_id: entry.perk_id ?? entry.perk_name ?? "",
+        score: entry.score ?? entry.final_value ?? entry.value ?? 0,
+    };
+}
+
+// 특정 버전의 명예의 전당 기록을 가져옵니다.
+export async function fetchHallOfFame(version) {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_hall_of_fame_list", { p_version: '0.63b' });
+    if (error) return { data: null, error: error.message };
+    return { data: data?.map(normalizeHallOfFameEntry) ?? [], error: null };
+}
+
+// 특정 퍽의 리더보드 상위 n개를 가져옵니다.
+export async function fetchLeaderboardByPerk(perkId, n = 100) {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_leaderboard_by_perk", { perk_name: perkId, n });
     return { data, error: error?.message ?? null };
 }
 

@@ -267,6 +267,13 @@ body {
     border-color: rgba(10, 111, 105, 0.65);
 }
 
+.settings-db-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .settings-db-status {
     margin: 0;
     font-size: 12px;
@@ -459,6 +466,7 @@ body {
         transform: translateY(0) scale(1);
     }
 }
+
 
 .luck-panel,
 .options-panel,
@@ -1075,7 +1083,7 @@ body {
     box-shadow: 0 0 0 2px var(--perk-accent-shadow, rgba(11, 143, 135, 0.22)), 0 10px 20px var(--perk-accent-shadow, rgba(11, 143, 135, 0.2));
 }
 
-.option-btn.perk-option-btn[data-perk-id="perk-reverse"].is-perk-selected {
+.option-btn.perk-option-btn[data-perk-id="perk-reversed-cursed"].is-perk-selected {
     border-color: rgba(5, 5, 5, 0.86);
     outline: 2px solid rgba(5, 5, 5, 0.86);
     outline-offset: 1px;
@@ -1102,8 +1110,8 @@ body {
     color: var(--ink-soft);
 }
 
-.perk-option-btn[data-perk-id="perk-reverse"] .perk-name,
-.perk-option-btn[data-perk-id="perk-reverse"] .perk-description {
+.perk-option-btn[data-perk-id="perk-reversed-cursed"] .perk-name,
+.perk-option-btn[data-perk-id="perk-reversed-cursed"] .perk-description {
     color: #f2f2f2;
 }
 
@@ -1696,8 +1704,7 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(20, 35, 38, 0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(20, 35, 38, 0.55);
     z-index: 1000;
     padding: 14px;
 }
@@ -1779,6 +1786,7 @@ body {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    table-layout: fixed;
 }
 
 .leaderboard-table thead {
@@ -1816,17 +1824,16 @@ body {
 .leaderboard-rank {
     color: rgba(27, 51, 56, 0.45);
     font-size: 12px;
-    width: 32px;
+}
+
+.leaderboard-table th:nth-child(1),
+.leaderboard-table td:nth-child(1) {
+    width: 50px;
 }
 
 .leaderboard-table th:nth-child(3),
 .leaderboard-table td:nth-child(3) {
-    width: 180px;
-}
-
-.leaderboard-table th:nth-child(4),
-.leaderboard-table td:nth-child(4) {
-    width: 150px;
+    width: 200px;
 }
 
 .leaderboard-rank-top {
@@ -1844,9 +1851,20 @@ body {
     color: #000;
 }
 
-.lb-username-1 { color: #c9981a; font-weight: 700; }
-.lb-username-2 { color: #8e9aaa; font-weight: 700; }
-.lb-username-3 { color: #a0633a; font-weight: 700; }
+.lb-username-1 {
+    color: #c9981a;
+    font-weight: 700;
+}
+
+.lb-username-2 {
+    color: #8e9aaa;
+    font-weight: 700;
+}
+
+.lb-username-3 {
+    color: #a0633a;
+    font-weight: 700;
+}
 
 .lb-mobile-only {
     display: none;
@@ -1891,21 +1909,30 @@ body {
         text-overflow: ellipsis;
     }
 
-    .lb-card-rank-1 { color: #c9981a; }
-    .lb-card-rank-2 { color: #8e9aaa; }
-    .lb-card-rank-3 { color: #a0633a; }
+    .lb-card-rank-1 {
+        color: #c9981a;
+    }
+
+    .lb-card-rank-2 {
+        color: #8e9aaa;
+    }
+
+    .lb-card-rank-3 {
+        color: #a0633a;
+    }
 
     .lb-card-perk {
         line-height: 1;
     }
 
     .lb-card-score {
-        font-size: 22px;
+        font-size: 18px;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
         color: #0a6f69;
         white-space: nowrap;
         flex-shrink: 0;
+        align-self: flex-end;
     }
 }
 
@@ -1989,6 +2016,37 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+}
+
+.lb-head-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.lb-perk-filter {
+    border: 1px solid rgba(20, 35, 38, 0.2);
+    border-radius: 9px;
+    background: rgba(245, 252, 251, 0.96);
+    color: #1d3539;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 6px 8px;
+    cursor: pointer;
+    max-width: 160px;
+}
+
+.lb-perk-filter:focus {
+    outline: none;
+    border-color: rgba(10, 111, 105, 0.65);
+}
+
+[data-theme="dark"] .lb-perk-filter {
+    background: rgba(22, 36, 40, 0.8);
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
 }
 
 .patchlog-title {
@@ -2139,4 +2197,266 @@ body {
     100% {
         --last-shooting-color: #2c52b3;
     }
+}
+
+/* ============================================================================
+   Settings toggle row
+   ============================================================================ */
+
+.settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.dark-mode-btn.is-active {
+    background: rgba(11, 143, 135, 0.12);
+    border-color: rgba(11, 143, 135, 0.5);
+    color: #0a6f69;
+}
+
+/* ============================================================================
+   Dark Mode  (특성 옵션·표기·주사위 제외)
+   ============================================================================ */
+
+[data-theme="dark"] {
+    --bg-main: #0f1a1c;
+    --bg-accent: #0d1f1e;
+    --ink: #dce8ea;
+    --ink-soft: #7a9298;
+    --card: #1b2d30;
+    --stroke: #2c4246;
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] body {
+    background:
+        radial-gradient(circle at 15% 15%, rgba(50, 35, 10, 0.25), transparent 35%),
+        radial-gradient(circle at 85% 85%, rgba(11, 100, 95, 0.18), transparent 40%),
+        linear-gradient(145deg, #0f1a1c, #0d1f1e);
+}
+
+[data-theme="dark"] .phone-screen {
+    background:
+        linear-gradient(160deg, rgba(22, 38, 42, 0.97), rgba(18, 32, 36, 0.99)),
+        linear-gradient(200deg, #1a2830, #0e2020);
+}
+
+[data-theme="dark"] .luck-panel,
+[data-theme="dark"] .options-panel,
+[data-theme="dark"] .footer-panel {
+    background: rgba(20, 34, 37, 0.9);
+}
+
+[data-theme="dark"] .luck-head h2 {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .luck-info-btn {
+    background: #1b2d30;
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .luck-info-float,
+[data-theme="dark"] .perk-badge-float {
+    background: rgba(14, 24, 27, 0.98);
+    border-color: rgba(200, 220, 224, 0.15);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .luck-info-title {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .settings-btn {
+    background: rgba(25, 40, 44, 0.9);
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .settings-float {
+    background: rgba(14, 24, 27, 0.98);
+    border-color: rgba(200, 220, 224, 0.15);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .settings-username-input {
+    background: rgba(10, 18, 20, 0.8);
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .settings-action-btn {
+    background: rgba(22, 36, 40, 0.8);
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .dark-mode-btn.is-active {
+    background: rgba(11, 143, 135, 0.25);
+    border-color: rgba(11, 143, 135, 0.6);
+    color: #0ce6da;
+}
+
+[data-theme="dark"] .option-btn:not(.perk-option-btn) {
+    --card: #dedad2;
+    --stroke: #c4c0b8;
+    --ink: #142326;
+    --ink-soft: #42595d;
+    color: #142326;
+}
+
+[data-theme="dark"] .option-btn.rarity-option-common:not(.perk-option-btn) {
+    background: #c8c4bc;
+}
+
+[data-theme="dark"] .option-btn.rarity-option-rare:not(.perk-option-btn),
+[data-theme="dark"] .option-btn.rarity-option-rare.is-enhanced:not(.perk-option-btn) {
+    background:
+        linear-gradient(165deg, rgba(60, 130, 210, 0.35), rgba(40, 110, 190, 0.25)),
+        var(--card);
+}
+
+[data-theme="dark"] .option-btn.rarity-option-epic:not(.perk-option-btn),
+[data-theme="dark"] .option-btn.rarity-option-epic.is-enhanced:not(.perk-option-btn) {
+    background:
+        linear-gradient(165deg, rgba(130, 90, 210, 0.38), rgba(110, 70, 190, 0.28)),
+        var(--card);
+}
+
+[data-theme="dark"] .option-btn.rarity-option-legend:not(.perk-option-btn),
+[data-theme="dark"] .option-btn.rarity-option-legend.is-enhanced:not(.perk-option-btn) {
+    background:
+        linear-gradient(165deg, rgba(210, 120, 40, 0.38), rgba(190, 100, 20, 0.28)),
+        var(--card);
+}
+
+[data-theme="dark"] .perk-option-btn {
+    --ink: #142326;
+    --ink-soft: #42595d;
+    color: #142326;
+}
+
+[data-theme="dark"] .badge {
+    background: rgba(30, 48, 52, 0.8);
+    border-color: var(--stroke);
+}
+
+[data-theme="dark"] .options-placeholder {
+    background: linear-gradient(160deg, rgba(22, 55, 50, 0.5), rgba(20, 35, 38, 0.8));
+    border-color: rgba(11, 143, 135, 0.3);
+}
+
+[data-theme="dark"] .pre-roll-placeholder {
+    background: linear-gradient(150deg, rgba(20, 48, 44, 0.7), rgba(18, 35, 38, 0.85));
+}
+
+[data-theme="dark"] .tag-enhanced {
+    color: var(--ink);
+    background: #1b2d30;
+    border-color: rgba(200, 220, 224, 0.25);
+}
+
+[data-theme="dark"] .skip-luck-btn {
+    background: rgba(10, 60, 55, 0.5);
+    border-color: rgba(11, 143, 135, 0.4);
+    color: #6ac8c2;
+}
+
+[data-theme="dark"] .skip-luck-btn:hover,
+[data-theme="dark"] .skip-luck-btn:focus-visible {
+    background: rgba(10, 70, 65, 0.6);
+}
+
+[data-theme="dark"] .calc-log-item {
+    background: rgba(18, 30, 33, 0.9);
+    border-color: rgba(200, 220, 224, 0.12);
+}
+
+[data-theme="dark"] .calc-log-row {
+    color: var(--ink-soft);
+}
+
+[data-theme="dark"] .finished-panel {
+    background: linear-gradient(160deg, rgba(15, 35, 40, 0.96), rgba(12, 28, 32, 0.98));
+    border-color: rgba(11, 143, 135, 0.25);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .modal-content {
+    background: #162428;
+}
+
+[data-theme="dark"] .modal-btn {
+    background: #1b2d30;
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .patchlog-content-wrap {
+    background: #162428;
+}
+
+[data-theme="dark"] .patchlog-title {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .patchlog-close {
+    background: rgba(22, 36, 40, 0.8);
+    border-color: rgba(200, 220, 224, 0.2);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .patchlog-content {
+    background: #1b2d30;
+    color: var(--ink);
+    border-color: rgba(200, 220, 224, 0.1);
+}
+
+[data-theme="dark"] .patchlog-content h1,
+[data-theme="dark"] .patchlog-content h2,
+[data-theme="dark"] .patchlog-content h3 {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .patchlog-content code {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .patchlog-loading {
+    color: var(--ink-soft);
+}
+
+[data-theme="dark"] .leaderboard-table thead {
+    background: #162428;
+}
+
+[data-theme="dark"] .leaderboard-table th {
+    color: rgba(200, 220, 224, 0.55);
+    border-bottom-color: rgba(200, 220, 224, 0.1);
+}
+
+[data-theme="dark"] .leaderboard-table td {
+    border-bottom-color: rgba(200, 220, 224, 0.06);
+}
+
+[data-theme="dark"] .lb-username {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .leaderboard-rank {
+    color: rgba(200, 220, 224, 0.45);
+}
+
+[data-theme="dark"] .settings-credit-link {
+    color: rgba(200, 220, 224, 0.65);
+    text-decoration-color: rgba(200, 220, 224, 0.3);
+}
+
+[data-theme="dark"] .settings-credit-link:hover,
+[data-theme="dark"] .settings-credit-link:focus-visible {
+    color: #0ce6da;
+    text-decoration-color: currentColor;
 }

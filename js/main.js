@@ -2,7 +2,7 @@
 // NUMERO GAME - 5턴 안에 가장 큰 숫자를 만드는 게임
 // ============================================================================
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
-import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard } from "./supabase.js";
+import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick } from "./supabase.js";
 import { APP_CONFIG } from "./config.js";
 
 // ============================================================================
@@ -17,6 +17,7 @@ const PERK_CHOICE_COUNT = 3; // 표시할 특성 카드 수
 const DEFAULT_AUDIO_VOLUME = 0.25; // 초기 볼륨 25%
 const AUDIO_VOLUME_STORAGE_KEY = "numero.audioVolume";
 const USERNAME_STORAGE_KEY = "numero.username";
+const DARK_MODE_STORAGE_KEY = "numero.darkMode";
 
 // ============================================================================
 // 시드 기반 PRNG (mulberry32)
@@ -272,8 +273,8 @@ const OPTION_LIBRARY = {
         },
 
         { //2
-            formula: "pointVal * (modVal-1)!",
-            compute: (a, b) => a * factorial(b - 1),
+            formula: "pointVal * (modVal)!",
+            compute: (a, b) => a * factorial(b),
             unselectedLuckGain: 12,
         },
     ],
@@ -441,18 +442,6 @@ const PERK_LIB = [
         },
     },
     {
-        id: "perk-exchange",
-        name: "등가교환",
-        description: "매 턴이 끝날 때 행운을 절반으로 만들고, 값을 2배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(210, 232, 255, 0.92), rgba(245, 251, 255, 0.96))",
-        glitterColor: "rgba(143, 201, 255, 1)",
-        glitterIntensity: 0.68,
-        textColor: "#1d2f45",
-        applyTemplate: (_gameState) => {
-            // TODO: 특전 효과 구현 예정
-        },
-    },
-    {
         id: "perk-vento-aureo",
         name: "황금의 바람",
         description: "전설 선택지가 등장할 때마다 값이 2배가 됩니다.",
@@ -477,27 +466,15 @@ const PERK_LIB = [
         },
     },
     {
-        id: "perk-reverse",
-        name: "술식 반전",
-        description: "게임당 한 번, 턴 종료 시 값이 음수라면 양수로 부호 반전합니다.",
+        id: "perk-reversed-cursed",
+        name: "반전 술식",
+        description: "매 턴 종료 시 값이 음수라면 양수로 반전하고 1.5배로 만듭니다.",
         backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
         glitterColor: "rgba(255, 255, 255, 0.9)",
         glitterIntensity: 0.55,
         textColor: "#f2f2f2",
         applyTemplate: (_gameState) => {
             // TODO: 특전 효과 구현 예정
-        },
-    },
-    {
-        id: "perk-bank",
-        name: "적금 통장",
-        description: "4턴까지 매 턴 종료마다 값의 절반을 저금하고, 2배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(221, 245, 221, 0.96), rgba(244, 255, 244, 0.99))",
-        glitterColor: "rgba(120, 194, 120, 1)",
-        glitterIntensity: 0.42,
-        textColor: "#2f5a2f",
-        applyTemplate: (_gameState) => {
-            // 기능 없음
         },
     },
     {
@@ -528,7 +505,7 @@ const PERK_LIB = [
     {
         id: "perk-last-shooting",
         name: "라스트 슈팅",
-        description: "5턴 종료 직후, 3 / 4 / 5 턴의 주사위 값을 순서대로 곱합니다.",
+        description: "5턴 종료 후, 마지막 주사위 값을 1씩 줄여 3번 곱합니다. (최소 1)",
         backgroundStyle: "linear-gradient(160deg, rgba(252, 252, 252, 0.96), rgba(240, 240, 240, 0.99))",
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.55,
@@ -560,16 +537,14 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-placeholder-3",
-        name: "플레이스홀더 3",
-        description: "기능이 준비되지 않은 자리입니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(240, 240, 240, 0.92), rgba(247, 247, 247, 0.98))",
-        glitterColor: "rgba(178, 178, 178, 1)",
-        glitterIntensity: 0.26,
-        textColor: "#525252",
-        applyTemplate: (_gameState) => {
-            // 기능 없음
-        },
+        id: "perk-time-warp",
+        name: "시간 왜곡",
+        description: "5턴 동안 한 번도 스킵하지 않으면 6턴을 진행할 수 있습니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(185, 232, 248, 0.93), rgba(215, 244, 253, 0.97))",
+        glitterColor: "rgba(105, 204, 240, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#0d3a4a",
+        applyTemplate: (_gameState) => { },
     },
 ];
 
@@ -605,7 +580,9 @@ const els = {
     userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
+    darkModeToggle: document.getElementById("darkModeToggle"),
     message: document.getElementById("message"), // 게임 메시지
+    valueChangeSound: document.getElementById("valueChangeSound"), // 값 변경 카운팅 사운드
     diceRollSound: document.getElementById("diceRollSound"), // 주사위 굴림 사운드
     enhancedAppearSound: document.getElementById("enhancedAppearSound"), // 강화 선택지 등장 사운드
     perkActivateSound: document.getElementById("perkActivateSound"), // 특성 발동 사운드
@@ -617,10 +594,16 @@ const els = {
     patchLogModal: document.getElementById("patchLogModal"),
     patchLogContent: document.getElementById("patchLogContent"),
     patchLogClose: document.getElementById("patchLogClose"),
+    creditBtn: document.getElementById("creditBtn"),
+    creditModal: document.getElementById("creditModal"),
+    creditContent: document.getElementById("creditContent"),
+    creditClose: document.getElementById("creditClose"),
     leaderboardBtn: document.getElementById("leaderboardBtn"),
     leaderboardModal: document.getElementById("leaderboardModal"),
     leaderboardContent: document.getElementById("leaderboardContent"),
     leaderboardClose: document.getElementById("leaderboardClose"),
+    leaderboardVersionFilter: document.getElementById("leaderboardVersionFilter"),
+    leaderboardPerkFilter: document.getElementById("leaderboardPerkFilter"),
     confirmButtons: document.getElementById("confirmButtons"),
     confirmYes: document.getElementById("confirmYes"),
     confirmNo: document.getElementById("confirmNo"),
@@ -655,10 +638,10 @@ const state = {
     perkSunbangPreviewing: false, // perk-sunbang 발동 시 전환 중 여부
     perkSunbangDirection: null, // perk-sunbang 방향: 'right' | 'left'
     audioWarmedUp: false, // 첫 사용자 입력에서 오디오 워밍업 여부
-    perkReverseUsed: false, // 술식 반전 특성 게임당 한 번 사용 여부
     allOptionsRevealed: false, // 모든 선택지가 표시되었는지 여부
-    piggyBankStored: 0, // 저금통에 저장된 누적 값
     initialPointRollValue: null, // 게임 시작 시 확정된 첫 주사위 눈금
+    skipUsed: false, // 이번 게임에서 스킵 사용 여부
+    timewarpExtraTurn: false, // 시간 왜곡 특성으로 6턴이 추가됐는지 여부
 };
 
 // ============================================================================
@@ -791,6 +774,124 @@ function fitPointValueFont() {
         currentFont -= 1;
         el.style.fontSize = `${currentFont}px`;
     }
+}
+
+let _prevPointValForAnim = null;
+let _pointValAnimFrame = null;
+let _onPointValAnimComplete = null;
+
+// Web Audio API — Value_Change.mp3 전용 (iOS/Android playbackRate 캡 우회)
+let _vacCtx = null;
+let _vacGain = null;
+let _vacBuffer = null;
+let _vacSource = null;
+
+function _ensureVacContext() {
+    if (_vacCtx) return _vacCtx;
+    _vacCtx = new (window.AudioContext || window.webkitAudioContext)();
+    _vacGain = _vacCtx.createGain();
+    _vacGain.gain.value = clamp(state.audioVolume ?? 0.25, 0, 1);
+    _vacGain.connect(_vacCtx.destination);
+    return _vacCtx;
+}
+
+function initVacAudio() {
+    const ctx = _ensureVacContext();
+    if (_vacBuffer) return;
+    fetch("./Value_Change.mp3")
+        .then((r) => r.arrayBuffer())
+        .then((ab) => ctx.decodeAudioData(ab))
+        .then((buf) => { _vacBuffer = buf; })
+        .catch(() => {});
+}
+
+function playVacSound(rate, loop) {
+    if (!_vacBuffer || !_vacCtx) return;
+    _stopVacSource();
+    _vacCtx.resume().catch(() => {});
+    const src = _vacCtx.createBufferSource();
+    src.buffer = _vacBuffer;
+    src.loop = loop;
+    src.playbackRate.value = rate;
+    src.connect(_vacGain);
+    src.start(0);
+    _vacSource = src;
+}
+
+function _stopVacSource() {
+    if (!_vacSource) return;
+    try { _vacSource.stop(0); } catch {}
+    _vacSource.disconnect();
+    _vacSource = null;
+}
+
+function stopVacSound() {
+    _stopVacSource();
+}
+
+function endVacLoop() {
+    if (_vacSource) _vacSource.loop = false;
+}
+
+function setPointValAnimated(displayText, numericValue) {
+    const el = els.pointVal;
+    if (!el) return;
+
+    const shouldAnimate =
+        numericValue !== null &&
+        _prevPointValForAnim !== null &&
+        numericValue !== _prevPointValForAnim &&
+        state.phase !== "rolling-point" &&
+        state.phase !== "rolling-mod";
+
+    const from = _prevPointValForAnim;
+    if (numericValue !== null) _prevPointValForAnim = numericValue;
+
+    if (!shouldAnimate) {
+        el.textContent = displayText;
+        fitPointValueFont();
+        return;
+    }
+
+    if (_pointValAnimFrame !== null) {
+        cancelAnimationFrame(_pointValAnimFrame);
+        _pointValAnimFrame = null;
+    }
+
+    const to = numericValue;
+    const diff = Math.abs(to - from);
+    const MIN_MS = 150, MAX_MS = 3000;
+    const logScale = Math.min(Math.log10(diff + 1) / 12, 1);
+    const baseDuration = Math.round(MIN_MS + (MAX_MS - MIN_MS) * logScale);
+    const duration = diff >= 1_000_000_000_000 ? 2000
+        : diff >= 1_000_000_000 ? 1800
+        : Math.max(100, baseDuration - 200);
+    const startTime = performance.now();
+
+    playVacSound(2.0, diff > 10);
+
+    function easeOut(t) {
+        return 1 - Math.pow(1 - t, 2.5);
+    }
+
+    function tick(now) {
+        const t = Math.min((now - startTime) / duration, 1);
+        el.textContent = formatNum(Math.round(from + (to - from) * easeOut(t)));
+        fitPointValueFont();
+        if (t < 1) {
+            _pointValAnimFrame = requestAnimationFrame(tick);
+        } else {
+            _pointValAnimFrame = null;
+            el.textContent = displayText;
+            fitPointValueFont();
+            endVacLoop();
+            const cb = _onPointValAnimComplete;
+            _onPointValAnimComplete = null;
+            cb?.();
+        }
+    }
+
+    _pointValAnimFrame = requestAnimationFrame(tick);
 }
 
 /**
@@ -1023,93 +1124,21 @@ function applyPerkAfterTurnResolved() {
         return null;
     }
 
-    if (selectedPerk.id === "perk-bank") {
-        const prevPoint = state.pointVal ?? 0;
-        let activationMessageText = "";
-
-        if (state.turn >= MAX_TURNS) {
-            return null;
-        }
-
-        const bankedAmount = safeNumber(prevPoint / 2);
-        const remainingPoint = safeNumber(prevPoint - bankedAmount);
-        const messagePrefix = `[저금 ${formatNum(bankedAmount)}]`;
-        const prevStored = state.piggyBankStored ?? 0;
-        const afterDepositStored = safeNumber(prevStored + bankedAmount);
-        const boostedStored = safeNumber(Math.round(afterDepositStored * 2));
-        const savedMessageText = `${formatNum(bankedAmount)}만큼 저금 / 2배로 총액 ${formatNum(boostedStored)}`;
-
-        state.pointVal = remainingPoint;
-        state.piggyBankStored = boostedStored;
-
-        recordPerkActivationHistory(
-            selectedPerk,
-            `Turn ${state.turn} 종료: ${savedMessageText} (${formatNum(prevPoint)} -> ${formatNum(remainingPoint)})`,
-        );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, savedMessageText);
-        triggerPerkBadgeActivationFeedback();
-        activationMessageText = savedMessageText;
-
-        if (state.turn === 4) {
-            const storedAmount = state.piggyBankStored;
-            const beforeReleasePoint = state.pointVal ?? 0;
-            const releasedPoint = safeNumber(beforeReleasePoint + storedAmount);
-
-            state.pointVal = releasedPoint;
-            state.piggyBankStored = 0;
-            activationMessageText = `적금 만기! ${formatNum(storedAmount)}만큼 받음`;
-
-            recordPerkActivationHistory(
-                selectedPerk,
-                `Turn ${state.turn} 종료: 적금 만기! ${formatNum(storedAmount)}만큼 받음 (${formatNum(beforeReleasePoint)} -> ${formatNum(releasedPoint)})`,
-            );
-            triggerPerkPointChangeFeedback(selectedPerk, beforeReleasePoint, state.pointVal, activationMessageText);
-        }
-
-        return { messageText: activationMessageText, messagePrefix };
-    }
-
-    if (selectedPerk.id === "perk-exchange") {
-        const prevPoint = state.pointVal ?? 0;
-        const prevLuck = Math.max(0, Math.trunc(state.luck));
-        const halvedLuck = Math.floor(prevLuck / 2);
-        const doubledPoint = safeNumber((state.pointVal ?? 0) * 2);
-
-        state.luck = halvedLuck;
-        state.pointVal = doubledPoint;
-
-        recordPerkActivationHistory(
-            selectedPerk,
-            `Turn ${state.turn} 종료: Luck ${formatNum(prevLuck)} -> ${formatNum(halvedLuck)}, 값 ${formatNum(prevPoint)} -> ${formatNum(doubledPoint)} (2배)`,
-        );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 x2`);
-        triggerPerkBadgeActivationFeedback();
-        return { messageText: selectedPerk.name, messagePrefix: "" };
-    }
-
-    if (selectedPerk.id === "perk-reverse") {
-        // 게임당 한 번만 실행
-        if (state.perkReverseUsed) {
-            return null;
-        }
-
+    if (selectedPerk.id === "perk-reversed-cursed") {
         const prevPoint = state.pointVal ?? 0;
 
-        // 음수 값일 때만 양수로 반전
         if (prevPoint >= 0) {
             return null;
         }
 
-        state.perkReverseUsed = true;
-        const reversedPoint = safeNumber(prevPoint * -1);
-
+        const reversedPoint = safeNumber(prevPoint * -1.5);
         state.pointVal = reversedPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(reversedPoint)} (부호 반전됨)`,
+            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(reversedPoint)} (반전 × 1.5)`,
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "부호 반전됨");
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "반전 × 1.5");
         triggerPerkBadgeActivationFeedback();
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
@@ -1126,6 +1155,7 @@ function applyPerkAfterTurnResolved() {
         triggerPerkBadgeActivationFeedback();
         return { messageText: `${selectedPerk.name} (Luck 절반)`, messagePrefix: "" };
     }
+
 
     if (selectedPerk.id === "perk-red-comet") {
         if (state.turn > 3) return null;
@@ -1152,7 +1182,10 @@ function applyPerkAfterTurnResolved() {
 
 function applyPerkAfterDiceRoll(targetKey, rolledValue) {
     const selectedPerk = getSelectedPerk();
-    if (!selectedPerk || selectedPerk.id !== "perk-rigged-dice") {
+    if (!selectedPerk) return null;
+
+
+    if (selectedPerk.id !== "perk-rigged-dice") {
         return null;
     }
 
@@ -1179,22 +1212,14 @@ function applyPerkAfterDiceRoll(targetKey, rolledValue) {
 }
 
 function getLastShootingDiceMultipliers() {
-    const multipliers = [];
+    const lastTurnEntry = state.history
+        .filter((item) => item.turn === MAX_TURNS && item.modVal != null)
+        .at(-1);
 
-    // 마지막 3개 턴(3, 4, 5턴)의 주사위만 수집
-    const lastThreeTurnsThreshold = MAX_TURNS - 2;
-    const turnEntries = state.history
-        .filter((item) => typeof item.turn === "number" && item.modVal !== null && item.modVal !== undefined && item.turn >= lastThreeTurnsThreshold)
-        .sort((a, b) => a.turn - b.turn);
+    if (!lastTurnEntry) return [];
 
-    turnEntries.forEach((item) => {
-        const turnRoll = Math.trunc(item.modVal);
-        if (Number.isFinite(turnRoll) && turnRoll > 0) {
-            multipliers.push(turnRoll);
-        }
-    });
-
-    return multipliers;
+    const n = Math.max(1, Math.trunc(lastTurnEntry.modVal));
+    return [n, Math.max(1, n - 1), Math.max(1, n - 2)];
 }
 
 async function applyLastShootingBeforeFinish() {
@@ -1220,10 +1245,7 @@ async function applyLastShootingBeforeFinish() {
         );
 
         // 라스트 슈팅 연출 중에는 옵션 재렌더를 막아 공개된 선택지 값이 다시 바뀌지 않게 유지합니다.
-        if (els.pointVal) {
-            els.pointVal.textContent = formatNum(state.pointVal);
-            fitPointValueFont();
-        }
+        setPointValAnimated(formatNum(state.pointVal), state.pointVal);
         renderCalcHistory();
         els.message.textContent = activationMessage;
 
@@ -1511,27 +1533,15 @@ function closeLeaderboardModal() {
     setLeaderboardModalOpen(false);
 }
 
-async function openLeaderboardModal() {
-    if (!els.leaderboardModal || !els.leaderboardContent) return;
+function renderLeaderboardData(data) {
+    if (!els.leaderboardContent) return;
 
-    els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
-    setLeaderboardModalOpen(true);
-
-    const { data, error } = await fetchLeaderboard(50);
-
-    if (error || !data) {
-        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
-        return;
-    }
-
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         els.leaderboardContent.innerHTML = '<p class="patchlog-loading">아직 기록이 없습니다.</p>';
         return;
     }
 
-    const perkMap = Object.fromEntries(
-        PERK_LIB.map((p) => [p.id, p])
-    );
+    const perkMap = Object.fromEntries(PERK_LIB.map((p) => [p.id, p]));
 
     const rows = data.map((entry, i) => {
         const rank = i + 1;
@@ -1539,8 +1549,8 @@ async function openLeaderboardModal() {
         const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
         const usernameClass = rank === 1 ? "lb-username lb-username-1"
             : rank === 2 ? "lb-username lb-username-2"
-            : rank === 3 ? "lb-username lb-username-3"
-            : "lb-username";
+                : rank === 3 ? "lb-username lb-username-3"
+                    : "lb-username";
         const perk = perkMap[entry.perk_id];
         const perkBadge = (p) => p
             ? `<span class="lb-perk-badge" data-perk-id="${p.id}" style="background:${p.backgroundStyle};color:${p.textColor};--perk-glitter:${p.glitterColor};--perk-glitter-opacity:${p.glitterIntensity};">${escapeHtml(p.name)}</span>`
@@ -1558,8 +1568,8 @@ async function openLeaderboardModal() {
         const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}위`;
         const rankNameClass = rank === 1 ? "lb-card-rank-name lb-card-rank-1"
             : rank === 2 ? "lb-card-rank-name lb-card-rank-2"
-            : rank === 3 ? "lb-card-rank-name lb-card-rank-3"
-            : "lb-card-rank-name";
+                : rank === 3 ? "lb-card-rank-name lb-card-rank-3"
+                    : "lb-card-rank-name";
         const perk = perkMap[entry.perk_id];
         const perkBadge = perk
             ? `<span class="lb-perk-badge" data-perk-id="${perk.id}" style="background:${perk.backgroundStyle};color:${perk.textColor};--perk-glitter:${perk.glitterColor};--perk-glitter-opacity:${perk.glitterIntensity};">${escapeHtml(perk.name)}</span>`
@@ -1586,6 +1596,36 @@ async function openLeaderboardModal() {
             <tbody>${rows}</tbody>
         </table>
         <div class="lb-cards lb-mobile-only">${cards}</div>`;
+}
+
+async function openLeaderboardModal() {
+    if (!els.leaderboardModal || !els.leaderboardContent) return;
+
+    if (els.leaderboardPerkFilter && els.leaderboardPerkFilter.options.length === 1) {
+        PERK_LIB.forEach((p) => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.name;
+            els.leaderboardPerkFilter.appendChild(opt);
+        });
+    }
+    if (els.leaderboardVersionFilter) els.leaderboardVersionFilter.value = "";
+    if (els.leaderboardPerkFilter) {
+        els.leaderboardPerkFilter.value = "";
+        els.leaderboardPerkFilter.disabled = false;
+    }
+
+    els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+    setLeaderboardModalOpen(true);
+
+    const { data, error } = await fetchLeaderboard(100);
+
+    if (error || !data) {
+        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
+        return;
+    }
+
+    renderLeaderboardData(data);
 }
 
 function escapeHtml(value) {
@@ -1702,6 +1742,29 @@ async function openPatchLogModal() {
     }
 }
 
+function setCreditModalOpen(isOpen) {
+    if (!els.creditModal) return;
+    els.creditModal.classList.toggle("is-visible", isOpen);
+    els.creditModal.setAttribute("aria-hidden", String(!isOpen));
+}
+
+async function openCreditModal() {
+    if (!els.creditModal || !els.creditContent) return;
+
+    els.creditContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+    setCreditModalOpen(true);
+
+    try {
+        const response = await fetch("./credit.md", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const markdown = await response.text();
+        const rendered = renderPatchLogMarkdown(markdown);
+        els.creditContent.innerHTML = rendered || '<p class="patchlog-loading">내용이 없습니다.</p>';
+    } catch {
+        els.creditContent.innerHTML = '<p class="patchlog-loading">크레딧을 불러오지 못했습니다.</p>';
+    }
+}
+
 function loadStoredAudioVolume() {
     try {
         const storedValue = window.localStorage.getItem(AUDIO_VOLUME_STORAGE_KEY);
@@ -1728,6 +1791,24 @@ function saveAudioVolume(volume) {
     }
 }
 
+function isDarkMode() {
+    return document.documentElement.getAttribute("data-theme") === "dark";
+}
+
+function applyDarkMode(enabled) {
+    document.documentElement.setAttribute("data-theme", enabled ? "dark" : "light");
+    if (els.darkModeToggle) {
+        els.darkModeToggle.textContent = enabled ? "켜짐" : "꺼짐";
+        els.darkModeToggle.classList.toggle("is-active", enabled);
+    }
+}
+
+function saveDarkMode(enabled) {
+    try {
+        window.localStorage.setItem(DARK_MODE_STORAGE_KEY, String(enabled));
+    } catch { }
+}
+
 function applyAudioVolumeState(volume) {
     const safeVolume = clamp(volume, 0, 1);
     const isMuted = safeVolume === 0;
@@ -1745,6 +1826,10 @@ function applyAudioVolumeState(volume) {
     if (els.perkActivateSound) {
         els.perkActivateSound.volume = safeVolume;
         els.perkActivateSound.muted = isMuted;
+    }
+
+    if (_vacGain) {
+        _vacGain.gain.value = isMuted ? 0 : safeVolume;
     }
 }
 
@@ -1816,10 +1901,37 @@ function bindSettingsEvents() {
         });
     }
 
+    applyDarkMode(isDarkMode());
+
+    if (els.darkModeToggle) {
+        els.darkModeToggle.addEventListener("click", () => {
+            const next = !isDarkMode();
+            applyDarkMode(next);
+            saveDarkMode(next);
+        });
+    }
+
     if (els.patchLogBtn) {
         els.patchLogBtn.addEventListener("click", () => {
             setSettingsOpen(false);
             openPatchLogModal();
+        });
+    }
+
+    if (els.creditBtn) {
+        els.creditBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openCreditModal();
+        });
+    }
+
+    if (els.creditClose) {
+        els.creditClose.addEventListener("click", () => setCreditModalOpen(false));
+    }
+
+    if (els.creditModal) {
+        els.creditModal.addEventListener("click", (event) => {
+            if (event.target === els.creditModal) setCreditModalOpen(false);
         });
     }
 
@@ -1847,6 +1959,43 @@ function bindSettingsEvents() {
     if (els.leaderboardClose) {
         els.leaderboardClose.addEventListener("click", () => {
             closeLeaderboardModal();
+        });
+    }
+
+    if (els.leaderboardVersionFilter) {
+        els.leaderboardVersionFilter.addEventListener("change", async () => {
+            const version = els.leaderboardVersionFilter.value;
+            const isHallOfFame = version !== "";
+
+            if (els.leaderboardPerkFilter) {
+                els.leaderboardPerkFilter.value = "";
+                els.leaderboardPerkFilter.disabled = isHallOfFame;
+            }
+
+            els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+            const { data, error } = isHallOfFame
+                ? await fetchHallOfFame(version)
+                : await fetchLeaderboard(100);
+            if (error || !data) {
+                els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
+                return;
+            }
+            renderLeaderboardData(data);
+        });
+    }
+
+    if (els.leaderboardPerkFilter) {
+        els.leaderboardPerkFilter.addEventListener("change", async () => {
+            const perkId = els.leaderboardPerkFilter.value;
+            els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+            const { data, error } = perkId
+                ? await fetchLeaderboardByPerk(perkId, 50)
+                : await fetchLeaderboard(100);
+            if (error || !data) {
+                els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
+                return;
+            }
+            renderLeaderboardData(data);
         });
     }
 
@@ -1937,6 +2086,7 @@ function warmupAudioOnFirstGesture() {
     warmupAudioElement(els.diceRollSound);
     warmupAudioElement(els.enhancedAppearSound);
     warmupAudioElement(els.perkActivateSound);
+    initVacAudio();
 }
 
 function clearEnhancedAppearSoundSchedule() {
@@ -2015,10 +2165,7 @@ function refreshOptionExpressionLabels() {
 }
 
 function refreshPointValueAndHistoryUi() {
-    if (els.pointVal) {
-        els.pointVal.textContent = state.pointVal === null ? "-" : formatNum(state.pointVal);
-        fitPointValueFont();
-    }
+    setPointValAnimated(state.pointVal === null ? "-" : formatNum(state.pointVal), state.pointVal);
 
     // 옵션 카드 전체 재렌더 없이 표시 숫자만 갱신
     refreshOptionPredictedValueLabels();
@@ -2140,10 +2287,18 @@ async function startGame() {
         return;
     }
 
+    // 시드 fetch 전에 먼저 진입 잠금 — 중복 클릭 방지
+    if (state.started && state.phase !== "finished" && state.phase !== "perk-select") return;
+    state.started = true;
+    state.phase = "rolling-point";
+    renderStatus();
+
     // 게임 렌더 이전에 시드 수신
     const gameId = crypto.randomUUID();
     const { seedInt8, source } = await fetchGameSeed(gameId);
     initRng(seedInt8ToUint32(seedInt8));
+
+    logPerkPick(state.perkChoices, state.selectedPerkId);
 
     if (els.seedStatusDot) {
         const ok = source === "supabase";
@@ -2165,11 +2320,13 @@ async function startGame() {
     state.history = [];
     state.leaderboardRank = null;
     state.optionPredictionsReady = true;
-    state.perkReverseUsed = false;
-    state.piggyBankStored = 0;
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
+    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); _pointValAnimFrame = null; }
+    stopVacSound();
+    _onPointValAnimComplete = null;
+    _prevPointValForAnim = null;
     state.phase = "rolling-point";
 
     state.history.push({ kind: "seed", source, seedInt8 });
@@ -2278,6 +2435,12 @@ function preparePerkSelection() {
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
     state.initialPointRollValue = null;
+    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); _pointValAnimFrame = null; }
+    stopVacSound();
+    _onPointValAnimComplete = null;
+    _prevPointValForAnim = null;
+    state.skipUsed = false;
+    state.timewarpExtraTurn = false;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -2319,7 +2482,7 @@ async function rollModValForTurn() {
         return;
     }
 
-    if (state.turn >= MAX_TURNS) {
+    if (state.turn >= (state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS)) {
         finishGame();
         return;
     }
@@ -2337,7 +2500,9 @@ async function rollModValForTurn() {
     state.revealTarget = "modVal";
     state.phase = "rolled-mod-preview";
     els.message.textContent = riggedDiceResult
-        ? `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. ${state.turn}턴 주사위 값 = ${state.modVal}. 주사위를 확인하세요.`
+        ? riggedDiceResult.label != null
+            ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). ${state.turn}턴 주사위 값 = ${state.modVal}. 주사위를 확인하세요.`
+            : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. ${state.turn}턴 주사위 값 = ${state.modVal}. 주사위를 확인하세요.`
         : `${state.turn}턴 주사위 값 = ${state.modVal}. 주사위를 확인하세요.`;
     renderStatus();
 
@@ -2429,7 +2594,8 @@ async function rollModValForTurn() {
  * 6. 턴 종료 또는 게임 종료 판정
  */
 async function pickOption(optionIndex) {
-    if (!state.started || state.turn > MAX_TURNS || state.phase !== "await-option") {
+    const allowedMax = state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS;
+    if (!state.started || state.turn > allowedMax || state.phase !== "await-option") {
         return;
     }
 
@@ -2468,6 +2634,7 @@ async function pickOption(optionIndex) {
     state.history.push({
         turn: state.turn,
         modVal: state.modVal,
+        selected_index: optionIndex,
         expression: selected.formula,
         isEnhanced: Boolean(selected.isEnhanced),
         from: prevPoint,
@@ -2482,7 +2649,28 @@ async function pickOption(optionIndex) {
         : `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
 
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT;
-    if (state.turn >= MAX_TURNS || reachedMaxValue) {
+    const effectiveMax = state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS;
+
+    if (state.turn >= MAX_TURNS && !state.timewarpExtraTurn && !reachedMaxValue) {
+        const selectedPerk = getSelectedPerk();
+        if (selectedPerk?.id === "perk-time-warp" && !state.skipUsed) {
+            state.resolvingOptionId = null;
+            recordPerkActivationHistory(selectedPerk, `Turn ${state.turn} 종료: 퀘스트 달성! 6턴 추가`);
+            triggerPerkBadgeActivationFeedback();
+            els.message.textContent = "퀘스트 달성!";
+            renderStatus();
+            await wait(250);
+            state.timewarpExtraTurn = true;
+            state.modVal = null;
+            state.options = [];
+            state.phase = "await-mod-roll";
+            els.message.textContent = "6턴 주사위를 굴려보세요.";
+            renderStatus();
+            return;
+        }
+    }
+
+    if (state.turn >= effectiveMax || reachedMaxValue) {
         state.resolvingOptionId = null;
         await applyLastShootingBeforeFinish();
         finishGame();
@@ -2511,12 +2699,14 @@ async function pickOption(optionIndex) {
  * 5. 다음 턴 또는 게임 종료
  */
 async function skipTurnTakeAllLuck() {
-    if (!state.started || state.turn > MAX_TURNS || state.phase !== "await-option") {
+    const allowedMax = state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS;
+    if (!state.started || state.turn > allowedMax || state.phase !== "await-option") {
         return;
     }
 
     const addedLuck = state.options.reduce((sum, option) => sum + option.unselectedLuckGain, 0) * 2;
 
+    state.skipUsed = true;
     state.phase = "resolving-option";
     state.resolvingOptionId = null;
     clearEnhancedAppearSoundSchedule();
@@ -2555,7 +2745,7 @@ async function skipTurnTakeAllLuck() {
         : skipBaseMessage;
 
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT;
-    if (state.turn >= MAX_TURNS || reachedMaxValue) {
+    if (state.turn >= (state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS) || reachedMaxValue) {
         state.resolvingOptionId = null;
         await applyLastShootingBeforeFinish();
         finishGame();
@@ -2597,6 +2787,15 @@ function finishGame() {
     els.message.textContent = `${finishLabel} 최종 pointVal ${formatNum(state.pointVal)}`;
     renderStatus();
 
+    if (_pointValAnimFrame !== null) {
+        _onPointValAnimComplete = () => {
+            const panel = els.options.querySelector(".finished-panel");
+            if (!panel) return;
+            panel.style.opacity = "";
+            panel.classList.add("fade-in");
+        };
+    }
+
     // 게임 결과 서버 전송 (fire-and-forget)
     const seedEntry = state.history.find((e) => e.kind === "seed");
     if (seedEntry?.source !== "supabase") {
@@ -2607,7 +2806,8 @@ function finishGame() {
         if (shareBtn) shareBtn.disabled = true;
         if (rankEl) rankEl.textContent = "데이터 업로드 중...";
 
-        const username = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim() || "익명";
+        const storedName = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim();
+        const username = storedName || `익명 #${String(Math.floor(Math.random() * 100000)).padStart(5, "0")}`;
         uploadResult({
             username,
             seedInt8: seedEntry.seedInt8,
@@ -2629,7 +2829,10 @@ function finishGame() {
             const { rank, total } = result.data;
             state.leaderboardRank = rank;
             const el = document.querySelector(".finished-rank");
-            if (el) el.textContent = `${rank}등`;
+            if (el) {
+                const topPercent = Math.ceil((rank / total) * 100);
+                el.innerHTML = `${total}개의 기록 중 ${rank}등!<br>(상위 ${topPercent}%)`;
+            }
         });
     }
 }
@@ -2652,27 +2855,60 @@ async function copyTextToClipboard(text) {
 }
 
 function buildGameplayLog() {
-    const lines = [];
+    const log = {};
+    const perkActivations = [];
+
     state.history.forEach((item) => {
         if (item.kind === "seed") {
-            const label = item.source === "supabase" ? "온라인 시드" : "오프라인 시드";
-            lines.push(`[시드] ${label} :${item.seedInt8}`);
+            log.seed = item.seedInt8;
             return;
         }
         if (item.kind === "perk-selection") {
-            lines.push(`[특성 선택] ${item.perkName} - ${item.perkDescription}`);
+            log.perk_id = state.selectedPerkId;
             return;
         }
         if (item.kind === "perk-activation") {
-            lines.push(`[특성 발동] ${item.perkName} - ${item.detail}`);
+            perkActivations.push({ name: item.perkName, detail: item.detail });
             return;
         }
-        const enhanced = item.isEnhanced ? " [강화됨]" : "";
-        const formula = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal);
-        lines.push(`Turn ${item.turn}${enhanced}: dice=${item.modVal}, from=${item.from}, formula=${formula}, to=${item.to}, luck+=${item.gainedLuck ?? 0}`);
+        // 턴 항목
+        log[`turn${item.turn}`] = {
+            selected: item.selected_index,
+            enhanced: item.isEnhanced ?? false,
+            dice: item.modVal,
+            before_val: item.from,
+            result_val: item.to,
+            luck_gained: item.gainedLuck ?? 0,
+        };
     });
-    lines.push(`[결과] ${state.pointVal ?? 0}`);
-    return lines.join("\n");
+
+    if (perkActivations.length > 0) log.perk_activations = perkActivations;
+    log.final_score = state.pointVal ?? 0;
+
+    const baseMap = new Map();
+    for (const [rarity, ops] of Object.entries(OPTION_LIBRARY)) {
+        ops.forEach((op, i) => baseMap.set(op.formula, { rarity, idx: i + 1 }));
+    }
+    const enhMap = new Map();
+    for (const [rarity, ops] of Object.entries(ENHANCED_OPTION_LIBRARY)) {
+        ops.forEach((op, i) => enhMap.set(op.formula, { rarity, idx: i + 1 }));
+    }
+    const picks = {};
+    state.history.forEach((item) => {
+        if (!item.turn || !item.expression) return;
+        const enhanced = Boolean(item.isEnhanced);
+        const info = (enhanced ? enhMap : baseMap).get(item.expression);
+        if (!info) return;
+        const key = `${info.rarity}_${info.idx}`;
+        if (picks[key]) {
+            picks[key].count += 1;
+        } else {
+            picks[key] = { count: 1, isEnhanced: enhanced };
+        }
+    });
+    if (Object.keys(picks).length > 0) log.option_picks = picks;
+
+    return log;
 }
 
 function buildShareRecordText() {
@@ -2684,17 +2920,16 @@ function buildShareRecordText() {
             : formatNum(finalValue);
     const selectedPerk = getSelectedPerk();
     const perkShareEmojiMap = {
-        "perk-bank": "💰",
         "perk-clover": "🍀",
-        "perk-exchange": "💱",
         "perk-vento-aureo": "🐞",
         "perk-67": "🤷",
-        "perk-reverse": "🔴",
+        "perk-reversed-cursed": "🔴",
         "perk-rigged-dice": "🎲",
         "perk-jackpot": "🎰",
         "perk-last-shooting": "🤖",
         "perk-sunbang": "🛡️",
         "perk-red-comet": "☄️",
+        "perk-time-warp": "⏳",
     };
     const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 
@@ -2902,8 +3137,9 @@ function renderFinishedPanel() {
     const reachedMinLimit = finalValue === -SAFE_INT_LIMIT;
     const topPercentText = "상위 ?%";
 
+    const pendingAnim = _pointValAnimFrame !== null;
     els.options.innerHTML = `
-            <div class="finished-panel fade-in" role="status" aria-live="polite">
+            <div class="finished-panel${pendingAnim ? "" : " fade-in"}"${pendingAnim ? ' style="opacity:0"' : ""} role="status" aria-live="polite">
                 ${reachedMinLimit
             ? '<img class="finished-image" src="./undertaker.jpg" alt="Undertaker">'
             : `<p class="finished-title">${reachedMaxLimit ? "최대 한도 달성!" : "게임 종료!"}</p>`}
@@ -2975,11 +3211,7 @@ function updatePerkBadge(perk) {
     els.perkBadgeBtn.style.setProperty("--perk-text-color", perk.textColor || "#13272b");
 
     els.perkBadgeTitle.textContent = `특성 : ${perk.name}`;
-    if (perk.id === "perk-bank") {
-        els.perkBadgeDesc.innerHTML = `${perk.description}<br>현재 저금액: ${formatNum(state.piggyBankStored ?? 0)}`;
-    } else {
-        els.perkBadgeDesc.textContent = perk.description;
-    }
+    els.perkBadgeDesc.textContent = perk.description;
 }
 
 function centerPhoneFrameOnDesktop() {
@@ -3128,11 +3360,11 @@ function renderStatus() {
     const displayModVal = (state.perkSunbangPreviewing && state.revealTarget === "modVal")
         ? clamp((state.modVal ?? 0) + sunbangPreviewDelta, 1, 6)
         : state.modVal;
-    els.pointVal.textContent = displayPointVal === null ? "-" : formatNum(displayPointVal);
+    setPointValAnimated(displayPointVal === null ? "-" : formatNum(displayPointVal), state.pointVal);
     els.modVal.textContent = displayModVal === null ? "-" : formatNum(displayModVal);
     // await-mod-roll 상태에서는 다음 턴을 미리 표시
     const displayTurn = state.phase === "await-mod-roll" ? state.turn + 1 : state.turn;
-    els.turnDisplay.textContent = `${displayTurn} / ${MAX_TURNS}`;
+    els.turnDisplay.textContent = `${displayTurn} / ${state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS}`;
     els.luckScore.textContent = `Luck ${state.luck}`;
     fitPointValueFont();
     renderCalcHistory();
