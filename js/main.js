@@ -468,7 +468,7 @@ const PERK_LIB = [
     {
         id: "perk-reversed-cursed",
         name: "반전 술식",
-        description: "매 턴 종료 시 값이 음수라면 양수로 반전하고 1.5배로 만듭니다.",
+        description: "매 턴 종료 시 값이 음수라면 양수로 반전하고 2배로 만듭니다.",
         backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
         glitterColor: "rgba(255, 255, 255, 0.9)",
         glitterIntensity: 0.55,
@@ -544,6 +544,106 @@ const PERK_LIB = [
         glitterColor: "rgba(105, 204, 240, 1)",
         glitterIntensity: 0.72,
         textColor: "#0d3a4a",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-patron",
+        name: "후원자",
+        description: "시작 값을 100으로 고정합니다. 광고 봐주셔서 감사해요 :)",
+        backgroundStyle: "linear-gradient(160deg, rgba(255, 175, 200, 0.94), rgba(255, 215, 230, 0.96))",
+        glitterColor: "rgba(240, 100, 145, 1)",
+        glitterIntensity: 0.65,
+        textColor: "#5a1028",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-salvation",
+        name: "구원",
+        description: "게임당 한 번, 주사위가 1이 나오면 6으로 변경합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(250, 238, 160, 0.96), rgba(255, 248, 200, 0.97))",
+        glitterColor: "rgba(255, 253, 230, 1)",
+        glitterIntensity: 0.7,
+        textColor: "#3a2c00",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-link",
+        name: "링크",
+        description: "지난 턴과 같은 등급의 선택지를 고를 시 계산 후 값을 2배로 만듭니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(190, 196, 205, 0.95), rgba(225, 230, 238, 0.97))",
+        glitterColor: "rgba(255, 255, 255, 1)",
+        glitterIntensity: 0.65,
+        textColor: "#1c2028",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-bullseye",
+        name: "불스아이",
+        description: "주사위 번호와 턴이 일치하면 그만큼 값을 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(165, 0, 18, 0.97), rgba(232, 1, 36, 0.95))",
+        glitterColor: "rgba(255, 255, 255, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-joker",
+        name: "조커",
+        description: "일반 선택지를 고를 때마다 짐보가 현재 값에 4를 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(200, 196, 188, 0.97), rgba(243, 242, 239, 0.98))",
+        glitterColor: "rgba(150, 148, 143, 1)",
+        glitterIntensity: 0.4,
+        textColor: "#2a2a2a",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-investment",
+        name: "장기 투자",
+        description: "매 턴 종료 시 현재 값을 1.5배로 만듭니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(221, 245, 221, 0.96), rgba(244, 255, 244, 0.99))",
+        glitterColor: "rgba(120, 194, 120, 1)",
+        glitterIntensity: 0.42,
+        textColor: "#1a3a1a",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-beer",
+        name: "맥주 한 잔",
+        description: "스킵 시 5 × 현재 턴만큼 추가 행운을 얻습니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(170, 100, 10, 0.96), rgba(215, 155, 35, 0.94))",
+        glitterColor: "rgba(255, 205, 50, 1)",
+        glitterIntensity: 0.7,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-gros-michel",
+        name: "그로 미셸",
+        description: "주사위가 1이 나올 때마다 현재 값에 6을 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(210, 165, 20, 0.96), rgba(245, 200, 42, 0.94))",
+        glitterColor: "rgba(255, 232, 130, 1)",
+        glitterIntensity: 0.75,
+        textColor: "#2d2000",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-death-boundary",
+        name: "사의 경계",
+        description: "4턴에 주사위가 4라면 현재 값에 44를 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(8, 8, 8, 0.99), rgba(25, 4, 4, 0.98))",
+        glitterColor: "rgba(234, 8, 9, 1)",
+        glitterIntensity: 0.88,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-highlander",
+        name: "하이랜더",
+        description: "5턴간 같은 계산식을 한번도 고르지 않았다면 10을 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(101, 65, 32, 0.96), rgba(161, 108, 70, 0.94))",
+        glitterColor: "rgba(220, 175, 110, 1)",
+        glitterIntensity: 0.68,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
 ];
@@ -802,13 +902,13 @@ function initVacAudio() {
         .then((r) => r.arrayBuffer())
         .then((ab) => ctx.decodeAudioData(ab))
         .then((buf) => { _vacBuffer = buf; })
-        .catch(() => {});
+        .catch(() => { });
 }
 
 function playVacSound(rate, loop) {
     if (!_vacBuffer || !_vacCtx) return;
     _stopVacSource();
-    _vacCtx.resume().catch(() => {});
+    _vacCtx.resume().catch(() => { });
     const src = _vacCtx.createBufferSource();
     src.buffer = _vacBuffer;
     src.loop = loop;
@@ -820,7 +920,7 @@ function playVacSound(rate, loop) {
 
 function _stopVacSource() {
     if (!_vacSource) return;
-    try { _vacSource.stop(0); } catch {}
+    try { _vacSource.stop(0); } catch { }
     _vacSource.disconnect();
     _vacSource = null;
 }
@@ -854,7 +954,7 @@ function setPointValAnimated(displayText, numericValue) {
     }
 
     if (_pointValAnimFrame !== null) {
-        cancelAnimationFrame(_pointValAnimFrame);
+        cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
         _pointValAnimFrame = null;
     }
 
@@ -865,7 +965,7 @@ function setPointValAnimated(displayText, numericValue) {
     const baseDuration = Math.round(MIN_MS + (MAX_MS - MIN_MS) * logScale);
     const duration = diff >= 1_000_000_000_000 ? 2000
         : diff >= 1_000_000_000 ? 1800
-        : Math.max(100, baseDuration - 200);
+            : Math.max(100, baseDuration - 200);
     const startTime = performance.now();
 
     playVacSound(2.0, diff > 10);
@@ -879,7 +979,11 @@ function setPointValAnimated(displayText, numericValue) {
         el.textContent = formatNum(Math.round(from + (to - from) * easeOut(t)));
         fitPointValueFont();
         if (t < 1) {
-            _pointValAnimFrame = requestAnimationFrame(tick);
+            if (document.hidden) {
+                _pointValAnimFrame = window.setTimeout(() => tick(performance.now()), 16);
+            } else {
+                _pointValAnimFrame = requestAnimationFrame(tick);
+            }
         } else {
             _pointValAnimFrame = null;
             el.textContent = displayText;
@@ -891,7 +995,9 @@ function setPointValAnimated(displayText, numericValue) {
         }
     }
 
-    _pointValAnimFrame = requestAnimationFrame(tick);
+    _pointValAnimFrame = document.hidden
+        ? window.setTimeout(() => tick(performance.now()), 16)
+        : requestAnimationFrame(tick);
 }
 
 /**
@@ -1082,7 +1188,7 @@ function recordPerkSelectionHistory(perk) {
     });
 }
 
-function recordPerkActivationHistory(perk, detail) {
+function recordPerkActivationHistory(perk, detail, extra = null) {
     if (!perk) {
         return;
     }
@@ -1092,6 +1198,7 @@ function recordPerkActivationHistory(perk, detail) {
         perkId: perk.id,
         perkName: perk.name,
         detail,
+        ...(extra ?? {}),
     });
 }
 
@@ -1103,7 +1210,8 @@ function applyPerkBeforeInitialRoll() {
 
     if (selectedPerk.id === "perk-jackpot") {
         selectedPerk.applyTemplate(state);
-        recordPerkActivationHistory(selectedPerk, `Luck을 ${state.luck}으로 변경`);
+        recordPerkActivationHistory(selectedPerk, `Luck을 ${state.luck}으로 변경`,
+            { turn: 0, trigger: "game_start", after_luck: state.luck });
         triggerPerkBadgeActivationFeedback();
         return true;
     }
@@ -1113,7 +1221,8 @@ function applyPerkBeforeInitialRoll() {
     }
 
     selectedPerk.applyTemplate(state);
-    recordPerkActivationHistory(selectedPerk, `Luck을 ${state.luck}으로 변경`);
+    recordPerkActivationHistory(selectedPerk, `Luck을 ${state.luck}으로 변경`,
+        { turn: 0, trigger: "game_start", after_luck: state.luck });
     triggerPerkBadgeActivationFeedback();
     return true;
 }
@@ -1131,14 +1240,15 @@ function applyPerkAfterTurnResolved() {
             return null;
         }
 
-        const reversedPoint = safeNumber(prevPoint * -1.5);
+        const reversedPoint = safeNumber(prevPoint * -2);
         state.pointVal = reversedPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(reversedPoint)} (반전 × 1.5)`,
+            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(reversedPoint)} (반전 × 2)`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: reversedPoint },
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "반전 × 1.5");
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "반전 × 2");
         triggerPerkBadgeActivationFeedback();
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
@@ -1151,6 +1261,7 @@ function applyPerkAfterTurnResolved() {
         recordPerkActivationHistory(
             selectedPerk,
             `Turn ${state.turn} 종료: Luck ${formatNum(prevLuck)} -> ${formatNum(halvedLuck)} (절반)`,
+            { turn: state.turn, trigger: "turn_end", before_luck: prevLuck, after_luck: halvedLuck },
         );
         triggerPerkBadgeActivationFeedback();
         return { messageText: `${selectedPerk.name} (Luck 절반)`, messagePrefix: "" };
@@ -1171,10 +1282,64 @@ function applyPerkAfterTurnResolved() {
         recordPerkActivationHistory(
             selectedPerk,
             `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} -> ${formatNum(tripledPoint)} (x3), Luck ${formatNum(prevLuck)} -> ${formatNum(reducedLuck)} (-1/3)`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: tripledPoint, before_luck: prevLuck, after_luck: reducedLuck },
         );
         triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `값 x3`);
         triggerPerkBadgeActivationFeedback();
         return { messageText: `${selectedPerk.name} (값 x3, Luck -1/3)`, messagePrefix: "" };
+    }
+
+    if (selectedPerk.id === "perk-investment") {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * 1.5);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 1.5");
+        triggerPerkBadgeActivationFeedback();
+        return { messageText: selectedPerk.name, messagePrefix: "" };
+    }
+
+    if (selectedPerk.id === "perk-joker") {
+        const lastTurn = state.history.filter((item) => item.turn === state.turn && item.rarity).at(-1);
+        if (!lastTurn || lastTurn.rarity !== "common" || lastTurn.isEnhanced) return null;
+
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * 4);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 일반 선택 → 값 x4 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 4");
+        triggerPerkBadgeActivationFeedback();
+        return { messageText: selectedPerk.name, messagePrefix: "" };
+    }
+
+    if (selectedPerk.id === "perk-link") {
+        if (state.turn < 2) return null;
+        const curTurn = state.history.filter((item) => item.turn === state.turn && item.rarity).at(-1);
+        const prevTurn = state.history.filter((item) => item.turn === state.turn - 1 && item.rarity).at(-1);
+        if (!curTurn || !prevTurn || curTurn.rarity !== prevTurn.rarity) return null;
+
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * 2);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 연속 ${curTurn.rarity} → 값 x2 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 2");
+        triggerPerkBadgeActivationFeedback();
+        return { messageText: `${selectedPerk.name} (${curTurn.rarity})`, messagePrefix: "" };
     }
 
     return null;
@@ -1199,9 +1364,11 @@ function applyPerkAfterDiceRoll(targetKey, rolledValue) {
     }
 
     const rollLabel = targetKey === "pointVal" ? "초기 시작 값 주사위" : `${state.turn}턴 주사위`;
+    const rollTrigger = targetKey === "pointVal" ? "initial_roll" : "turn_dice";
     recordPerkActivationHistory(
         selectedPerk,
         `${rollLabel}: Luck ${formatNum(prevLuck)} -> ${formatNum(nextLuck)} (+${formatNum(gainedLuck)})`,
+        { turn: state.turn, trigger: rollTrigger, before_luck: prevLuck, after_luck: nextLuck },
     );
     triggerPerkBadgeActivationFeedback();
 
@@ -1242,6 +1409,7 @@ async function applyLastShootingBeforeFinish() {
         recordPerkActivationHistory(
             selectedPerk,
             `최종 발동: x${multiplier} 배 증가 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "final", before_val: prevPoint, after_val: nextPoint },
         );
 
         // 라스트 슈팅 연출 중에는 옵션 재렌더를 막아 공개된 선택지 값이 다시 바뀌지 않게 유지합니다.
@@ -1259,6 +1427,51 @@ async function applyLastShootingBeforeFinish() {
             break;
         }
     }
+}
+
+async function applyHighlanderBeforeFinish() {
+    const selectedPerk = getSelectedPerk();
+    if (!selectedPerk || selectedPerk.id !== "perk-highlander") return;
+    if (state.turn !== MAX_TURNS) return;
+
+    const baseMap = new Map();
+    for (const [rarity, ops] of Object.entries(OPTION_LIBRARY)) {
+        ops.forEach((op, i) => baseMap.set(op.formula, `${rarity}_${i + 1}`));
+    }
+    const enhMap = new Map();
+    for (const [rarity, ops] of Object.entries(ENHANCED_OPTION_LIBRARY)) {
+        ops.forEach((op, i) => enhMap.set(op.formula, `${rarity}_${i + 1}_enh`));
+    }
+
+    const seen = new Set();
+    let hasDuplicate = false;
+    for (const item of state.history) {
+        if (!item.turn || !item.expression) continue;
+        const key = (Boolean(item.isEnhanced) ? enhMap : baseMap).get(item.expression);
+        if (!key) continue;
+        if (seen.has(key)) { hasDuplicate = true; break; }
+        seen.add(key);
+    }
+
+    if (hasDuplicate) return;
+
+    const prevPoint = state.pointVal ?? 0;
+    const nextPoint = safeNumber(prevPoint * 10);
+    state.pointVal = nextPoint;
+
+    recordPerkActivationHistory(
+        selectedPerk,
+        `최종 발동: 중복 없음 x10 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+        { turn: state.turn, trigger: "final", before_val: prevPoint, after_val: nextPoint },
+    );
+
+    setPointValAnimated(formatNum(state.pointVal), state.pointVal);
+    renderCalcHistory();
+    els.message.textContent = "특성 발동! 하이랜더: 중복 없음! × 10";
+
+    triggerPerkBadgeActivationFeedback();
+    triggerPerkPointChangeFeedback(selectedPerk, prevPoint, nextPoint, "× 10");
+    await wait(1800);
 }
 
 function updateLuckInfoTooltip() {
@@ -1443,13 +1656,29 @@ function setRollingVisual(target) {
     els.modVal.classList.toggle("rolling", target === "modVal");
 }
 
-/**
- * Promise 기반 대기 함수
- * setTimeout을 깔끔하게 감싸서 async/await 문법 사용 가능하게 함
- */
+// 백그라운드 탭에서도 스로틀되지 않는 타이머 워커
+const _timerWorker = (() => {
+    const blob = new Blob([`
+        self.onmessage = function(e) {
+            const { id, ms } = e.data;
+            setTimeout(function() { self.postMessage({ id }); }, ms);
+        };
+    `], { type: "application/javascript" });
+    return new Worker(URL.createObjectURL(blob));
+})();
+let _timerSeq = 0;
+
 function wait(ms) {
     return new Promise((resolve) => {
-        window.setTimeout(resolve, ms);
+        const id = ++_timerSeq;
+        const handler = (e) => {
+            if (e.data.id === id) {
+                _timerWorker.removeEventListener("message", handler);
+                resolve();
+            }
+        };
+        _timerWorker.addEventListener("message", handler);
+        _timerWorker.postMessage({ id, ms });
     });
 }
 
@@ -2196,6 +2425,7 @@ function scheduleVentoAureoEffects(options) {
             recordPerkActivationHistory(
                 selectedPerk,
                 `Turn ${state.turn} 공개: 전설 등장으로 값 x2 (${formatNum(prevPoint)} -> ${formatNum(state.pointVal)})`,
+                { turn: state.turn, trigger: "legend_appear", before_val: prevPoint, after_val: state.pointVal },
             );
             refreshPointValueAndHistoryUi();
             triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "값 x2");
@@ -2323,7 +2553,8 @@ async function startGame() {
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
-    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); _pointValAnimFrame = null; }
+    state.perkSalvationUsed = false;
+    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
     _prevPointValForAnim = null;
@@ -2356,13 +2587,15 @@ async function startGame() {
     const perk67point = getSelectedPerk();
     const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
     const shouldActivateSunbangPoint = perk67point?.id === "perk-sunbang" && state.pointVal !== 6;
+    const shouldActivateSalvationPoint = perk67point?.id === "perk-salvation" && state.pointVal === 1 && !state.perkSalvationUsed;
     if (shouldActivate67point) {
         await wait(250);
         if (state.phase !== "rolled-point-preview") {
             return;
         }
         state.perk67Previewing = true;
-        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`);
+        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`,
+            { turn: 0, trigger: "initial_dice_mod", before_dice: 6, after_dice: 7 });
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
         renderStatus();
@@ -2375,9 +2608,23 @@ async function startGame() {
         }
         state.perkSunbangPreviewing = true;
         state.perkSunbangDirection = "right";
-        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 ${state.pointVal} → ${state.pointVal + 1}`);
+        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 ${state.pointVal} → ${state.pointVal + 1}`,
+            { turn: 0, trigger: "initial_dice_mod", before_dice: state.pointVal, after_dice: state.pointVal + 1 });
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 순방: 주사위 +1`;
+        renderStatus();
+        await wait(1000);
+        await wait(250);
+    } else if (shouldActivateSalvationPoint) {
+        await wait(250);
+        if (state.phase !== "rolled-point-preview") {
+            return;
+        }
+        state.perkSalvationPreviewing = true;
+        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 1 → 6으로 변경`,
+            { turn: 0, trigger: "initial_dice_mod", before_dice: 1, after_dice: 6 });
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 구원: 주사위 1 → 6`;
         renderStatus();
         await wait(1000);
         await wait(250);
@@ -2404,6 +2651,50 @@ async function startGame() {
         triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, actionText);
         state.perkSunbangPreviewing = false;
         state.perkSunbangDirection = null;
+    }
+
+    if (state.perkSalvationPreviewing) {
+        state.pointVal = 6;
+        state.perkSalvationUsed = true;
+        state.perkSalvationPreviewing = false;
+    }
+
+    const grosmichelInit = getSelectedPerk();
+    if (grosmichelInit?.id === "perk-gros-michel" && state.pointVal === 1) {
+        const prevPoint = state.pointVal;
+        const nextPoint = safeNumber(prevPoint * 6);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            grosmichelInit,
+            `초기 시작 값: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(grosmichelInit, prevPoint, nextPoint, "× 6");
+        triggerPerkBadgeActivationFeedback();
+    }
+
+    const patronPerk = getSelectedPerk();
+    if (patronPerk?.id === "perk-patron") {
+        const prevPoint = state.pointVal;
+        state.pointVal = 100;
+
+        recordPerkActivationHistory(
+            patronPerk,
+            `초기 시작 값: 주사위 ${prevPoint} → 100으로 고정`,
+            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: 100 },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(patronPerk, prevPoint, 100, "100 고정");
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 후원자: 초기 값 100으로 고정`;
+        renderStatus();
+        await wait(1000);
+
+        if (state.phase !== "rolled-point-preview") return;
     }
 
     state.initialPointRollValue = state.pointVal;
@@ -2435,12 +2726,13 @@ function preparePerkSelection() {
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
     state.initialPointRollValue = null;
-    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); _pointValAnimFrame = null; }
+    if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
     _prevPointValForAnim = null;
     state.skipUsed = false;
     state.timewarpExtraTurn = false;
+    state.perkSalvationUsed = false;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -2509,13 +2801,15 @@ async function rollModValForTurn() {
     const perk67 = getSelectedPerk();
     const shouldActivate67 = state.modVal === 6 && perk67?.id === "perk-67";
     const shouldActivateSunbang = perk67?.id === "perk-sunbang" && state.modVal !== 6;
+    const shouldActivateSalvation = perk67?.id === "perk-salvation" && state.modVal === 1 && !state.perkSalvationUsed;
     if (shouldActivate67) {
         await wait(250);
         if (state.phase !== "rolled-mod-preview") {
             return;
         }
         state.perk67Previewing = true;
-        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 6 → 7로 변경`);
+        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 6 → 7로 변경`,
+            { turn: state.turn, trigger: "dice_mod", before_dice: 6, after_dice: 7 });
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
         renderStatus();
@@ -2528,12 +2822,26 @@ async function rollModValForTurn() {
         }
         state.perkSunbangPreviewing = true;
         state.perkSunbangDirection = "right";
-        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 ${state.modVal} → ${state.modVal + 1}`);
+        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 ${state.modVal} → ${state.modVal + 1}`,
+            { turn: state.turn, trigger: "dice_mod", before_dice: state.modVal, after_dice: state.modVal + 1 });
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 순방: 주사위 +1`;
         renderStatus();
         await wait(1000); // 애니메이션 1초
         await wait(250); // 결과 확인 0.25초
+    } else if (shouldActivateSalvation) {
+        await wait(250);
+        if (state.phase !== "rolled-mod-preview") {
+            return;
+        }
+        state.perkSalvationPreviewing = true;
+        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 1 → 6으로 변경`,
+            { turn: state.turn, trigger: "dice_mod", before_dice: 1, after_dice: 6 });
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 구원: 주사위 1 → 6`;
+        renderStatus();
+        await wait(1000);
+        await wait(250);
     } else {
         await wait(1000);
     }
@@ -2554,7 +2862,69 @@ async function rollModValForTurn() {
         state.perkSunbangDirection = null;
     }
 
+    if (state.perkSalvationPreviewing) {
+        state.modVal = 6;
+        state.perkSalvationUsed = true;
+        state.perkSalvationPreviewing = false;
+    }
+
     state.revealTarget = null;
+
+    const deathBoundaryPerk = getSelectedPerk();
+    if (deathBoundaryPerk?.id === "perk-death-boundary" && state.turn === 4 && state.modVal === 4) {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * 44);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            deathBoundaryPerk,
+            `Turn 4: 주사위 4 발동 → 값 x44 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(deathBoundaryPerk, prevPoint, nextPoint, "× 44");
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `특성 발동! 사의 경계: 주사위 4 → × 44`;
+        renderStatus();
+        await wait(1000);
+
+        if (state.phase !== "rolled-mod-preview") return;
+    }
+
+    const grosmichel = getSelectedPerk();
+    if (grosmichel?.id === "perk-gros-michel" && state.modVal === 1) {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * 6);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            grosmichel,
+            `Turn ${state.turn}: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(grosmichel, prevPoint, nextPoint, "× 6");
+        triggerPerkBadgeActivationFeedback();
+    }
+
+    const bullseyePerk = getSelectedPerk();
+    if (bullseyePerk?.id === "perk-bullseye" && state.turn === state.modVal) {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * state.turn);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            bullseyePerk,
+            `Turn ${state.turn}: 턴 = 주사위 ${state.modVal} → 값 x${state.turn} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(bullseyePerk, prevPoint, nextPoint, `× ${state.turn}`);
+        triggerPerkBadgeActivationFeedback();
+    }
 
     state.options = buildOptions();
     const selectedPerk = getSelectedPerk();
@@ -2619,6 +2989,8 @@ async function pickOption(optionIndex) {
 
     state.pointVal = nextPoint;
 
+    const luckBefore = state.luck;
+
     let addedLuck = 0;
     const isJwasalbakdoActive = getSelectedPerk()?.id === "perk-jackpot";
     if (!isJwasalbakdoActive) {
@@ -2636,7 +3008,9 @@ async function pickOption(optionIndex) {
         modVal: state.modVal,
         selected_index: optionIndex,
         expression: selected.formula,
+        rarity: selected.rarity,
         isEnhanced: Boolean(selected.isEnhanced),
+        luck_before: luckBefore,
         from: prevPoint,
         to: nextPoint,
         gainedLuck: addedLuck,
@@ -2655,7 +3029,8 @@ async function pickOption(optionIndex) {
         const selectedPerk = getSelectedPerk();
         if (selectedPerk?.id === "perk-time-warp" && !state.skipUsed) {
             state.resolvingOptionId = null;
-            recordPerkActivationHistory(selectedPerk, `Turn ${state.turn} 종료: 퀘스트 달성! 6턴 추가`);
+            recordPerkActivationHistory(selectedPerk, `Turn ${state.turn} 종료: 퀘스트 달성! 6턴 추가`,
+                { turn: state.turn, trigger: "extra_turn" });
             triggerPerkBadgeActivationFeedback();
             els.message.textContent = "퀘스트 달성!";
             renderStatus();
@@ -2673,6 +3048,7 @@ async function pickOption(optionIndex) {
     if (state.turn >= effectiveMax || reachedMaxValue) {
         state.resolvingOptionId = null;
         await applyLastShootingBeforeFinish();
+        await applyHighlanderBeforeFinish();
         finishGame();
         return;
     }
@@ -2721,8 +3097,21 @@ async function skipTurnTakeAllLuck() {
     const selectedPerk = getSelectedPerk();
     const isJwasalbakdo = selectedPerk?.id === "perk-jackpot";
 
+    const skipLuckBefore = state.luck;
+
     if (!isJwasalbakdo) {
         state.luck = Math.max(0, state.luck + addedLuck);
+    }
+
+    let beerExtraLuck = 0;
+    if (selectedPerk?.id === "perk-beer") {
+        beerExtraLuck = 5 * state.turn;
+        state.luck = Math.max(0, state.luck + beerExtraLuck);
+        recordPerkActivationHistory(selectedPerk,
+            `Turn ${state.turn} 스킵: 추가 Luck +${beerExtraLuck} (5 × ${state.turn}턴)`,
+            { turn: state.turn, trigger: "skip", after_luck: state.luck },
+        );
+        triggerPerkBadgeActivationFeedback();
     }
 
     state.history.push({
@@ -2730,9 +3119,10 @@ async function skipTurnTakeAllLuck() {
         modVal: state.modVal,
         expression: "스킵(모든 행운 획득)",
         isEnhanced: false,
+        luck_before: skipLuckBefore,
         from: prevPoint,
         to: state.pointVal,
-        gainedLuck: isJwasalbakdo ? 0 : addedLuck,
+        gainedLuck: isJwasalbakdo ? 0 : addedLuck + beerExtraLuck,
     });
 
     const activatedPerkResult = applyPerkAfterTurnResolved();
@@ -2748,6 +3138,7 @@ async function skipTurnTakeAllLuck() {
     if (state.turn >= (state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS) || reachedMaxValue) {
         state.resolvingOptionId = null;
         await applyLastShootingBeforeFinish();
+        await applyHighlanderBeforeFinish();
         finishGame();
         return;
     }
@@ -2855,35 +3246,35 @@ async function copyTextToClipboard(text) {
 }
 
 function buildGameplayLog() {
-    const log = {};
-    const perkActivations = [];
+    const turns = [];
+    let seed = null;
 
     state.history.forEach((item) => {
         if (item.kind === "seed") {
-            log.seed = item.seedInt8;
+            seed = item.seedInt8;
             return;
         }
         if (item.kind === "perk-selection") {
-            log.perk_id = state.selectedPerkId;
             return;
         }
         if (item.kind === "perk-activation") {
-            perkActivations.push({ name: item.perkName, detail: item.detail });
             return;
         }
         // 턴 항목
-        log[`turn${item.turn}`] = {
-            selected: item.selected_index,
-            enhanced: item.isEnhanced ?? false,
+        const turnEntry = {
+            turn: item.turn,
             dice: item.modVal,
+            luck_before: item.luck_before ?? 0,
+            selected: item.selected_index ?? null,
+            formula: item.expression,
+            rarity: item.rarity ?? null,
+            isEnhanced: item.isEnhanced ?? false,
             before_val: item.from,
-            result_val: item.to,
+            after_val: item.to,
             luck_gained: item.gainedLuck ?? 0,
         };
+        turns.push(turnEntry);
     });
-
-    if (perkActivations.length > 0) log.perk_activations = perkActivations;
-    log.final_score = state.pointVal ?? 0;
 
     const baseMap = new Map();
     for (const [rarity, ops] of Object.entries(OPTION_LIBRARY)) {
@@ -2906,7 +3297,15 @@ function buildGameplayLog() {
             picks[key] = { count: 1, isEnhanced: enhanced };
         }
     });
+
+    const log = {
+        seed,
+        perk_id: state.selectedPerkId ?? null,
+        initial_point: state.initialPointRollValue ?? null,
+        turns,
+    };
     if (Object.keys(picks).length > 0) log.option_picks = picks;
+    log.final_score = state.pointVal ?? 0;
 
     return log;
 }
@@ -2930,6 +3329,16 @@ function buildShareRecordText() {
         "perk-sunbang": "🛡️",
         "perk-red-comet": "☄️",
         "perk-time-warp": "⏳",
+        "perk-highlander": "🗺️",
+        "perk-gros-michel": "🍌",
+        "perk-death-boundary": "💀",
+        "perk-patron": "🤝",
+        "perk-salvation": "✨",
+        "perk-link": "🔗",
+        "perk-bullseye": "🎯",
+        "perk-joker": "🃏",
+        "perk-investment": "💸",
+        "perk-beer": "🍺",
     };
     const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 
@@ -3107,13 +3516,16 @@ function renderRolledDicePreview() {
     const target = state.revealTarget === "pointVal" ? "pointVal" : "modVal";
     const is67Transition = state.perk67Previewing;
     const isSunbangTransition = state.perkSunbangPreviewing;
+    const isSalvationTransition = state.perkSalvationPreviewing;
     const sunbangDelta = state.perkSunbangDirection === "right" ? 1 : -1;
     const rolledValue = is67Transition
         ? 1
         : isSunbangTransition
             ? clamp(state[target] + sunbangDelta, 1, 6)
-            : clamp(state[target], 1, 6);
-    const titleSuffix = is67Transition ? " → 7!" : "";
+            : isSalvationTransition
+                ? 6
+                : clamp(state[target], 1, 6);
+    const titleSuffix = is67Transition ? " → 7!" : isSalvationTransition ? " → 6!" : "";
     const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
     const transitionClass = is67Transition ? " perk67-flash" : "";
 
@@ -3356,11 +3768,16 @@ function renderStatus() {
     const sunbangPreviewDelta = state.perkSunbangPreviewing ? (state.perkSunbangDirection === "right" ? 1 : -1) : 0;
     const displayPointVal = (state.perkSunbangPreviewing && state.revealTarget === "pointVal")
         ? safeNumber((state.pointVal ?? 0) + sunbangPreviewDelta)
-        : state.pointVal;
+        : (state.perkSalvationPreviewing && state.revealTarget === "pointVal")
+            ? 6
+            : state.pointVal;
     const displayModVal = (state.perkSunbangPreviewing && state.revealTarget === "modVal")
         ? clamp((state.modVal ?? 0) + sunbangPreviewDelta, 1, 6)
-        : state.modVal;
-    setPointValAnimated(displayPointVal === null ? "-" : formatNum(displayPointVal), state.pointVal);
+        : (state.perkSalvationPreviewing && state.revealTarget === "modVal")
+            ? 6
+            : state.modVal;
+    const numericPointVal = (state.perkSalvationPreviewing && state.revealTarget === "pointVal") ? 6 : state.pointVal;
+    setPointValAnimated(displayPointVal === null ? "-" : formatNum(displayPointVal), numericPointVal);
     els.modVal.textContent = displayModVal === null ? "-" : formatNum(displayModVal);
     // await-mod-roll 상태에서는 다음 턴을 미리 표시
     const displayTurn = state.phase === "await-mod-roll" ? state.turn + 1 : state.turn;
@@ -3606,7 +4023,6 @@ function bindLuckInfoEvents() {
         const isOpen = els.perkBadgeFloat.classList.contains("is-open");
         updatePerkBadge(getSelectedPerk());
         setPerkBadgeOpen(!isOpen);
-        triggerPerkBadgeActivationFeedback(false);
     });
 
     els.perkBadgeBtn.addEventListener("mouseenter", () => {

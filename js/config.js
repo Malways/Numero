@@ -5,7 +5,7 @@
 //
 // Supabase 대시보드 → Project Settings → API 에서 값을 확인하세요.
 export const APP_CONFIG = {
-    version: "v0.67b",
+    version: "v0.7b",
     supabaseEnabled: true,         // 연결을 켜려면 true 로 바꾸세요
     supabaseUrl: "https://yspqjrrojcbljxbdsajn.supabase.co",                // Project URL
     supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzcHFqcnJvamNibGp4YmRzYWpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NTUyMjcsImV4cCI6MjA5NDUzMTIyN30.ZHRFvvphcyXu1HnY8Qpo8VsL7cgcmV3kMikcAXFCISs"

@@ -1115,10 +1115,21 @@ body {
     color: #f2f2f2;
 }
 
+.perk-option-btn[data-perk-id="perk-bullseye"] .perk-name,
+.perk-option-btn[data-perk-id="perk-bullseye"] .perk-description {
+    color: #ffffff;
+}
+
 .perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-name,
 .perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-description,
 .perk-option-btn[data-perk-id="perk-red-comet"] .perk-name,
-.perk-option-btn[data-perk-id="perk-red-comet"] .perk-description {
+.perk-option-btn[data-perk-id="perk-red-comet"] .perk-description,
+.perk-option-btn[data-perk-id="perk-highlander"] .perk-name,
+.perk-option-btn[data-perk-id="perk-highlander"] .perk-description,
+.perk-option-btn[data-perk-id="perk-death-boundary"] .perk-name,
+.perk-option-btn[data-perk-id="perk-death-boundary"] .perk-description,
+.perk-option-btn[data-perk-id="perk-beer"] .perk-name,
+.perk-option-btn[data-perk-id="perk-beer"] .perk-description {
     color: #ffffff;
 }
 

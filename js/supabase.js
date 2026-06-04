@@ -67,7 +67,7 @@ function normalizeHallOfFameEntry(entry) {
 // 특정 버전의 명예의 전당 기록을 가져옵니다.
 export async function fetchHallOfFame(version) {
     if (!supabase) return { data: null, error: "no_connection" };
-    const { data, error } = await supabase.rpc("get_hall_of_fame_list", { p_version: '0.63b' });
+    const { data, error } = await supabase.rpc("get_hall_of_fame_list", { p_version: version });
     if (error) return { data: null, error: error.message };
     return { data: data?.map(normalizeHallOfFameEntry) ?? [], error: null };
 }
