@@ -59,6 +59,8 @@ body {
 }
 
 .phone-screen {
+    user-select: none;
+    -webkit-user-select: none;
     width: 100%;
     min-height: 100dvh;
     height: auto;
@@ -252,6 +254,7 @@ body {
 }
 
 .settings-username-input {
+    user-select: text;
     width: 100%;
     border: 1px solid rgba(20, 35, 38, 0.2);
     border-radius: 7px;
@@ -428,6 +431,10 @@ body {
     font-size: 24px;
 }
 
+.turn-current {
+    color: #4caf50;
+}
+
 .value-line {
     display: grid;
     grid-template-rows: auto auto;
@@ -435,13 +442,6 @@ body {
     gap: 2px;
 }
 
-.value-rank {
-    font-size: 10px;
-    line-height: 1.2;
-    color: #9aa1a4;
-    opacity: 0.68;
-    font-weight: 500;
-}
 
 .value.rolling {
     color: var(--primary-strong);
@@ -1116,7 +1116,11 @@ body {
 }
 
 .perk-option-btn[data-perk-id="perk-bullseye"] .perk-name,
-.perk-option-btn[data-perk-id="perk-bullseye"] .perk-description {
+.perk-option-btn[data-perk-id="perk-bullseye"] .perk-description,
+.perk-option-btn[data-perk-id="perk-joker"] .perk-name,
+.perk-option-btn[data-perk-id="perk-joker"] .perk-description,
+.perk-option-btn[data-perk-id="perk-kickstart"] .perk-name,
+.perk-option-btn[data-perk-id="perk-kickstart"] .perk-description {
     color: #ffffff;
 }
 
@@ -1124,12 +1128,18 @@ body {
 .perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-description,
 .perk-option-btn[data-perk-id="perk-red-comet"] .perk-name,
 .perk-option-btn[data-perk-id="perk-red-comet"] .perk-description,
-.perk-option-btn[data-perk-id="perk-highlander"] .perk-name,
-.perk-option-btn[data-perk-id="perk-highlander"] .perk-description,
+.perk-option-btn[data-perk-id="perk-quest"] .perk-name,
+.perk-option-btn[data-perk-id="perk-quest"] .perk-description,
+.perk-option-btn[data-perk-id="perk-solo"] .perk-name,
+.perk-option-btn[data-perk-id="perk-solo"] .perk-description,
 .perk-option-btn[data-perk-id="perk-death-boundary"] .perk-name,
 .perk-option-btn[data-perk-id="perk-death-boundary"] .perk-description,
 .perk-option-btn[data-perk-id="perk-beer"] .perk-name,
-.perk-option-btn[data-perk-id="perk-beer"] .perk-description {
+.perk-option-btn[data-perk-id="perk-beer"] .perk-description,
+.perk-option-btn[data-perk-id="perk-abyss-route"] .perk-name,
+.perk-option-btn[data-perk-id="perk-abyss-route"] .perk-description,
+.perk-option-btn[data-perk-id="perk-dormant-volcano"] .perk-name,
+.perk-option-btn[data-perk-id="perk-dormant-volcano"] .perk-description {
     color: #ffffff;
 }
 
@@ -1326,6 +1336,10 @@ body {
 
 .option-expression .formula-mod {
     color: #006dff;
+}
+
+.option-expression .formula-turn {
+    color: #169c5a;
 }
 
 .option-meta {
@@ -1710,6 +1724,8 @@ body {
    ============================================================================ */
 
 .modal {
+    user-select: none;
+    -webkit-user-select: none;
     position: fixed;
     inset: 0;
     display: none;
@@ -2101,6 +2117,33 @@ body {
     margin: 0;
     color: rgba(27, 51, 56, 0.7);
     font-size: 13px;
+}
+
+.perk-list-content {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid rgba(20, 35, 38, 0.14);
+    border-radius: 11px;
+    background: rgba(245, 252, 251, 0.6);
+}
+
+.perk-list-content .option-btn {
+    flex-shrink: 0;
+}
+
+.perk-ad-badge {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.72;
+    z-index: 2;
+    pointer-events: none;
 }
 
 .patchlog-content h1,

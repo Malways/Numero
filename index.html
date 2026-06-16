@@ -45,6 +45,7 @@
                                 </div>
                                 <button id="leaderboardBtn" class="settings-action-btn" type="button">리더보드 보기</button>
                                 <button id="patchLogBtn" class="settings-action-btn" type="button">패치노트 보기</button>
+                                <button id="perkListBtn" class="settings-action-btn" type="button">모든 특성 보기</button>
                                 <div class="settings-db-row">
                                     <p class="settings-db-status">DB : <span id="dbStatusValue"
                                             class="db-status-value">"Disconnected"</span></p>
@@ -78,7 +79,6 @@
                         </div>
                         <div class="value-line">
                             <p id="pointVal" class="value">-</p>
-                            <span id="rankPercent" class="value-rank">(현재 상위 ?%)</span>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -163,6 +163,19 @@
                         </div>
                         <div id="patchLogContent" class="patchlog-content">
                             <p class="patchlog-loading">패치노트를 불러오는 중...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="perkListModal" class="modal patchlog-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="perkListTitle">
+                    <div class="modal-content patchlog-content-wrap perk-list-wrap">
+                        <div class="patchlog-head">
+                            <h2 id="perkListTitle" class="patchlog-title">모든 특성</h2>
+                            <button id="perkListClose" class="patchlog-close" type="button"
+                                aria-label="특성 목록 닫기">닫기</button>
+                        </div>
+                        <div id="perkListContent" class="perk-list-content">
                         </div>
                     </div>
                 </div>

@@ -108,18 +108,18 @@ const RARITIES = {
 const OPTION_LIBRARY = {
     common: [
         { //1
-            formula: "pointVal + modVal",
-            compute: (a, b) => a + b,
+            formula: "pointVal + (modVal * 5) ",
+            compute: (a, b) => a + b * 5,
             unselectedLuckGain: 3,
         },
         { //2
-            formula: "| pointVal + modVal |",
-            compute: (a, b) => Math.abs(a + b),
+            formula: "| pointVal + modVal * 3 |",
+            compute: (a, b) => Math.abs(a + b * 3),
             unselectedLuckGain: 3,
         },
         { //3
-            formula: "pointVal - ( modVal * 3 ) ",
-            compute: (a, b) => a - (b * 3),
+            formula: "pointVal - ( modVal * 10 ) ",
+            compute: (a, b) => a - (b * 10),
             unselectedLuckGain: 3,
         },
         { //4
@@ -133,8 +133,8 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 3
         },
         { //6
-            formula: "= 15",
-            compute: (a, b) => 15,
+            formula: "= 30 * turnVal",
+            compute: (a, b, c) => 30 * c,
             unselectedLuckGain: 3
         },
         { //7
@@ -146,13 +146,13 @@ const OPTION_LIBRARY = {
     ],
     rare: [
         { //1
-            formula: "pointVal + ( modVal * 3 )",
-            compute: (a, b) => a + (b * 3),
+            formula: "pointVal + ( modVal * 10 )",
+            compute: (a, b) => a + (b * 10),
             unselectedLuckGain: 6,
         },
         { //2
-            formula: "| pointVal - ( modVal * 3 ) |",
-            compute: (a, b) => Math.abs(a - (b * 3)),
+            formula: "| pointVal - ( modVal * 20 ) |",
+            compute: (a, b) => Math.abs(a - (b * 20)),
             unselectedLuckGain: 6,
         },
         { //3
@@ -161,8 +161,8 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 6,
         },
         { //4
-            formula: "pointVal * -(modVal * 4)",
-            compute: (a, b) => a * -(b * 4),
+            formula: "pointVal * -(modVal * 3)",
+            compute: (a, b) => a * -(b * 3),
             unselectedLuckGain: 6
         },
         { //5
@@ -171,35 +171,35 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 6,
         },
         { //6
-            formula: "pointVal - modVal^2",
-            compute: (a, b) => a - Math.pow(b, 2),
+            formula: "pointVal - modVal^3",
+            compute: (a, b) => a - Math.pow(b, 3),
             unselectedLuckGain: 6,
         },
         { //7
-            formula: "pointVal + ( 100 - modVal * 10 )",
-            compute: (a, b) => a + (100 - b * 10),
+            formula: "pointVal + ( 150 - modVal * 10 )",
+            compute: (a, b) => a + (150 - b * 10),
             unselectedLuckGain: 6
         },
     ],
     epic: [
         { //1
-            formula: "pointVal + modVal!",
-            compute: (a, b) => a + factorial(b),
+            formula: "pointVal + modVal! * 2",
+            compute: (a, b) => a + factorial(b) * 2,
             unselectedLuckGain: 9,
         },
         { //2
-            formula: "pointVal + modVal^3",
-            compute: (a, b) => a + Math.pow(b, 3),
+            formula: "pointVal + modVal^4",
+            compute: (a, b) => a + Math.pow(b, 4),
             unselectedLuckGain: 9,
         },
         { //3
-            formula: "pointVal - modVal!",
-            compute: (a, b) => a - factorial(b),
+            formula: "pointVal - modVal! * 4",
+            compute: (a, b) => a - factorial(b) * 4,
             unselectedLuckGain: 9,
         },
         { //4
-            formula: "pointVal - modVal^3",
-            compute: (a, b) => a - Math.pow(b, 3),
+            formula: "pointVal - modVal^4 * turnVal",
+            compute: (a, b, c) => a - Math.pow(b, 4) * c,
             unselectedLuckGain: 9,
         },
         { //5
@@ -208,8 +208,8 @@ const OPTION_LIBRARY = {
             unselectedLuckGain: 9
         },
         { //6
-            formula: "= 100",
-            compute: (a, b) => 100,
+            formula: "= 500 * turnVal",
+            compute: (a, b, c) => 500 * c,
             unselectedLuckGain: 9
         },
         { //7 -()로 했더니 양수처나와서 -1 곱해봄
@@ -257,8 +257,8 @@ const OPTION_LIBRARY = {
         //     unselectedLuckGain: 12,
         // },
         { //1
-            formula: "5^modVal",
-            compute: (a, b) => Math.pow(5, b),
+            formula: "5^modVal * turnVal",
+            compute: (a, b, c) => Math.pow(5, b) * c,
             unselectedLuckGain: 12,
         },
         { //2
@@ -266,160 +266,37 @@ const OPTION_LIBRARY = {
             compute: (a, b) => a * Math.pow(b - 1, b - 1),
             unselectedLuckGain: 12,
         },
-        { //2
-            formula: "-(pointVal * modVal!)",
-            compute: (a, b) => -(a * factorial(b)),
+        { //3
+            formula: "-(pointVal * modVal! * 5 )",
+            compute: (a, b) => -(a * factorial(b) * 5),
             unselectedLuckGain: 12,
         },
 
-        { //2
-            formula: "pointVal * (modVal)!",
-            compute: (a, b) => a * factorial(b),
+        { //4
+            formula: "pointVal * (modVal) * 4!",
+            compute: (a, b) => a * factorial(b) * 4,
             unselectedLuckGain: 12,
         },
+
+        {
+            formula: "pointVal + modVal^turnVal * 5",
+            compute: (a, b, c) => a + Math.pow(b, c) * 5,
+            unselectedLuckGain: 12,
+        }
     ],
 };
 // 강화됨 전용 선택지 라이브러리 (하드코드)
 const ENHANCED_OPTION_LIBRARY = {
     common: [
-        {
-            formula: "pointVal + modVal * 2",
-            compute: (a, b) => a + b * 2,
-            unselectedLuckGain: 2,
-        },
-
-        {
-            formula: "| pointVal + modVal * 2 |",
-            compute: (a, b) => Math.abs(a + b * 2),
-            unselectedLuckGain: 2,
-        },
-
-        {
-            formula: "pointVal * 3",
-            compute: (a, b) => a * 3,
-            unselectedLuckGain: 2,
-        },
-
-        {
-            formula: "pointVal - modVal*5",
-            compute: (a, b) => a - b * 5,
-            unselectedLuckGain: 2,
-        },
-        {
-            formula: "pointVal * (-(modVal+1))",
-            compute: (a, b) => a * -(b + 1),
-            unselectedLuckGain: 2,
-        },
-        {
-            formula: "= 30",
-            compute: (a, b) => 30,
-            unselectedLuckGain: 2
-        },
-        {
-            formula: "= 30 - pointVal",
-            compute: (a, b) => 30 - a,
-            unselectedLuckGain: 2
-        },
-        {
-            formula: "(pointVal + pointVal * (modVal + 1)) / 2 (올림)",
-            compute: (a, b) => Math.ceil((a + a * (b + 1)) / 2),
-            unselectedLuckGain: 2
-        },
-
+        // { // 행운 3 -> 6
+        //     formula: "= 100 * turnVal",
+        //     compute: (a, b, c) => 100 * c,
+        //     unselectedLuckGain: 6
+        // },
     ],
-    rare: [
-        {
-            formula: "pointVal * (modVal + 1)",
-            compute: (a, b) => a * (b + 1),
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "(pointVal + modVal) * 4",
-            compute: (a, b) => (a + b) * 4,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal + (modVal * 5)",
-            compute: (a, b) => a + (b * 5),
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal * 4 + modVal",
-            compute: (a, b) => (a * 4) + b,
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "pointVal - (modVal+1)^2",
-            compute: (a, b) => a - Math.pow(b + 1, 2),
-            unselectedLuckGain: 5,
-        },
-        {
-            formula: "= 100",
-            compute: (a, b) => 100,
-            unselectedLuckGain: 5
-        },
-        {
-            formula: "pointVal + (150 - modVal * 10)",
-            compute: (a, b) => a + (150 - b * 10),
-            unselectedLuckGain: 5
-        },
-        {
-            formula: "pointVal - (modVal+1)!",
-            compute: (a, b) => a - factorial(b + 1),
-            unselectedLuckGain: 5
-        },
-    ],
-    epic: [
-        {
-            formula: "pointVal + (modVal+1)!",
-            compute: (a, b) => a + factorial(b + 1),
-            unselectedLuckGain: 7,
-        },
-        {
-            formula: "pointVal * modVal * 3",
-            compute: (a, b) => a * b * 3,
-            unselectedLuckGain: 8,
-        },
-        {
-            formula: "( pointVal - modVal * 5) ^ 2 (올림)",
-            compute: (a, b) => Math.pow(Math.ceil((a - b * 5)), 2),
-            unselectedLuckGain: 8,
-        },
-        {
-            formula: "= 200",
-            compute: (a, b) => 200,
-            unselectedLuckGain: 8
-        },
-        {
-            formula: "-((pointVal + modVal) ^ 2)",
-            compute: (a, b) => -Math.pow(a + b, 2),
-            unselectedLuckGain: 8,
-        },
-
-    ],
-    legend: [
-        { //1
-            formula: "7^modVal",
-            compute: (a, b) => Math.pow(7, b),
-            unselectedLuckGain: 12,
-        },
-        { //2
-            formula: "pointVal * (modVal-1)^(modVal-1)",
-            compute: (a, b) => a * Math.pow(b - 1, b - 1),
-            unselectedLuckGain: 12,
-        },
-        { //2
-            formula: "-(pointVal * modVal!)",
-            compute: (a, b) => -(a * factorial(b)),
-            unselectedLuckGain: 12,
-        },
-
-        { //2
-            formula: "pointVal * (modVal-1)!",
-            compute: (a, b) => a * factorial(b - 1),
-            unselectedLuckGain: 12,
-        },
-    ],
+    rare: [],
+    epic: [],
+    legend: [],
 };
 
 // 끝: OPTION_LIBRARY
@@ -427,7 +304,6 @@ const ENHANCED_OPTION_LIBRARY = {
 // ============================================================================
 // 3-1. 특성 라이브러리 (PERK_LIB)
 // ============================================================================
-// 기능 효과는 이후 구현 예정: 현재는 선택 UI/템플릿만 제공합니다.
 const PERK_LIB = [
     {
         id: "perk-clover",
@@ -550,6 +426,7 @@ const PERK_LIB = [
         id: "perk-patron",
         name: "후원자",
         description: "시작 값을 100으로 고정합니다. 광고 봐주셔서 감사해요 :)",
+        adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(255, 175, 200, 0.94), rgba(255, 215, 230, 0.96))",
         glitterColor: "rgba(240, 100, 145, 1)",
         glitterIntensity: 0.65,
@@ -557,23 +434,55 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-salvation",
-        name: "구원",
-        description: "게임당 한 번, 주사위가 1이 나오면 6으로 변경합니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(250, 238, 160, 0.96), rgba(255, 248, 200, 0.97))",
-        glitterColor: "rgba(255, 253, 230, 1)",
-        glitterIntensity: 0.7,
-        textColor: "#3a2c00",
+        id: "perk-abyss-route",
+        name: "심연항로",
+        description: "턴 종료 시 현재 값이 음수면 3배로 만듭니다.",
+        adReward: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(1, 9, 12, 0.99), rgba(1, 148, 155, 0.97), rgba(1, 223, 186, 0.95))",
+        glitterColor: "rgba(229, 135, 41, 1)",
+        glitterIntensity: 0.82,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-link",
-        name: "링크",
-        description: "지난 턴과 같은 등급의 선택지를 고를 시 계산 후 값을 2배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(190, 196, 205, 0.95), rgba(225, 230, 238, 0.97))",
-        glitterColor: "rgba(255, 255, 255, 1)",
+        id: "perk-dormant-volcano",
+        name: "휴화산",
+        description: "1만 이상의 값을 만들면 깨어납니다...",
+        backgroundStyle: "linear-gradient(160deg, rgba(58, 60, 63, 0.97) 20%, rgba(88, 87, 85, 0.95) 55%, rgba(118, 116, 112, 0.93))",
+        glitterColor: "rgba(170, 172, 175, 1)",
+        glitterIntensity: 0.28,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-active-volcano",
+        name: "활화산",
+        description: "주사위를 굴릴 때마다 눈금 × 10,000만큼 더합니다.",
+        hidden: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(39, 7, 4, 0.99) 40%, rgba(198, 56, 21, 0.97) 80%, rgba(182, 45, 31, 0.95))",
+        glitterColor: "rgba(253, 140, 34, 1)",
+        glitterIntensity: 0.85,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-solo",
+        name: "홀로서기",
+        description: "턴 종료 시 현재 값이 홀수라면 3배로 만듭니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(26, 10, 46, 0.97), rgba(45, 27, 94, 0.96), rgba(74, 45, 138, 0.95))",
+        glitterColor: "rgba(180, 140, 255, 1)",
         glitterIntensity: 0.65,
-        textColor: "#1c2028",
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-moody-blues",
+        name: "무디 블루스",
+        description: "특급 선택지 선택 시 계산식을 두 번 적용합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(170, 171, 228, 0.96), rgba(227, 188, 250, 0.95), rgba(246, 217, 253, 0.94))",
+        glitterColor: "rgba(246, 217, 253, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#2a1545",
         applyTemplate: (_gameState) => { },
     },
     {
@@ -590,20 +499,20 @@ const PERK_LIB = [
         id: "perk-joker",
         name: "조커",
         description: "일반 선택지를 고를 때마다 짐보가 현재 값에 4를 곱합니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(200, 196, 188, 0.97), rgba(243, 242, 239, 0.98))",
-        glitterColor: "rgba(150, 148, 143, 1)",
-        glitterIntensity: 0.4,
-        textColor: "#2a2a2a",
+        backgroundStyle: "linear-gradient(160deg, rgba(247, 73, 62, 0.97), rgba(255, 152, 1, 0.96), rgba(115, 202, 255, 0.95))",
+        glitterColor: "rgba(255, 152, 1, 1)",
+        glitterIntensity: 0.78,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-investment",
-        name: "장기 투자",
-        description: "매 턴 종료 시 현재 값을 1.5배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(221, 245, 221, 0.96), rgba(244, 255, 244, 0.99))",
-        glitterColor: "rgba(120, 194, 120, 1)",
-        glitterIntensity: 0.42,
-        textColor: "#1a3a1a",
+        id: "perk-kickstart",
+        name: "Kickstart My Heart",
+        description: "2턴까지 주사위를 굴릴 때마다 그만큼 현재 값을 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(220, 30, 30, 0.97), rgba(255, 110, 20, 0.95))",
+        glitterColor: "rgba(255, 195, 70, 1)",
+        glitterIntensity: 0.8,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
     {
@@ -619,6 +528,7 @@ const PERK_LIB = [
     {
         id: "perk-gros-michel",
         name: "그로 미셸",
+        legacy: true,
         description: "주사위가 1이 나올 때마다 현재 값에 6을 곱합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(210, 165, 20, 0.96), rgba(245, 200, 42, 0.94))",
         glitterColor: "rgba(255, 232, 130, 1)",
@@ -637,16 +547,82 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-highlander",
-        name: "하이랜더",
-        description: "5턴간 같은 계산식을 한번도 고르지 않았다면 10을 곱합니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(101, 65, 32, 0.96), rgba(161, 108, 70, 0.94))",
-        glitterColor: "rgba(220, 175, 110, 1)",
-        glitterIntensity: 0.68,
+        id: "perk-quest",
+        name: "퀘스트",
+        description: "퀘스트를 클리어하면 보상을 받고 다음 퀘스트를 받습니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(100, 108, 122, 0.95), rgba(56, 122, 220, 0.94), rgba(155, 60, 200, 0.94), rgba(220, 158, 30, 0.95))",
+        glitterColor: "rgba(255, 255, 255, 1)",
+        glitterIntensity: 0.75,
         textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
+    {
+        id: "perk-quest-common",
+        name: "일반 퀘스트",
+        description: "일반 선택지 선택 시 값을 1.5배로 만들고, 새 퀘스트를 받습니다.",
+        hidden: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(78, 85, 97, 0.97), rgba(138, 143, 154, 0.95))",
+        glitterColor: "rgba(195, 202, 215, 1)",
+        glitterIntensity: 0.52,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-quest-rare",
+        name: "희귀 퀘스트",
+        description: "희귀 선택지 선택 시 값을 2배로 만들고, 새 퀘스트를 받습니다.",
+        hidden: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(15, 78, 155, 0.97), rgba(30, 157, 232, 0.95))",
+        glitterColor: "rgba(145, 218, 255, 1)",
+        glitterIntensity: 0.65,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-quest-epic",
+        name: "특급 퀘스트",
+        description: "특급 선택지 선택 시 값을 3배로 만들고, 새 퀘스트를 받습니다.",
+        hidden: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(55, 36, 138, 0.97), rgba(123, 97, 209, 0.95))",
+        glitterColor: "rgba(207, 192, 255, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-quest-legend",
+        name: "전설 퀘스트",
+        description: "전설 선택지 선택 시 값을 4배로 만듭니다.",
+        hidden: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(215, 100, 18, 0.97), rgba(255, 168, 65, 0.95))",
+        glitterColor: "rgba(255, 225, 150, 1)",
+        glitterIntensity: 0.82,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-reactor",
+        name: "반응로",
+        description: "매 턴 주사위를 굴리면 눈금만큼 현재 값에 1.2배를 반복 적용합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(0, 221, 208, 0.97) 0%, rgba(121, 248, 253, 0.95) 50%, rgba(64, 144, 185, 0.97) 100%)",
+        glitterColor: "rgba(121, 248, 253, 1)",
+        glitterIntensity: 0.78,
+        textColor: "#001f2a",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-salvation",
+        name: "구원",
+        description: "게임당 한 번, 주사위가 1이 나오면 6으로 변경합니다.",
+        legacy: true,
+        backgroundStyle: "linear-gradient(160deg, rgba(250, 238, 160, 0.96), rgba(255, 248, 200, 0.97))",
+        glitterColor: "rgba(255, 253, 230, 1)",
+        glitterIntensity: 0.7,
+        textColor: "#3a2c00",
+        applyTemplate: (_gameState) => { },
+    },
 ];
+
 
 // ============================================================================
 // 4. DOM 요소 캐시 (els)
@@ -694,6 +670,10 @@ const els = {
     patchLogModal: document.getElementById("patchLogModal"),
     patchLogContent: document.getElementById("patchLogContent"),
     patchLogClose: document.getElementById("patchLogClose"),
+    perkListBtn: document.getElementById("perkListBtn"),
+    perkListModal: document.getElementById("perkListModal"),
+    perkListContent: document.getElementById("perkListContent"),
+    perkListClose: document.getElementById("perkListClose"),
     creditBtn: document.getElementById("creditBtn"),
     creditModal: document.getElementById("creditModal"),
     creditContent: document.getElementById("creditContent"),
@@ -742,6 +722,8 @@ const state = {
     initialPointRollValue: null, // 게임 시작 시 확정된 첫 주사위 눈금
     skipUsed: false, // 이번 게임에서 스킵 사용 여부
     timewarpExtraTurn: false, // 시간 왜곡 특성으로 6턴이 추가됐는지 여부
+    questLevel: "common", // 퀘스트 특성의 현재 단계: common | rare | epic | legend
+    volcanoActivated: false, // 휴화산 → 활화산 전환 여부
 };
 
 // ============================================================================
@@ -798,36 +780,43 @@ function formatFractionNotation(formula) {
  * 선택지 수식을 실제 값으로 치환해서 표시
  * 예: "pointVal + modVal" + pointVal=100, modVal=5 -> "100 + 5"
  */
-function formatFormulaWithValues(formula, pointVal, modVal) {
+function formatFormulaWithValues(formula, pointVal, modVal, turnVal) {
     const pointText = pointVal === null ? "-" : formatNum(pointVal);
     const modText = modVal === null ? "-" : formatNum(modVal);
+    const turnText = turnVal == null ? "-" : String(turnVal);
 
     return formatFractionNotation(formula)
         .replace(/pointVal/g, pointText)
-        .replace(/modVal/g, modText);
+        .replace(/modVal/g, modText)
+        .replace(/turnVal/g, turnText);
 }
 
-function formatFormulaWithValuesPlain(formula, pointVal, modVal) {
+function formatFormulaWithValuesPlain(formula, pointVal, modVal, turnVal) {
     const pointText = pointVal === null ? "-" : formatNum(pointVal);
     const modText = modVal === null ? "-" : formatNum(modVal);
+    const turnText = turnVal == null ? "-" : String(turnVal);
 
     return formula
         .replace(/pointVal/g, pointText)
-        .replace(/modVal/g, modText);
+        .replace(/modVal/g, modText)
+        .replace(/turnVal/g, turnText);
 }
 
 /**
  * 선택지 카드에서 사용할 수식 하이라이트 HTML 생성
  * - pointVal: 빨간색
  * - modVal: 파란색
+ * - turnVal: 초록색
  */
-function formatFormulaWithHighlights(formula, pointVal, modVal) {
+function formatFormulaWithHighlights(formula, pointVal, modVal, turnVal) {
     const pointText = pointVal === null ? "-" : formatNum(pointVal);
     const modText = modVal === null ? "-" : formatNum(modVal);
+    const turnText = turnVal == null ? "-" : String(turnVal);
 
     return formatFractionNotation(formula)
         .replace(/pointVal/g, `<span class="formula-point">${pointText}</span>`)
-        .replace(/modVal/g, `<span class="formula-mod">${modText}</span>`);
+        .replace(/modVal/g, `<span class="formula-mod">${modText}</span>`)
+        .replace(/turnVal/g, `<span class="formula-turn">${turnText}</span>`);
 }
 
 /**
@@ -963,9 +952,9 @@ function setPointValAnimated(displayText, numericValue) {
     const MIN_MS = 150, MAX_MS = 3000;
     const logScale = Math.min(Math.log10(diff + 1) / 12, 1);
     const baseDuration = Math.round(MIN_MS + (MAX_MS - MIN_MS) * logScale);
-    const duration = diff >= 1_000_000_000_000 ? 2000
+    const duration = Math.round((diff >= 1_000_000_000_000 ? 2000
         : diff >= 1_000_000_000 ? 1800
-            : Math.max(100, baseDuration - 200);
+            : Math.max(100, baseDuration - 200)) * 2 / 3);
     const startTime = performance.now();
 
     playVacSound(2.0, diff > 10);
@@ -1155,7 +1144,7 @@ function withAlpha(color, alpha) {
 }
 
 function createPerkChoices(count = PERK_CHOICE_COUNT) {
-    const pool = [...PERK_LIB];
+    const pool = PERK_LIB.filter(perk => !perk.hidden && !perk.legacy);
     const choices = [];
 
     while (pool.length && choices.length < count) {
@@ -1170,6 +1159,15 @@ function createPerkChoices(count = PERK_CHOICE_COUNT) {
 function getSelectedPerk() {
     if (!state.selectedPerkId) {
         return null;
+    }
+
+    if (state.selectedPerkId === "perk-quest") {
+        const subPerkId = `perk-quest-${state.questLevel ?? "common"}`;
+        return PERK_LIB.find((perk) => perk.id === subPerkId) ?? null;
+    }
+
+    if (state.selectedPerkId === "perk-dormant-volcano" && state.volcanoActivated) {
+        return PERK_LIB.find((perk) => perk.id === "perk-active-volcano") ?? null;
     }
 
     return state.perkChoices.find((perk) => perk.id === state.selectedPerkId) ?? null;
@@ -1289,17 +1287,55 @@ function applyPerkAfterTurnResolved() {
         return { messageText: `${selectedPerk.name} (값 x3, Luck -1/3)`, messagePrefix: "" };
     }
 
-    if (selectedPerk.id === "perk-investment") {
+    if (selectedPerk.id === "perk-abyss-route") {
         const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * 1.5);
+        if (prevPoint >= 0) return null;
+
+        const nextPoint = safeNumber(prevPoint * 3);
         state.pointVal = nextPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: 값 x1.5 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            `Turn ${state.turn} 종료: 음수 → × 3 (${formatNum(prevPoint)} → ${formatNum(nextPoint)})`,
             { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 1.5");
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 3");
+        triggerPerkBadgeActivationFeedback();
+        return { messageText: selectedPerk.name, messagePrefix: "" };
+    }
+
+    if (selectedPerk.id === "perk-dormant-volcano" && !state.volcanoActivated) {
+        const curPoint = state.pointVal ?? 0;
+        if (curPoint >= 10000) {
+            state.volcanoActivated = true;
+            const activeVolcano = PERK_LIB.find((p) => p.id === "perk-active-volcano");
+            if (activeVolcano) {
+                recordPerkActivationHistory(
+                    activeVolcano,
+                    `Turn ${state.turn} 종료: 1만 점 돌파 → 활화산 발동 (${formatNum(curPoint)})`,
+                    { turn: state.turn, trigger: "turn_end", after_val: curPoint },
+                );
+                updatePerkBadge(getSelectedPerk());
+                triggerPerkBadgeActivationFeedback();
+                return { messageText: "활화산 발동!", messagePrefix: "🌋 " };
+            }
+        }
+        return null;
+    }
+
+    if (selectedPerk.id === "perk-solo") {
+        const prevPoint = state.pointVal ?? 0;
+        if (Math.abs(Math.trunc(prevPoint)) % 2 === 0) return null;
+
+        const nextPoint = safeNumber(prevPoint * 3);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 홀수 값 → 값 x3 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
+        );
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 3");
         triggerPerkBadgeActivationFeedback();
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
@@ -1322,33 +1358,66 @@ function applyPerkAfterTurnResolved() {
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
-    if (selectedPerk.id === "perk-link") {
-        if (state.turn < 2) return null;
-        const curTurn = state.history.filter((item) => item.turn === state.turn && item.rarity).at(-1);
-        const prevTurn = state.history.filter((item) => item.turn === state.turn - 1 && item.rarity).at(-1);
-        if (!curTurn || !prevTurn || curTurn.rarity !== prevTurn.rarity) return null;
+    if (selectedPerk.id.startsWith("perk-quest-")) {
+        const questConfig = {
+            "perk-quest-common": { rarity: "common", multiplier: 1.5, label: "일반", nextLevel: "rare" },
+            "perk-quest-rare": { rarity: "rare", multiplier: 2, label: "희귀", nextLevel: "epic" },
+            "perk-quest-epic": { rarity: "epic", multiplier: 3, label: "특급", nextLevel: "legend" },
+            "perk-quest-legend": { rarity: "legend", multiplier: 4, label: "전설", nextLevel: null },
+        };
+        const config = questConfig[selectedPerk.id];
+        const lastTurn = state.history.filter(item => item.turn === state.turn && item.rarity).at(-1);
+        if (!lastTurn || lastTurn.rarity !== config.rarity) return null;
 
         const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * 2);
+        const nextPoint = safeNumber(prevPoint * config.multiplier);
         state.pointVal = nextPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: 연속 ${curTurn.rarity} → 값 x2 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            `Turn ${state.turn} 종료: ${config.label} 선택 → 값 ×${config.multiplier} (${formatNum(prevPoint)} → ${formatNum(nextPoint)})`,
             { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 2");
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `× ${config.multiplier}`);
         triggerPerkBadgeActivationFeedback();
-        return { messageText: `${selectedPerk.name} (${curTurn.rarity})`, messagePrefix: "" };
+
+        if (config.nextLevel) {
+            state.questLevel = config.nextLevel;
+            updatePerkBadge(getSelectedPerk());
+        }
+
+        return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
     return null;
 }
 
-function applyPerkAfterDiceRoll(targetKey, rolledValue) {
+async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
     const selectedPerk = getSelectedPerk();
     if (!selectedPerk) return null;
 
+
+    if (selectedPerk.id === "perk-active-volcano" && targetKey === "modVal") {
+        const startPoint = state.pointVal ?? 0;
+        for (let i = 0; i < rolledValue; i++) {
+            const prevPoint = state.pointVal ?? 0;
+            const nextPoint = safeNumber(prevPoint + 10000);
+            state.pointVal = nextPoint;
+            setPointValAnimated(formatNum(state.pointVal), state.pointVal);
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `+10,000`);
+            triggerPerkBadgeActivationFeedback();
+            await wait(200);
+            if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
+        }
+        const finalPoint = state.pointVal ?? 0;
+        const totalBonus = safeNumber(finalPoint - startPoint);
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 주사위 ${rolledValue}: +${formatNum(totalBonus)} (${formatNum(startPoint)} → ${formatNum(finalPoint)})`,
+            { turn: state.turn, trigger: "turn_dice", before_val: startPoint, after_val: finalPoint },
+        );
+        return { messageText: selectedPerk.name, messagePrefix: "" };
+    }
 
     if (selectedPerk.id !== "perk-rigged-dice") {
         return null;
@@ -1430,48 +1499,7 @@ async function applyLastShootingBeforeFinish() {
 }
 
 async function applyHighlanderBeforeFinish() {
-    const selectedPerk = getSelectedPerk();
-    if (!selectedPerk || selectedPerk.id !== "perk-highlander") return;
-    if (state.turn !== MAX_TURNS) return;
-
-    const baseMap = new Map();
-    for (const [rarity, ops] of Object.entries(OPTION_LIBRARY)) {
-        ops.forEach((op, i) => baseMap.set(op.formula, `${rarity}_${i + 1}`));
-    }
-    const enhMap = new Map();
-    for (const [rarity, ops] of Object.entries(ENHANCED_OPTION_LIBRARY)) {
-        ops.forEach((op, i) => enhMap.set(op.formula, `${rarity}_${i + 1}_enh`));
-    }
-
-    const seen = new Set();
-    let hasDuplicate = false;
-    for (const item of state.history) {
-        if (!item.turn || !item.expression) continue;
-        const key = (Boolean(item.isEnhanced) ? enhMap : baseMap).get(item.expression);
-        if (!key) continue;
-        if (seen.has(key)) { hasDuplicate = true; break; }
-        seen.add(key);
-    }
-
-    if (hasDuplicate) return;
-
-    const prevPoint = state.pointVal ?? 0;
-    const nextPoint = safeNumber(prevPoint * 10);
-    state.pointVal = nextPoint;
-
-    recordPerkActivationHistory(
-        selectedPerk,
-        `최종 발동: 중복 없음 x10 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-        { turn: state.turn, trigger: "final", before_val: prevPoint, after_val: nextPoint },
-    );
-
-    setPointValAnimated(formatNum(state.pointVal), state.pointVal);
-    renderCalcHistory();
-    els.message.textContent = "특성 발동! 하이랜더: 중복 없음! × 10";
-
-    triggerPerkBadgeActivationFeedback();
-    triggerPerkPointChangeFeedback(selectedPerk, prevPoint, nextPoint, "× 10");
-    await wait(1800);
+    // 원 포 올은 게임 종료 시 별도 처리 없음
 }
 
 function updateLuckInfoTooltip() {
@@ -1615,7 +1643,7 @@ function buildOptions() {
     const options = createUniqueOptions(weights, 3);
 
     const hasPositive = options.some((opt) => {
-        const result = safeNumber(opt.compute(state.pointVal, state.modVal));
+        const result = safeNumber(opt.compute(state.pointVal, state.modVal, state.turn));
         return result > state.pointVal;
     });
 
@@ -1752,6 +1780,34 @@ function closePatchLogModal() {
     setPatchLogModalOpen(false);
 }
 
+function setPerkListModalOpen(isOpen) {
+    if (!els.perkListModal) return;
+    els.perkListModal.classList.toggle("is-visible", isOpen);
+    els.perkListModal.setAttribute("aria-hidden", String(!isOpen));
+}
+
+function openPerkListModal() {
+    if (!els.perkListContent) return;
+
+    const perks = PERK_LIB.filter(p => !p.hidden && !p.legacy)
+        .sort((a, b) => (a.adReward ? 1 : 0) - (b.adReward ? 1 : 0));
+    els.perkListContent.innerHTML = perks.map((perk) => {
+        const accentShadow = withAlpha(perk.glitterColor, 0.18 + perk.glitterIntensity * 0.22);
+        const cardStyle = `--perk-bg:${perk.backgroundStyle}; --perk-glitter:${perk.glitterColor}; --perk-glitter-opacity:${perk.glitterIntensity}; --perk-accent:${perk.glitterColor}; --perk-accent-shadow:${accentShadow};`;
+        const adBadge = perk.adReward
+            ? `<span class="perk-ad-badge" style="color:${perk.textColor || '#13272b'}">광고 시청 보상</span>`
+            : "";
+        return `
+            <div class="option-btn perk-option-btn" data-perk-id="${perk.id}" style="${cardStyle}">
+                ${adBadge}
+                <p class="perk-name">${perk.name}</p>
+                <p class="perk-description">${perk.description}</p>
+            </div>`;
+    }).join("");
+
+    setPerkListModalOpen(true);
+}
+
 function setLeaderboardModalOpen(isOpen) {
     if (!els.leaderboardModal) return;
     els.leaderboardModal.classList.toggle("is-visible", isOpen);
@@ -1831,7 +1887,7 @@ async function openLeaderboardModal() {
     if (!els.leaderboardModal || !els.leaderboardContent) return;
 
     if (els.leaderboardPerkFilter && els.leaderboardPerkFilter.options.length === 1) {
-        PERK_LIB.forEach((p) => {
+        PERK_LIB.filter(p => !p.hidden).forEach((p) => {
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.textContent = p.name;
@@ -2178,6 +2234,24 @@ function bindSettingsEvents() {
         });
     }
 
+    if (els.perkListBtn) {
+        els.perkListBtn.addEventListener("click", () => {
+            openPerkListModal();
+        });
+    }
+
+    if (els.perkListClose) {
+        els.perkListClose.addEventListener("click", () => {
+            setPerkListModalOpen(false);
+        });
+    }
+
+    if (els.perkListModal) {
+        els.perkListModal.addEventListener("click", (event) => {
+            if (event.target === els.perkListModal) setPerkListModalOpen(false);
+        });
+    }
+
     if (els.leaderboardBtn) {
         els.leaderboardBtn.addEventListener("click", () => {
             setSettingsOpen(false);
@@ -2371,7 +2445,7 @@ function refreshOptionPredictedValueLabels() {
             return;
         }
 
-        const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal));
+        const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal, state.turn));
         element.textContent = `예상 결과 ${formatNum(predictedValue)}`;
     });
 }
@@ -2389,7 +2463,7 @@ function refreshOptionExpressionLabels() {
             return;
         }
 
-        element.innerHTML = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal);
+        element.innerHTML = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal, state.turn);
     });
 }
 
@@ -2553,7 +2627,6 @@ async function startGame() {
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
-    state.perkSalvationUsed = false;
     if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
@@ -2575,19 +2648,39 @@ async function startGame() {
 
     await animateDiceRoll("pointVal");
 
-    const riggedDiceResult = applyPerkAfterDiceRoll("pointVal", state.pointVal);
+    const riggedDiceResult = await applyPerkAfterDiceRoll("pointVal", state.pointVal);
+
+    // 후원자: 미리보기 렌더 전에 100으로 고정해 "X→6" 재렌더를 방지
+    const patronPerkEarly = getSelectedPerk();
+    if (patronPerkEarly?.id === "perk-patron") {
+        const origDiceVal = state.pointVal;
+        state.pointVal = 100;
+        recordPerkActivationHistory(
+            patronPerkEarly,
+            `초기 시작 값: 주사위 ${origDiceVal} → 100으로 고정`,
+            { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 100 },
+        );
+        if (_pointValAnimFrame !== null) {
+            cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
+            _pointValAnimFrame = null;
+        }
+        _prevPointValForAnim = 100;
+        triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 100, "100 고정");
+        triggerPerkBadgeActivationFeedback();
+    }
 
     state.revealTarget = "pointVal";
     state.phase = "rolled-point-preview";
     els.message.textContent = riggedDiceResult
         ? `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
-        : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
+        : patronPerkEarly?.id === "perk-patron"
+            ? `특성 발동! 후원자: 초기 값 100으로 고정`
+            : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
     renderStatus();
 
     const perk67point = getSelectedPerk();
     const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
     const shouldActivateSunbangPoint = perk67point?.id === "perk-sunbang" && state.pointVal !== 6;
-    const shouldActivateSalvationPoint = perk67point?.id === "perk-salvation" && state.pointVal === 1 && !state.perkSalvationUsed;
     if (shouldActivate67point) {
         await wait(250);
         if (state.phase !== "rolled-point-preview") {
@@ -2612,19 +2705,6 @@ async function startGame() {
             { turn: 0, trigger: "initial_dice_mod", before_dice: state.pointVal, after_dice: state.pointVal + 1 });
         triggerPerkBadgeActivationFeedback();
         els.message.textContent = `특성 발동! 순방: 주사위 +1`;
-        renderStatus();
-        await wait(1000);
-        await wait(250);
-    } else if (shouldActivateSalvationPoint) {
-        await wait(250);
-        if (state.phase !== "rolled-point-preview") {
-            return;
-        }
-        state.perkSalvationPreviewing = true;
-        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 1 → 6으로 변경`,
-            { turn: 0, trigger: "initial_dice_mod", before_dice: 1, after_dice: 6 });
-        triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `특성 발동! 구원: 주사위 1 → 6`;
         renderStatus();
         await wait(1000);
         await wait(250);
@@ -2653,12 +2733,6 @@ async function startGame() {
         state.perkSunbangDirection = null;
     }
 
-    if (state.perkSalvationPreviewing) {
-        state.pointVal = 6;
-        state.perkSalvationUsed = true;
-        state.perkSalvationPreviewing = false;
-    }
-
     const grosmichelInit = getSelectedPerk();
     if (grosmichelInit?.id === "perk-gros-michel" && state.pointVal === 1) {
         const prevPoint = state.pointVal;
@@ -2676,25 +2750,21 @@ async function startGame() {
         triggerPerkBadgeActivationFeedback();
     }
 
-    const patronPerk = getSelectedPerk();
-    if (patronPerk?.id === "perk-patron") {
-        const prevPoint = state.pointVal;
-        state.pointVal = 100;
+    const kickstartInitPerk = getSelectedPerk();
+    if (kickstartInitPerk?.id === "perk-kickstart") {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * prevPoint);
+        state.pointVal = nextPoint;
 
         recordPerkActivationHistory(
-            patronPerk,
-            `초기 시작 값: 주사위 ${prevPoint} → 100으로 고정`,
-            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: 100 },
+            kickstartInitPerk,
+            `초기 시작 값: 주사위 ${prevPoint} → 값 x${prevPoint} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
         );
 
         refreshPointValueAndHistoryUi();
-        triggerPerkPointChangeFeedback(patronPerk, prevPoint, 100, "100 고정");
+        triggerPerkPointChangeFeedback(kickstartInitPerk, prevPoint, nextPoint, `× ${prevPoint}`);
         triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `특성 발동! 후원자: 초기 값 100으로 고정`;
-        renderStatus();
-        await wait(1000);
-
-        if (state.phase !== "rolled-point-preview") return;
     }
 
     state.initialPointRollValue = state.pointVal;
@@ -2732,7 +2802,8 @@ function preparePerkSelection() {
     _prevPointValForAnim = null;
     state.skipUsed = false;
     state.timewarpExtraTurn = false;
-    state.perkSalvationUsed = false;
+    state.questLevel = "common";
+    state.volcanoActivated = false;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -2787,7 +2858,7 @@ async function rollModValForTurn() {
 
     await animateDiceRoll("modVal");
 
-    const riggedDiceResult = applyPerkAfterDiceRoll("modVal", state.modVal);
+    const riggedDiceResult = await applyPerkAfterDiceRoll("modVal", state.modVal);
 
     state.revealTarget = "modVal";
     state.phase = "rolled-mod-preview";
@@ -2801,7 +2872,6 @@ async function rollModValForTurn() {
     const perk67 = getSelectedPerk();
     const shouldActivate67 = state.modVal === 6 && perk67?.id === "perk-67";
     const shouldActivateSunbang = perk67?.id === "perk-sunbang" && state.modVal !== 6;
-    const shouldActivateSalvation = perk67?.id === "perk-salvation" && state.modVal === 1 && !state.perkSalvationUsed;
     if (shouldActivate67) {
         await wait(250);
         if (state.phase !== "rolled-mod-preview") {
@@ -2829,19 +2899,6 @@ async function rollModValForTurn() {
         renderStatus();
         await wait(1000); // 애니메이션 1초
         await wait(250); // 결과 확인 0.25초
-    } else if (shouldActivateSalvation) {
-        await wait(250);
-        if (state.phase !== "rolled-mod-preview") {
-            return;
-        }
-        state.perkSalvationPreviewing = true;
-        recordPerkActivationHistory(perk67, `Turn ${state.turn}: 주사위 1 → 6으로 변경`,
-            { turn: state.turn, trigger: "dice_mod", before_dice: 1, after_dice: 6 });
-        triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `특성 발동! 구원: 주사위 1 → 6`;
-        renderStatus();
-        await wait(1000);
-        await wait(250);
     } else {
         await wait(1000);
     }
@@ -2860,12 +2917,6 @@ async function rollModValForTurn() {
         state.modVal = clamp(state.modVal + delta, 1, 6);
         state.perkSunbangPreviewing = false;
         state.perkSunbangDirection = null;
-    }
-
-    if (state.perkSalvationPreviewing) {
-        state.modVal = 6;
-        state.perkSalvationUsed = true;
-        state.perkSalvationPreviewing = false;
     }
 
     state.revealTarget = null;
@@ -2924,6 +2975,47 @@ async function rollModValForTurn() {
         refreshPointValueAndHistoryUi();
         triggerPerkPointChangeFeedback(bullseyePerk, prevPoint, nextPoint, `× ${state.turn}`);
         triggerPerkBadgeActivationFeedback();
+    }
+
+    const kickstartPerk = getSelectedPerk();
+    if (kickstartPerk?.id === "perk-kickstart" && state.turn <= 2) {
+        const prevPoint = state.pointVal ?? 0;
+        const nextPoint = safeNumber(prevPoint * state.modVal);
+        state.pointVal = nextPoint;
+
+        recordPerkActivationHistory(
+            kickstartPerk,
+            `Turn ${state.turn}: 주사위 ${state.modVal} → 값 x${state.modVal} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(kickstartPerk, prevPoint, nextPoint, `× ${state.modVal}`);
+        triggerPerkBadgeActivationFeedback();
+    }
+
+    const gnDrivePerk = getSelectedPerk();
+    if (gnDrivePerk?.id === "perk-reactor") {
+        const startPoint = state.pointVal ?? 0;
+        for (let i = 0; i < state.modVal; i++) {
+            const prevPoint = state.pointVal ?? 0;
+            const nextPoint = safeNumber(prevPoint * 1.2);
+            state.pointVal = nextPoint;
+            if (nextPoint !== prevPoint) {
+                setPointValAnimated(formatNum(state.pointVal), state.pointVal);
+                triggerPerkPointChangeFeedback(gnDrivePerk, prevPoint, state.pointVal, `× 1.2`);
+                triggerPerkBadgeActivationFeedback();
+                await wait(100);
+            }
+            if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
+        }
+        const finalPoint = state.pointVal ?? 0;
+        recordPerkActivationHistory(
+            gnDrivePerk,
+            `Turn ${state.turn} 주사위 ${state.modVal}: × 1.2 × ${state.modVal}회 (${formatNum(startPoint)} → ${formatNum(finalPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: startPoint, after_val: finalPoint },
+        );
+        if (state.phase !== "rolled-mod-preview") return;
     }
 
     state.options = buildOptions();
@@ -2985,7 +3077,8 @@ async function pickOption(optionIndex) {
     }
 
     const prevPoint = state.pointVal;
-    const nextPoint = safeNumber(selected.compute(state.pointVal, state.modVal));
+    const isMoodyBlues = getSelectedPerk()?.id === "perk-moody-blues";
+    const nextPoint = safeNumber(selected.compute(state.pointVal, state.modVal, state.turn));
 
     state.pointVal = nextPoint;
 
@@ -3015,6 +3108,42 @@ async function pickOption(optionIndex) {
         to: nextPoint,
         gainedLuck: addedLuck,
     });
+
+    // 무디 블루스: 특급 선택 시 1회 계산 즉시 표시 → 애니메이션 완료 → 0.2초 후 2회 적용
+    if (isMoodyBlues && selected.rarity === "epic") {
+        refreshPointValueAndHistoryUi();
+        els.message.textContent = `무디 블루스: 1번째 계산 → 현재 값 ${formatNum(state.pointVal)}`;
+        renderStatus();
+
+        if (_pointValAnimFrame !== null) {
+            await new Promise(resolve => { _onPointValAnimComplete = resolve; });
+        }
+        await wait(100);
+        if (state.phase !== "resolving-option") return;
+
+        const secondPrev = state.pointVal;
+        const secondNext = safeNumber(selected.compute(state.pointVal, state.modVal, state.turn));
+        state.pointVal = secondNext;
+
+        state.history.push({
+            turn: state.turn,
+            modVal: state.modVal,
+            selected_index: optionIndex,
+            expression: selected.formula,
+            rarity: selected.rarity,
+            isEnhanced: Boolean(selected.isEnhanced),
+            luck_before: state.luck,
+            from: secondPrev,
+            to: secondNext,
+            gainedLuck: 0,
+        });
+
+        refreshPointValueAndHistoryUi();
+        triggerPerkPointChangeFeedback(getSelectedPerk(), secondPrev, secondNext, "2회 적용");
+        triggerPerkBadgeActivationFeedback();
+        els.message.textContent = `무디 블루스: 2번째 계산 → 현재 값 ${formatNum(state.pointVal)}`;
+        renderStatus();
+    }
 
     const activatedPerkResult = applyPerkAfterTurnResolved();
     const messagePrefix = activatedPerkResult?.messagePrefix ? `${activatedPerkResult.messagePrefix} ` : "";
@@ -3329,16 +3458,22 @@ function buildShareRecordText() {
         "perk-sunbang": "🛡️",
         "perk-red-comet": "☄️",
         "perk-time-warp": "⏳",
-        "perk-highlander": "🗺️",
+        "perk-quest": "📋",
+        "perk-quest-common": "📋",
+        "perk-quest-rare": "📋",
+        "perk-quest-epic": "📋",
+        "perk-quest-legend": "📋",
         "perk-gros-michel": "🍌",
         "perk-death-boundary": "💀",
         "perk-patron": "🤝",
-        "perk-salvation": "✨",
-        "perk-link": "🔗",
+        "perk-abyss-route": "🌊",
+        "perk-solo": "🧍",
+        "perk-moody-blues": "📼",
         "perk-bullseye": "🎯",
         "perk-joker": "🃏",
-        "perk-investment": "💸",
+        "perk-kickstart": "❤️‍🔥",
         "perk-beer": "🍺",
+        "perk-reactor": "⚡",
     };
     const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 
@@ -3365,7 +3500,7 @@ function buildShareRecordText() {
             return;
         }
 
-        const formulaWithValues = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal);
+        const formulaWithValues = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal, item.turn);
         const gainedLuckText = formatNum(item.gainedLuck ?? 0);
         const enhancedText = item.isEnhanced ? " / Enhanced" : "";
         lines.push(`Turn ${item.turn} :  ${formatNum(item.from)} / 🎲 ${formatNum(item.modVal)} / Luck +${gainedLuckText}${enhancedText}`);
@@ -3516,16 +3651,13 @@ function renderRolledDicePreview() {
     const target = state.revealTarget === "pointVal" ? "pointVal" : "modVal";
     const is67Transition = state.perk67Previewing;
     const isSunbangTransition = state.perkSunbangPreviewing;
-    const isSalvationTransition = state.perkSalvationPreviewing;
     const sunbangDelta = state.perkSunbangDirection === "right" ? 1 : -1;
     const rolledValue = is67Transition
         ? 1
         : isSunbangTransition
             ? clamp(state[target] + sunbangDelta, 1, 6)
-            : isSalvationTransition
-                ? 6
-                : clamp(state[target], 1, 6);
-    const titleSuffix = is67Transition ? " → 7!" : isSalvationTransition ? " → 6!" : "";
+            : clamp(state[target], 1, 6);
+    const titleSuffix = is67Transition ? " → 7!" : "";
     const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
     const transitionClass = is67Transition ? " perk67-flash" : "";
 
@@ -3709,8 +3841,8 @@ function renderOptions() {
     els.options.innerHTML = state.options
         .map((option, index) => {
             const rarityData = RARITIES[option.rarity];
-            const displayFormula = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal);
-            const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal));
+            const displayFormula = formatFormulaWithHighlights(option.formula, state.pointVal, state.modVal, state.turn);
+            const predictedValue = safeNumber(option.compute(state.pointVal, state.modVal, state.turn));
             const predictedValueText = formatNum(predictedValue);
             const predictedValueLabel = shouldShowPredictedValue
                 ? `예상 결과 ${predictedValueText}`
@@ -3768,20 +3900,15 @@ function renderStatus() {
     const sunbangPreviewDelta = state.perkSunbangPreviewing ? (state.perkSunbangDirection === "right" ? 1 : -1) : 0;
     const displayPointVal = (state.perkSunbangPreviewing && state.revealTarget === "pointVal")
         ? safeNumber((state.pointVal ?? 0) + sunbangPreviewDelta)
-        : (state.perkSalvationPreviewing && state.revealTarget === "pointVal")
-            ? 6
-            : state.pointVal;
+        : state.pointVal;
     const displayModVal = (state.perkSunbangPreviewing && state.revealTarget === "modVal")
         ? clamp((state.modVal ?? 0) + sunbangPreviewDelta, 1, 6)
-        : (state.perkSalvationPreviewing && state.revealTarget === "modVal")
-            ? 6
-            : state.modVal;
-    const numericPointVal = (state.perkSalvationPreviewing && state.revealTarget === "pointVal") ? 6 : state.pointVal;
-    setPointValAnimated(displayPointVal === null ? "-" : formatNum(displayPointVal), numericPointVal);
+        : state.modVal;
+    setPointValAnimated(displayPointVal === null ? "-" : formatNum(displayPointVal), state.pointVal);
     els.modVal.textContent = displayModVal === null ? "-" : formatNum(displayModVal);
     // await-mod-roll 상태에서는 다음 턴을 미리 표시
     const displayTurn = state.phase === "await-mod-roll" ? state.turn + 1 : state.turn;
-    els.turnDisplay.textContent = `${displayTurn} / ${state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS}`;
+    els.turnDisplay.innerHTML = `<span class="turn-current">${displayTurn}</span> / ${state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS}`;
     els.luckScore.textContent = `Luck ${state.luck}`;
     fitPointValueFont();
     renderCalcHistory();
@@ -3834,7 +3961,7 @@ function renderCalcHistory() {
             }
 
             const beforeValue = item.from;
-            const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal);
+            const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal, item.turn);
             const resultValue = item.to;
             const gainedLuckText = formatNum(item.gainedLuck ?? 0);
             const enhancedMark = item.isEnhanced ? ' <span class="tag tag-enhanced">강화됨</span>' : "";
@@ -3887,7 +4014,7 @@ function triggerPerkBadgeActivationFeedback(playSound = true) {
         return;
     }
 
-    const activePerk = state.perkChoices.find((perk) => perk.id === state.selectedPerkId) ?? null;
+    const activePerk = getSelectedPerk();
 
     els.perkBadgeBtn.classList.remove("is-activated");
     // Reflow to restart animation on repeated clicks.
@@ -4308,5 +4435,13 @@ function renderControl() {
     els.startBtn.classList.add("is-hidden");
     els.startBtn.textContent = "선택지를 고르세요";
 }
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        _vacCtx?.suspend();
+    } else {
+        _vacCtx?.resume();
+    }
+});
 
 init();
