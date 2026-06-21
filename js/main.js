@@ -509,6 +509,7 @@ const PERK_LIB = [
     {
         id: "perk-last-shooting",
         name: "라스트 슈팅",
+        legacy: true,
         description: "5턴 종료 후, 마지막 주사위 값을 1씩 줄여 3번 곱합니다. (최소 1)",
         backgroundStyle: "linear-gradient(160deg, rgba(252, 252, 252, 0.96), rgba(240, 240, 240, 0.99))",
         glitterColor: "rgba(255, 255, 255, 1)",
