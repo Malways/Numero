@@ -288,15 +288,143 @@ const OPTION_LIBRARY = {
 // 강화됨 전용 선택지 라이브러리 (하드코드)
 const ENHANCED_OPTION_LIBRARY = {
     common: [
-        // { // 행운 3 -> 6
-        //     formula: "= 100 * turnVal",
-        //     compute: (a, b, c) => 100 * c,
-        //     unselectedLuckGain: 6
-        // },
+        { //1
+            formula: "pointVal + (modVal * 5) ",
+            compute: (a, b) => a + b * 5,
+            unselectedLuckGain: 3,
+        },
+        { //2
+            formula: "| pointVal + modVal * 3 |",
+            compute: (a, b) => Math.abs(a + b * 3),
+            unselectedLuckGain: 3,
+        },
+        { //3
+            formula: "pointVal - ( modVal * 10 ) ",
+            compute: (a, b) => a - (b * 10),
+            unselectedLuckGain: 3,
+        },
+        { //4
+            formula: "pointVal * modVal",
+            compute: (a, b) => a * b,
+            unselectedLuckGain: 3,
+        },
+        { //5
+            formula: "pointVal * -( modVal * 2 )",
+            compute: (a, b) => a * -(b * 2),
+            unselectedLuckGain: 3
+        },
+        { //6
+            formula: "= 30 * turnVal",
+            compute: (a, b, c) => 30 * c,
+            unselectedLuckGain: 3
+        },
+        { //7
+            formula: "(pointVal + pointVal * modVal) / 2 (올림)",
+            compute: (a, b) => Math.ceil((a + a * b) / 2),
+            unselectedLuckGain: 3
+        },
     ],
-    rare: [],
-    epic: [],
-    legend: [],
+    rare: [
+        { //1
+            formula: "pointVal + ( modVal * 10 )",
+            compute: (a, b) => a + (b * 10),
+            unselectedLuckGain: 6,
+        },
+        { //2
+            formula: "| pointVal - ( modVal * 20 ) |",
+            compute: (a, b) => Math.abs(a - (b * 20)),
+            unselectedLuckGain: 6,
+        },
+        { //3
+            formula: "pointVal * modVal * 2",
+            compute: (a, b) => a * b * 2,
+            unselectedLuckGain: 6,
+        },
+        { //4
+            formula: "pointVal * -(modVal * 3)",
+            compute: (a, b) => a * -(b * 3),
+            unselectedLuckGain: 6
+        },
+        { //5
+            formula: "pointVal * 3 + modVal",
+            compute: (a, b) => (a * 3) + b,
+            unselectedLuckGain: 6,
+        },
+        { //6
+            formula: "pointVal - modVal^3",
+            compute: (a, b) => a - Math.pow(b, 3),
+            unselectedLuckGain: 6,
+        },
+        { //7
+            formula: "pointVal + ( 150 - modVal * 10 )",
+            compute: (a, b) => a + (150 - b * 10),
+            unselectedLuckGain: 6
+        },
+    ],
+    epic: [
+        { //1
+            formula: "pointVal + modVal! * 2",
+            compute: (a, b) => a + factorial(b) * 2,
+            unselectedLuckGain: 9,
+        },
+        { //2
+            formula: "pointVal + modVal^4",
+            compute: (a, b) => a + Math.pow(b, 4),
+            unselectedLuckGain: 9,
+        },
+        { //3
+            formula: "pointVal - modVal! * 4",
+            compute: (a, b) => a - factorial(b) * 4,
+            unselectedLuckGain: 9,
+        },
+        { //4
+            formula: "pointVal - modVal^4 * turnVal",
+            compute: (a, b, c) => a - Math.pow(b, 4) * c,
+            unselectedLuckGain: 9,
+        },
+        { //5
+            formula: "pointVal * modVal^2",
+            compute: (a, b) => a * Math.pow(b, 2),
+            unselectedLuckGain: 9
+        },
+        { //6
+            formula: "= 500 * turnVal",
+            compute: (a, b, c) => 500 * c,
+            unselectedLuckGain: 9
+        },
+        { //7
+            formula: "-(pointVal * modVal^2)",
+            compute: (a, b) => -1 * (a * Math.pow(b, 2)),
+            unselectedLuckGain: 9,
+        },
+    ],
+    legend: [
+        { //1
+            formula: "5^modVal * turnVal",
+            compute: (a, b, c) => Math.pow(5, b) * c,
+            unselectedLuckGain: 12,
+        },
+        { //2
+            formula: "pointVal * (modVal-1)^(modVal-1)",
+            compute: (a, b) => a * Math.pow(b - 1, b - 1),
+            unselectedLuckGain: 12,
+        },
+        { //3
+            formula: "-(pointVal * modVal! * 5 )",
+            compute: (a, b) => -(a * factorial(b) * 5),
+            unselectedLuckGain: 12,
+        },
+        { //4
+            formula: "pointVal * (modVal) * 4!",
+            compute: (a, b) => a * factorial(b) * 4,
+            unselectedLuckGain: 12,
+        },
+        {
+            formula: "pointVal + modVal^turnVal * 5",
+            compute: (a, b, c) => a + Math.pow(b, c) * 5,
+            unselectedLuckGain: 12,
+        }
+    ],
 };
 
 // 끝: OPTION_LIBRARY
@@ -3466,7 +3594,7 @@ function buildShareRecordText() {
         "perk-gros-michel": "🍌",
         "perk-death-boundary": "💀",
         "perk-patron": "🤝",
-        "perk-abyss-route": "🌊",
+        "perk-abyss-route": "⚓",
         "perk-solo": "🧍",
         "perk-moody-blues": "📼",
         "perk-bullseye": "🎯",

@@ -1608,6 +1608,7 @@ body {
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
+    text-align: center;
     background: linear-gradient(120deg, var(--primary), var(--primary-strong));
     cursor: pointer;
 }
@@ -1619,6 +1620,12 @@ body {
 
 .primary-btn.is-hidden {
     display: none;
+}
+
+.footer-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .footer-panel.is-hidden {
