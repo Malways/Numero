@@ -594,6 +594,16 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
+        id: "perk-strategic-retreat",
+        name: "전략적 후퇴",
+        description: "주사위를 굴릴 때마다 눈금 * 50 만큼 값이 감소합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(5, 55, 20, 0.97) 0%, rgba(15, 90, 35, 0.96) 50%, rgba(8, 70, 25, 0.97) 100%)",
+        glitterColor: "rgba(80, 220, 100, 1)",
+        glitterIntensity: 0.72,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
         id: "perk-solo",
         name: "홀로서기",
         description: "턴 종료 시 현재 값이 홀수라면 3배로 만듭니다.",
@@ -606,6 +616,7 @@ const PERK_LIB = [
     {
         id: "perk-moody-blues",
         name: "무디 블루스",
+        adReward: true,
         description: "특급 선택지 선택 시 계산식을 두 번 적용합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(170, 171, 228, 0.96), rgba(227, 188, 250, 0.95), rgba(246, 217, 253, 0.94))",
         glitterColor: "rgba(246, 217, 253, 1)",
@@ -621,6 +632,7 @@ const PERK_LIB = [
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.72,
         textColor: "#ffffff",
+        legacy: true,
         applyTemplate: (_gameState) => { },
     },
     {
@@ -1524,6 +1536,22 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
     const selectedPerk = getSelectedPerk();
     if (!selectedPerk) return null;
 
+
+    if (selectedPerk.id === "perk-strategic-retreat") {
+        const prevPoint = state.pointVal ?? 0;
+        const delta = rolledValue * -100;
+        const nextPoint = safeNumber(prevPoint + delta);
+        state.pointVal = nextPoint;
+        setPointValAnimated(formatNum(state.pointVal), state.pointVal);
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, formatNum(delta));
+        triggerPerkBadgeActivationFeedback();
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 주사위 ${rolledValue}: ${formatNum(delta)} (${formatNum(prevPoint)} → ${formatNum(nextPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+        );
+        return { perkName: selectedPerk.name, label: formatNum(delta) };
+    }
 
     if (selectedPerk.id === "perk-active-volcano" && targetKey === "modVal") {
         const startPoint = state.pointVal ?? 0;
@@ -2800,7 +2828,9 @@ async function startGame() {
     state.revealTarget = "pointVal";
     state.phase = "rolled-point-preview";
     els.message.textContent = riggedDiceResult
-        ? `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
+        ? riggedDiceResult.label != null
+            ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
+            : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
         : patronPerkEarly?.id === "perk-patron"
             ? `특성 발동! 후원자: 초기 값 100으로 고정`
             : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
@@ -3595,13 +3625,14 @@ function buildShareRecordText() {
         "perk-death-boundary": "💀",
         "perk-patron": "🤝",
         "perk-abyss-route": "⚓",
-        "perk-solo": "🧍",
         "perk-moody-blues": "📼",
         "perk-bullseye": "🎯",
         "perk-joker": "🃏",
         "perk-kickstart": "❤️‍🔥",
         "perk-beer": "🍺",
         "perk-reactor": "⚡",
+        "perk-strategic-retreat": "🌿",
+        "perk-solo": "🧍",
     };
     const headingText = document.querySelector(".top-panel h1")?.textContent?.replace(/\s+/g, " ").trim() || "Numero";
 

@@ -1124,6 +1124,11 @@ body {
     color: #ffffff;
 }
 
+.perk-option-btn[data-perk-id="perk-strategic-retreat"] .perk-name,
+.perk-option-btn[data-perk-id="perk-strategic-retreat"] .perk-description {
+    color: #ffffff;
+}
+
 .perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-name,
 .perk-option-btn[data-perk-id="perk-rigged-dice"] .perk-description,
 .perk-option-btn[data-perk-id="perk-red-comet"] .perk-name,
