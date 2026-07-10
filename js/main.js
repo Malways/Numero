@@ -273,7 +273,7 @@ const OPTION_LIBRARY = {
         },
 
         { //4
-            formula: "pointVal * (modVal) * 4!",
+            formula: "pointVal * modVal! * 4",
             compute: (a, b) => a * factorial(b) * 4,
             unselectedLuckGain: 12,
         },
@@ -415,7 +415,7 @@ const ENHANCED_OPTION_LIBRARY = {
             unselectedLuckGain: 12,
         },
         { //4
-            formula: "pointVal * (modVal) * 4!",
+            formula: "pointVal * modVal! * 4",
             compute: (a, b) => a * factorial(b) * 4,
             unselectedLuckGain: 12,
         },
@@ -509,8 +509,7 @@ const PERK_LIB = [
     {
         id: "perk-last-shooting",
         name: "라스트 슈팅",
-        legacy: true,
-        description: "5턴 종료 후, 마지막 주사위 값을 1씩 줄여 3번 곱합니다. (최소 1)",
+        description: "5턴 종료 후, 마지막 주사위 값을 2씩 줄여가며 3번 곱합니다. (최소 1)",
         backgroundStyle: "linear-gradient(160deg, rgba(252, 252, 252, 0.96), rgba(240, 240, 240, 0.99))",
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.55,
@@ -554,7 +553,7 @@ const PERK_LIB = [
     {
         id: "perk-patron",
         name: "후원자",
-        description: "시작 값을 100으로 고정합니다. 광고 봐주셔서 감사해요 :)",
+        description: "시작 값을 500으로 고정합니다. 광고 봐주셔서 감사해요 :)",
         adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(255, 175, 200, 0.94), rgba(255, 215, 230, 0.96))",
         glitterColor: "rgba(240, 100, 145, 1)",
@@ -576,7 +575,7 @@ const PERK_LIB = [
     {
         id: "perk-dormant-volcano",
         name: "휴화산",
-        description: "1만 이상의 값을 만들면 깨어납니다...",
+        description: "5천 이상의 값을 만들면 깨어납니다...",
         backgroundStyle: "linear-gradient(160deg, rgba(58, 60, 63, 0.97) 20%, rgba(88, 87, 85, 0.95) 55%, rgba(118, 116, 112, 0.93))",
         glitterColor: "rgba(170, 172, 175, 1)",
         glitterIntensity: 0.28,
@@ -586,7 +585,7 @@ const PERK_LIB = [
     {
         id: "perk-active-volcano",
         name: "활화산",
-        description: "주사위를 굴릴 때마다 눈금 × 10,000만큼 더합니다.",
+        description: "주사위를 굴릴 때마다 눈금 × 5,000만큼 더합니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(39, 7, 4, 0.99) 40%, rgba(198, 56, 21, 0.97) 80%, rgba(182, 45, 31, 0.95))",
         glitterColor: "rgba(253, 140, 34, 1)",
@@ -597,20 +596,21 @@ const PERK_LIB = [
     {
         id: "perk-strategic-retreat",
         name: "전략적 후퇴",
-        description: "주사위를 굴릴 때마다 눈금 * 50 만큼 값이 감소합니다.",
+        description: "주사위를 굴릴 때마다 눈금 × -50을 현재 값에 더합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(5, 55, 20, 0.97) 0%, rgba(15, 90, 35, 0.96) 50%, rgba(8, 70, 25, 0.97) 100%)",
         glitterColor: "rgba(80, 220, 100, 1)",
         glitterIntensity: 0.72,
         textColor: "#ffffff",
+        legacy: true,
         applyTemplate: (_gameState) => { },
     },
     {
         id: "perk-solo",
         name: "홀로서기",
         description: "턴 종료 시 현재 값이 홀수라면 3배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(26, 10, 46, 0.97), rgba(45, 27, 94, 0.96), rgba(74, 45, 138, 0.95))",
-        glitterColor: "rgba(180, 140, 255, 1)",
-        glitterIntensity: 0.65,
+        backgroundStyle: "linear-gradient(160deg, rgba(5, 10, 35, 0.98) 0%, rgba(10, 25, 70, 0.97) 50%, rgba(8, 18, 52, 0.98) 100%)",
+        glitterColor: "rgba(80, 130, 220, 1)",
+        glitterIntensity: 0.68,
         textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
@@ -667,6 +667,16 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
+        id: "perk-overclock",
+        name: "오버클록",
+        description: "매 턴 종료 시 현재 값에 (60 ÷ 행운)을 곱합니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(15, 5, 0, 0.98) 0%, rgba(190, 70, 0, 0.97) 50%, rgba(255, 170, 20, 0.96) 100%)",
+        glitterColor: "rgba(255, 200, 50, 1)",
+        glitterIntensity: 0.88,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
         id: "perk-gros-michel",
         name: "그로 미셸",
         legacy: true,
@@ -700,7 +710,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-common",
         name: "일반 퀘스트",
-        description: "일반 선택지 선택 시 값을 1.5배로 만들고, 새 퀘스트를 받습니다.",
+        description: "일반 선택지 선택 시 값을 2배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(78, 85, 97, 0.97), rgba(138, 143, 154, 0.95))",
         glitterColor: "rgba(195, 202, 215, 1)",
@@ -711,7 +721,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-rare",
         name: "희귀 퀘스트",
-        description: "희귀 선택지 선택 시 값을 2배로 만들고, 새 퀘스트를 받습니다.",
+        description: "희귀 선택지 선택 시 값을 3배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(15, 78, 155, 0.97), rgba(30, 157, 232, 0.95))",
         glitterColor: "rgba(145, 218, 255, 1)",
@@ -722,7 +732,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-epic",
         name: "특급 퀘스트",
-        description: "특급 선택지 선택 시 값을 3배로 만들고, 새 퀘스트를 받습니다.",
+        description: "특급 선택지 선택 시 값을 4배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(55, 36, 138, 0.97), rgba(123, 97, 209, 0.95))",
         glitterColor: "rgba(207, 192, 255, 1)",
@@ -733,7 +743,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-legend",
         name: "전설 퀘스트",
-        description: "전설 선택지 선택 시 값을 4배로 만듭니다.",
+        description: "전설 선택지 선택 시 값을 5배로 만듭니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(215, 100, 18, 0.97), rgba(255, 168, 65, 0.95))",
         glitterColor: "rgba(255, 225, 150, 1)",
@@ -749,6 +759,27 @@ const PERK_LIB = [
         glitterColor: "rgba(121, 248, 253, 1)",
         glitterIntensity: 0.78,
         textColor: "#001f2a",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-energy-convert",
+        name: "에너지 전환",
+        adReward: true,
+        description: "주사위를 굴릴 때마다 행운을 소모해 눈금을 올립니다. \n(눈금 +1당 행운 8, 최대 6)",
+        backgroundStyle: "linear-gradient(160deg, rgba(5, 25, 55, 0.98) 0%, rgba(15, 90, 180, 0.97) 50%, rgba(50, 160, 255, 0.96) 100%)",
+        glitterColor: "rgba(100, 200, 255, 1)",
+        glitterIntensity: 0.80,
+        textColor: "#ffffff",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-clock-up",
+        name: "클락 업",
+        description: "매 턴 종료 시 현재 값에 배율을 곱합니다. \n(기본 ×1.5, 스킵할 때마다 +0.5)",
+        backgroundStyle: "linear-gradient(160deg, rgba(8, 40, 95, 0.97) 0%, rgba(0, 145, 235, 0.96) 55%, rgba(150, 235, 255, 0.95) 100%)",
+        glitterColor: "rgba(160, 235, 255, 1)",
+        glitterIntensity: 0.82,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
     {
@@ -811,10 +842,17 @@ const els = {
     patchLogModal: document.getElementById("patchLogModal"),
     patchLogContent: document.getElementById("patchLogContent"),
     patchLogClose: document.getElementById("patchLogClose"),
+    helpBtn: document.getElementById("helpBtn"),
+    helpModal: document.getElementById("helpModal"),
+    helpClose: document.getElementById("helpClose"),
     perkListBtn: document.getElementById("perkListBtn"),
     perkListModal: document.getElementById("perkListModal"),
     perkListContent: document.getElementById("perkListContent"),
     perkListClose: document.getElementById("perkListClose"),
+    achievementBtn: document.getElementById("achievementBtn"),
+    achievementModal: document.getElementById("achievementModal"),
+    achievementContent: document.getElementById("achievementContent"),
+    achievementClose: document.getElementById("achievementClose"),
     creditBtn: document.getElementById("creditBtn"),
     creditModal: document.getElementById("creditModal"),
     creditContent: document.getElementById("creditContent"),
@@ -865,6 +903,7 @@ const state = {
     timewarpExtraTurn: false, // 시간 왜곡 특성으로 6턴이 추가됐는지 여부
     questLevel: "common", // 퀘스트 특성의 현재 단계: common | rare | epic | legend
     volcanoActivated: false, // 휴화산 → 활화산 전환 여부
+    clockUpMultiplier: 1.5, // 클락 업 특성의 턴 종료 배율 (스킵마다 +0.5)
 };
 
 // ============================================================================
@@ -1372,6 +1411,35 @@ function applyPerkAfterTurnResolved() {
         return null;
     }
 
+    if (selectedPerk.id === "perk-overclock") {
+        const currentLuck = Math.max(1, state.luck ?? 1);
+        const multiplier = 60 / currentLuck;
+        const prevPoint = state.pointVal ?? 0;
+        state.pointVal = Math.round(prevPoint * multiplier);
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 값 ${prevPoint} → ${state.pointVal} (×${multiplier.toFixed(2)}, 행운 ${currentLuck})`,
+            { turn: state.turn, trigger: "turn_end" },
+        );
+        triggerPerkBadgeActivationFeedback();
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `×${multiplier.toFixed(2)}`);
+        return { messageText: `오버클록 (×${multiplier.toFixed(2)})`, messagePrefix: "" };
+    }
+
+    if (selectedPerk.id === "perk-clock-up") {
+        const multiplier = state.clockUpMultiplier ?? 1.5;
+        const prevPoint = state.pointVal ?? 0;
+        state.pointVal = safeNumber(Math.round(prevPoint * multiplier));
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 종료: 값 ${formatNum(prevPoint)} → ${formatNum(state.pointVal)} (×${multiplier.toFixed(1)})`,
+            { turn: state.turn, trigger: "turn_end" },
+        );
+        triggerPerkBadgeActivationFeedback();
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `×${multiplier.toFixed(1)}`);
+        return { messageText: `클락 업 (×${multiplier.toFixed(1)})`, messagePrefix: "" };
+    }
+
     if (selectedPerk.id === "perk-reversed-cursed") {
         const prevPoint = state.pointVal ?? 0;
 
@@ -1447,13 +1515,13 @@ function applyPerkAfterTurnResolved() {
 
     if (selectedPerk.id === "perk-dormant-volcano" && !state.volcanoActivated) {
         const curPoint = state.pointVal ?? 0;
-        if (curPoint >= 10000) {
+        if (curPoint >= 5000) {
             state.volcanoActivated = true;
             const activeVolcano = PERK_LIB.find((p) => p.id === "perk-active-volcano");
             if (activeVolcano) {
                 recordPerkActivationHistory(
                     activeVolcano,
-                    `Turn ${state.turn} 종료: 1만 점 돌파 → 활화산 발동 (${formatNum(curPoint)})`,
+                    `Turn ${state.turn} 종료: 5천 점 돌파 → 활화산 발동 (${formatNum(curPoint)})`,
                     { turn: state.turn, trigger: "turn_end", after_val: curPoint },
                 );
                 updatePerkBadge(getSelectedPerk());
@@ -1501,10 +1569,10 @@ function applyPerkAfterTurnResolved() {
 
     if (selectedPerk.id.startsWith("perk-quest-")) {
         const questConfig = {
-            "perk-quest-common": { rarity: "common", multiplier: 1.5, label: "일반", nextLevel: "rare" },
-            "perk-quest-rare": { rarity: "rare", multiplier: 2, label: "희귀", nextLevel: "epic" },
-            "perk-quest-epic": { rarity: "epic", multiplier: 3, label: "특급", nextLevel: "legend" },
-            "perk-quest-legend": { rarity: "legend", multiplier: 4, label: "전설", nextLevel: null },
+            "perk-quest-common": { rarity: "common", multiplier: 2, label: "일반", nextLevel: "rare" },
+            "perk-quest-rare": { rarity: "rare", multiplier: 3, label: "희귀", nextLevel: "epic" },
+            "perk-quest-epic": { rarity: "epic", multiplier: 4, label: "특급", nextLevel: "legend" },
+            "perk-quest-legend": { rarity: "legend", multiplier: 5, label: "전설", nextLevel: null },
         };
         const config = questConfig[selectedPerk.id];
         const lastTurn = state.history.filter(item => item.turn === state.turn && item.rarity).at(-1);
@@ -1530,6 +1598,7 @@ function applyPerkAfterTurnResolved() {
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
+
     return null;
 }
 
@@ -1537,31 +1606,70 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
     const selectedPerk = getSelectedPerk();
     if (!selectedPerk) return null;
 
+    if (selectedPerk.id === "perk-energy-convert") {
+        const currentLuck = state.luck ?? 0;
+        if (currentLuck < 8 || rolledValue >= 6) return null;
 
-    if (selectedPerk.id === "perk-strategic-retreat") {
-        const prevPoint = state.pointVal ?? 0;
-        const delta = rolledValue * -100;
-        const nextPoint = safeNumber(prevPoint + delta);
-        state.pointVal = nextPoint;
-        setPointValAnimated(formatNum(state.pointVal), state.pointVal);
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, formatNum(delta));
-        triggerPerkBadgeActivationFeedback();
+        const luckBefore = currentLuck;
+        const diceEl = targetKey === "modVal" ? els.modVal : els.pointVal;
+
+        await wait(350);
+
+        let increased = 0;
+        while (state.luck >= 8 && state[targetKey] < 6) {
+            state.luck = Math.max(0, state.luck - 8);
+            state[targetKey] += 1;
+            increased++;
+
+            diceEl.classList.remove("dice-update");
+            void diceEl.offsetWidth;
+            diceEl.classList.add("dice-update");
+            renderStatus();
+            await wait(380);
+        }
+
+        diceEl.classList.remove("dice-update");
+
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 주사위 ${rolledValue}: ${formatNum(delta)} (${formatNum(prevPoint)} → ${formatNum(nextPoint)})`,
-            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
+            `Turn ${state.turn} 주사위 ${rolledValue} → ${state[targetKey]} (+${increased}, 행운 -${increased * 8})`,
+            { turn: state.turn, trigger: "dice_reveal", before_luck: luckBefore, after_luck: state.luck },
         );
-        return { perkName: selectedPerk.name, label: formatNum(delta) };
+        triggerPerkBadgeActivationFeedback();
+
+        return { perkName: selectedPerk.name, label: `+${increased}` };
+    }
+
+    if (selectedPerk.id === "perk-strategic-retreat") {
+        const startPoint = state.pointVal ?? 0;
+        for (let i = 0; i < rolledValue; i++) {
+            const prevPoint = state.pointVal ?? 0;
+            const nextPoint = safeNumber(prevPoint - 50);
+            state.pointVal = nextPoint;
+            setPointValAnimated(formatNum(state.pointVal), state.pointVal);
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `-50`);
+            triggerPerkBadgeActivationFeedback();
+            await wait(100);
+            if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
+        }
+        const finalPoint = state.pointVal ?? 0;
+        const totalDelta = finalPoint - startPoint;
+        recordPerkActivationHistory(
+            selectedPerk,
+            `Turn ${state.turn} 주사위 ${rolledValue}: -50 × ${rolledValue}회 (${formatNum(startPoint)} → ${formatNum(finalPoint)})`,
+            { turn: state.turn, trigger: "dice_reveal", before_val: startPoint, after_val: finalPoint },
+        );
+        return { perkName: selectedPerk.name, label: formatNum(totalDelta) };
     }
 
     if (selectedPerk.id === "perk-active-volcano" && targetKey === "modVal") {
         const startPoint = state.pointVal ?? 0;
         for (let i = 0; i < rolledValue; i++) {
             const prevPoint = state.pointVal ?? 0;
-            const nextPoint = safeNumber(prevPoint + 10000);
+            const nextPoint = safeNumber(prevPoint + 5000);
             state.pointVal = nextPoint;
             setPointValAnimated(formatNum(state.pointVal), state.pointVal);
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `+10,000`);
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `+5,000`);
             triggerPerkBadgeActivationFeedback();
             await wait(200);
             if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
@@ -1612,7 +1720,7 @@ function getLastShootingDiceMultipliers() {
     if (!lastTurnEntry) return [];
 
     const n = Math.max(1, Math.trunc(lastTurnEntry.modVal));
-    return [n, Math.max(1, n - 1), Math.max(1, n - 2)];
+    return [n, Math.max(1, n - 2), Math.max(1, n - 4)];
 }
 
 async function applyLastShootingBeforeFinish() {
@@ -1667,6 +1775,16 @@ function updateLuckInfoTooltip() {
     const selectedPerk = getSelectedPerk();
     if (selectedPerk?.id === "perk-jackpot") {
         els.luckInfoSkipRule.textContent = "좌살박도 선택 시 스킵 보너스는 적용되지 않습니다.";
+        return;
+    }
+
+    if (selectedPerk?.id === "perk-overclock") {
+        els.luckInfoSkipRule.textContent = "오버클록: 턴 종료 시 값에 (60 ÷ 행운) 배율 적용. 행운이 낮을수록 배율이 높아집니다.";
+        return;
+    }
+
+    if (selectedPerk?.id === "perk-clock-up") {
+        els.luckInfoSkipRule.textContent = "클락 업: 턴 종료 시 값에 배율 적용. 스킵할 때마다 배율이 0.5씩 증가합니다.";
         return;
     }
 
@@ -1943,12 +2061,162 @@ function setPerkListModalOpen(isOpen) {
     els.perkListModal.setAttribute("aria-hidden", String(!isOpen));
 }
 
+const ACHIEVEMENTS = [
+    { id: "first-game", name: "첫 발걸음", desc: "게임을 처음으로 완료한다." },
+    { id: "billionaire", name: "누메로의 세계", desc: "최종 값 1억 이상을 달성한다." },
+    { id: "no-skip", name: "스텝 바이 스텝", desc: "한 번도 스킵하지 않고 게임을 완료한다" },
+    { id: "skip-master", name: "행운 더블로 가", desc: "5턴 중 3번 이상 스킵해 게임을 완료한다" },
+    { id: "lucky-guy", name: "100%", desc: "행운 166 이상인 상태로 게임을 완료한다." },
+    { id: "perk-collector", name: "누메로 마스터", desc: "모든 특성을 플레이 완료한다." },
+
+
+    { id: "clover-1", name: "깊고 작은 산골짜기 사이로", desc: "네잎클로버 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "clover-2", name: "맑은 물 흐르는 작은 샘터에", desc: "네잎클로버 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "clover-3", name: "예쁜 꽃들 사이에 살짝 숨겨진", desc: "네잎클로버 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "clover-4", name: "이슬 먹고 피어난 네잎 클로버", desc: "네잎클로버 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "wind-1", name: "각오로 열어가는 길", desc: "황금의 바람 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "wind-2", name: "황금 체험", desc: "황금의 바람 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "wind-3", name: "진혼곡", desc: "황금의 바람 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "wind-4", name: "Vento Aureo", desc: "황금의 바람 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "67-1", name: "67", desc: "67 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "67-2", name: "68..?", desc: "67 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "67-3", name: "69???", desc: "67 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "67-4", name: "70", desc: "67 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "67-triple7", name: "트리플 세븐", desc: "한 게임에 7을 3번 이상 뽑았습니다." },
+
+    { id: "reverse-1", name: "푸른「창」", desc: "반전 술식 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "reverse-2", name: "붉은「혁」", desc: "반전 술식 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "reverse-3", name: "허식「자」", desc: "반전 술식 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "reverse-4", name: "천상천하 유아독존", desc: "반전 술식 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "cheat-1", name: "잃을 염려 없는 도박수", desc: "사기 주사위 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "cheat-2", name: "운명", desc: "사기 주사위 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "cheat-3", name: "운이 좋군", desc: "사기 주사위 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "cheat-4", name: "행운의 여신", desc: "사기 주사위 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "jackpot-1", name: "끓어오르는 열기", desc: "좌살박도 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "jackpot-2", name: "4분 11초", desc: "좌살박도 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "jackpot-3", name: "음량을 높여라", desc: "좌살박도 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "jackpot-4", name: "타고난 강운", desc: "좌살박도 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "forward-1", name: "안전빵", desc: "순방 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "forward-2", name: "가만히 있으면 반이라도 간다", desc: "순방 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "forward-3", name: "보장된 안전", desc: "순방 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "forward-4", name: "안정적인 고득점", desc: "순방 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "comet-1", name: "나도 참 운이 없는 남자로군", desc: "붉은 혜성 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "comet-2", name: "보다시피 군인이지", desc: "붉은 혜성 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "comet-3", name: "통상 3배의 점수", desc: "붉은 혜성 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "comet-4", name: "가면을 쓴 남자", desc: "붉은 혜성 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "timewarp-1", name: "차원문 개방", desc: "시간 왜곡 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "timewarp-2", name: "까먹고 스킵한 적 솔직히 있죠?", desc: "시간 왜곡 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "timewarp-3", name: "Another One", desc: "시간 왜곡 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "timewarp-4", name: "한 턴 더! 한 턴 더!", desc: "시간 왜곡 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "sponsor-1", name: "여러분의 광고 시청은 큰 도움이..", desc: "후원자 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "sponsor-2", name: "항상 감사합니다", desc: "후원자 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "sponsor-3", name: "더 열심히 개발하겠습니다", desc: "후원자 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "sponsor-4", name: "공식 누메로 스폰서", desc: "후원자 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "abyss-1", name: "거센 파도", desc: "심연항로 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "abyss-2", name: "총원, 조명이 점멸하는...", desc: "심연항로 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "abyss-3", name: "절박 매듭", desc: "심연항로 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "abyss-4", name: "반짝이던 깊은 그 곳", desc: "심연항로 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "abyss-top", name: "심해", desc: "심연항로 특성으로 리더보드 꼴찌 점수를 달성한다." },
+
+    { id: "volcano-1", name: "휴화산1", desc: "휴화산 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "volcano-2", name: "휴화산2", desc: "휴화산 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "volcano-3", name: "휴화산3", desc: "휴화산 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "volcano-4", name: "휴화산4", desc: "휴화산 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "solo-1", name: "홀로서기1", desc: "홀로서기 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "solo-2", name: "홀로서기2", desc: "홀로서기 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "solo-3", name: "홀로서기3", desc: "홀로서기 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "solo-4", name: "홀로서기4", desc: "홀로서기 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "moody-1", name: "무디 블루스1", desc: "무디 블루스 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "moody-2", name: "무디 블루스2", desc: "무디 블루스 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "moody-3", name: "무디 블루스3", desc: "무디 블루스 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "moody-4", name: "무디 블루스4", desc: "무디 블루스 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "joker-1", name: "조커1", desc: "조커 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "joker-2", name: "조커2", desc: "조커 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "joker-3", name: "조커3", desc: "조커 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "joker-4", name: "조커4", desc: "조커 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "kickstart-1", name: "킥스타터1", desc: "Kickstart My Heart 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "kickstart-2", name: "킥스타터2", desc: "Kickstart My Heart 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "kickstart-3", name: "킥스타터3", desc: "Kickstart My Heart 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "kickstart-4", name: "킥스타터4", desc: "Kickstart My Heart 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "beer-1", name: "맥주 한 잔1", desc: "맥주 한 잔 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "beer-2", name: "맥주 한 잔2", desc: "맥주 한 잔 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "beer-3", name: "맥주 한 잔3", desc: "맥주 한 잔 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "beer-4", name: "맥주 한 잔4", desc: "맥주 한 잔 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "overclock-1", name: "오버클록1", desc: "오버클록 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "overclock-2", name: "오버클록2", desc: "오버클록 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "overclock-3", name: "오버클록3", desc: "오버클록 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "overclock-4", name: "오버클록4", desc: "오버클록 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "death-1", name: "사의 경계1", desc: "사의 경계 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "death-2", name: "사의 경계2", desc: "사의 경계 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "death-3", name: "사의 경계3", desc: "사의 경계 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "death-4", name: "사의 경계4", desc: "사의 경계 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "quest-1", name: "퀘스트1", desc: "퀘스트 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "quest-2", name: "퀘스트2", desc: "퀘스트 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "quest-3", name: "퀘스트3", desc: "퀘스트 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "quest-4", name: "퀘스트4", desc: "퀘스트 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "reactor-1", name: "반응로1", desc: "반응로 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "reactor-2", name: "반응로2", desc: "반응로 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "reactor-3", name: "반응로3", desc: "반응로 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "reactor-4", name: "반응로4", desc: "반응로 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "energy-1", name: "에너지 전환1", desc: "에너지 전환 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "energy-2", name: "에너지 전환2", desc: "에너지 전환 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "energy-3", name: "에너지 전환3", desc: "에너지 전환 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "energy-4", name: "에너지 전환4", desc: "에너지 전환 특성으로 최종 값 100억 이상을 달성한다." },
+];
+
+function openAchievementModal() {
+    if (!els.achievementContent || !els.achievementModal) return;
+
+    const unlocked = new Set(); // 추후 localStorage/서버 연동 시 채울 예정
+
+    els.achievementContent.innerHTML = ACHIEVEMENTS.map(a => {
+        const isUnlocked = unlocked.has(a.id);
+        return `<div class="achievement-card${isUnlocked ? "" : " locked"}">
+            <div class="achievement-body">
+                <p class="achievement-name">${a.name}</p>
+                <p class="achievement-desc">${a.desc}</p>
+            </div>
+            <span class="achievement-lock">${isUnlocked ? "✅" : "🔒"}</span>
+        </div>`;
+    }).join("");
+
+    els.achievementModal.classList.add("is-visible");
+    els.achievementModal.setAttribute("aria-hidden", "false");
+}
+
 function openPerkListModal() {
     if (!els.perkListContent) return;
 
     const perks = PERK_LIB.filter(p => !p.hidden && !p.legacy)
         .sort((a, b) => (a.adReward ? 1 : 0) - (b.adReward ? 1 : 0));
-    els.perkListContent.innerHTML = perks.map((perk) => {
+
+    const normalCount = perks.filter(p => !p.adReward).length;
+    const adCount = perks.filter(p => p.adReward).length;
+    const counter = `<div class="perk-list-counter">
+        <span class="perk-count-badge perk-count-normal">사용 가능 <b>${normalCount}</b></span>
+        <span class="perk-count-badge perk-count-ad">광고 보상 <b>${adCount}</b></span>
+    </div>`;
+
+    els.perkListContent.innerHTML = counter + perks.map((perk) => {
         const accentShadow = withAlpha(perk.glitterColor, 0.18 + perk.glitterIntensity * 0.22);
         const cardStyle = `--perk-bg:${perk.backgroundStyle}; --perk-glitter:${perk.glitterColor}; --perk-glitter-opacity:${perk.glitterIntensity}; --perk-accent:${perk.glitterColor}; --perk-accent-shadow:${accentShadow};`;
         const adBadge = perk.adReward
@@ -2383,6 +2651,61 @@ function bindSettingsEvents() {
         });
     }
 
+    const helpSlider = (() => {
+        let current = 0;
+        const track = document.getElementById("helpSlidesTrack");
+        const dotsWrap = document.getElementById("helpDots");
+        const prevBtn = document.getElementById("helpPrev");
+        const nextBtn = document.getElementById("helpNext");
+        if (!track) return null;
+
+        const slides = track.querySelectorAll(".help-slide");
+        const total = slides.length;
+
+        dotsWrap.innerHTML = Array.from({ length: total }, (_, i) =>
+            `<span class="help-dot${i === 0 ? " active" : ""}" data-index="${i}"></span>`
+        ).join("");
+
+        const dots = dotsWrap.querySelectorAll(".help-dot");
+
+        function goTo(idx) {
+            current = Math.max(0, Math.min(idx, total - 1));
+            track.style.transform = `translateX(-${current * 100}%)`;
+            dots.forEach((d, i) => d.classList.toggle("active", i === current));
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = current === total - 1;
+        }
+
+        prevBtn.addEventListener("click", () => goTo(current - 1));
+        nextBtn.addEventListener("click", () => goTo(current + 1));
+        dots.forEach(d => d.addEventListener("click", () => goTo(Number(d.dataset.index))));
+
+        goTo(0);
+        return { reset: () => goTo(0) };
+    })();
+
+    if (els.helpBtn) {
+        els.helpBtn.addEventListener("click", () => {
+            els.helpModal.classList.add("is-visible");
+            els.helpModal.setAttribute("aria-hidden", "false");
+            helpSlider?.reset();
+        });
+    }
+    if (els.helpClose) {
+        els.helpClose.addEventListener("click", () => {
+            els.helpModal.classList.remove("is-visible");
+            els.helpModal.setAttribute("aria-hidden", "true");
+        });
+    }
+    if (els.helpModal) {
+        els.helpModal.addEventListener("click", (e) => {
+            if (e.target === els.helpModal) {
+                els.helpModal.classList.remove("is-visible");
+                els.helpModal.setAttribute("aria-hidden", "true");
+            }
+        });
+    }
+
     if (els.patchLogModal) {
         els.patchLogModal.addEventListener("click", (event) => {
             if (event.target === els.patchLogModal) {
@@ -2406,6 +2729,29 @@ function bindSettingsEvents() {
     if (els.perkListModal) {
         els.perkListModal.addEventListener("click", (event) => {
             if (event.target === els.perkListModal) setPerkListModalOpen(false);
+        });
+    }
+
+    if (els.achievementBtn) {
+        els.achievementBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openAchievementModal();
+        });
+    }
+
+    if (els.achievementClose) {
+        els.achievementClose.addEventListener("click", () => {
+            els.achievementModal.classList.remove("is-visible");
+            els.achievementModal.setAttribute("aria-hidden", "true");
+        });
+    }
+
+    if (els.achievementModal) {
+        els.achievementModal.addEventListener("click", (e) => {
+            if (e.target === els.achievementModal) {
+                els.achievementModal.classList.remove("is-visible");
+                els.achievementModal.setAttribute("aria-hidden", "true");
+            }
         });
     }
 
@@ -2811,18 +3157,18 @@ async function startGame() {
     const patronPerkEarly = getSelectedPerk();
     if (patronPerkEarly?.id === "perk-patron") {
         const origDiceVal = state.pointVal;
-        state.pointVal = 100;
+        state.pointVal = 500;
         recordPerkActivationHistory(
             patronPerkEarly,
-            `초기 시작 값: 주사위 ${origDiceVal} → 100으로 고정`,
-            { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 100 },
+            `초기 시작 값: 주사위 ${origDiceVal} → 500으로 고정`,
+            { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 500 },
         );
         if (_pointValAnimFrame !== null) {
             cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
             _pointValAnimFrame = null;
         }
         _prevPointValForAnim = 100;
-        triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 100, "100 고정");
+        triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 500, "500 고정");
         triggerPerkBadgeActivationFeedback();
     }
 
@@ -2833,7 +3179,7 @@ async function startGame() {
             ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
             : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
         : patronPerkEarly?.id === "perk-patron"
-            ? `특성 발동! 후원자: 초기 값 100으로 고정`
+            ? `특성 발동! 후원자: 초기 값 500으로 고정`
             : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
     renderStatus();
 
@@ -2963,6 +3309,7 @@ function preparePerkSelection() {
     state.timewarpExtraTurn = false;
     state.questLevel = "common";
     state.volcanoActivated = false;
+    state.clockUpMultiplier = 1.5;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -3402,6 +3749,16 @@ async function skipTurnTakeAllLuck() {
         triggerPerkBadgeActivationFeedback();
     }
 
+    if (selectedPerk?.id === "perk-clock-up") {
+        const prevMultiplier = state.clockUpMultiplier ?? 1.5;
+        state.clockUpMultiplier = prevMultiplier + 0.5;
+        recordPerkActivationHistory(selectedPerk,
+            `Turn ${state.turn} 스킵: 배율 ×${prevMultiplier.toFixed(1)} → ×${state.clockUpMultiplier.toFixed(1)}`,
+            { turn: state.turn, trigger: "skip" },
+        );
+        triggerPerkBadgeActivationFeedback();
+    }
+
     state.history.push({
         turn: state.turn,
         modVal: state.modVal,
@@ -3631,7 +3988,10 @@ function buildShareRecordText() {
         "perk-joker": "🃏",
         "perk-kickstart": "❤️‍🔥",
         "perk-beer": "🍺",
+        "perk-clock-up": "⏱️",
+        "perk-overclock": "💡",
         "perk-reactor": "⚡",
+        "perk-energy-convert": "⚡",
         "perk-strategic-retreat": "🌿",
         "perk-solo": "🧍",
     };

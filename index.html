@@ -46,6 +46,7 @@
                                 <button id="leaderboardBtn" class="settings-action-btn" type="button">리더보드 보기</button>
                                 <button id="patchLogBtn" class="settings-action-btn" type="button">패치노트 보기</button>
                                 <button id="perkListBtn" class="settings-action-btn" type="button">모든 특성 보기</button>
+                                <button id="achievementBtn" class="settings-action-btn" type="button">도전과제</button>
                                 <div class="settings-db-row">
                                     <p class="settings-db-status">DB : <span id="dbStatusValue"
                                             class="db-status-value">"Disconnected"</span></p>
@@ -56,7 +57,10 @@
                             </div>
                         </div>
                     </div>
-                    <p class="hint">가장 큰 숫자를 만드세요!</p>
+                    <div class="hint-row">
+                        <p class="hint">가장 큰 숫자를 만드세요!</p>
+                        <button id="helpBtn" class="help-btn" type="button" aria-label="도움말 열기">?</button>
+                    </div>
                 </header>
 
                 <section class="status-panel" aria-live="polite">
@@ -176,6 +180,80 @@
                                 aria-label="특성 목록 닫기">닫기</button>
                         </div>
                         <div id="perkListContent" class="perk-list-content">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="helpModal" class="modal patchlog-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="helpTitle">
+                    <div class="modal-content patchlog-content-wrap help-modal-wrap">
+                        <div class="patchlog-head">
+                            <h2 id="helpTitle" class="patchlog-title">도움말</h2>
+                            <button id="helpClose" class="patchlog-close" type="button"
+                                aria-label="도움말 닫기">닫기</button>
+                        </div>
+                        <div id="helpContent" class="help-slider-wrap">
+                            <div class="help-slides-track" id="helpSlidesTrack">
+                                <div class="help-slide">
+                                    <div class="help-slide-img-area">
+                                        <img src="./help/help_01.png" alt="특성" class="help-slide-img" />
+                                    </div>
+                                    <p class="help-slide-title">특성</p>
+                                    <p class="help-slide-text">게임 시작 시 3개의 특성 중 하나를 선택합니다. 특성마다 고유한 효과가 있으며, 전략적으로 플레이 방향이 달라집니다.</p>
+                                </div>
+                                <div class="help-slide">
+                                    <div class="help-slide-img-area">
+                                        <img src="./help/help_02.png" alt="기본 진행" class="help-slide-img" />
+                                    </div>
+                                    <p class="help-slide-title">기본 진행</p>
+                                    <p class="help-slide-text">시작 버튼을 누르면 시작 값을 먼저 굴리고, 5턴 게임이 시작됩니다. 매 턴마다 주사위를 굴려 3개의 선택지 중 하나를 골라 현재 값을 변경합니다.</p>
+                                </div>
+                                <div class="help-slide">
+                                    <div class="help-slide-img-area">
+                                        <img src="./help/help_03.png" alt="선택지 등급" class="help-slide-img" />
+                                    </div>
+                                    <p class="help-slide-title">선택지 등급</p>
+                                    <p class="help-slide-text">선택지는 공통 / 희귀 / 특급 / 전설 4개의 등급으로 나뉩니다. 등급이 높을수록 강력한 계산식이 등장합니다.</p>
+                                </div>
+                                <div class="help-slide">
+                                    <div class="help-slide-img-area">
+                                        <img src="./help/help_04.png" alt="행운" class="help-slide-img" />
+                                    </div>
+                                    <p class="help-slide-title">행운 (Luck)</p>
+                                    <p class="help-slide-text">선택지를 고를 때 버린 선택지의 행운값만큼 Luck이 올라갑니다. Luck이 높을수록 희귀·특급·전설 등급 선택지가 더 자주 등장합니다.</p>
+                                </div>
+                                <div class="help-slide">
+                                    <div class="help-slide-img-area">
+                                        <img src="./help/help_05.png" alt="스킵" class="help-slide-img" />
+                                    </div>
+                                    <p class="help-slide-title">스킵</p>
+                                    <p class="help-slide-text">선택지를 고르는 대신 스킵할 수 있습니다. 스킵 시 현재 값은 변하지 않고, 등장한 모든 선택지의 행운 합계 × 2를 획득합니다.</p>
+                                </div>
+                            </div>
+                            <div class="help-slider-footer">
+                                <button class="help-nav-btn" id="helpPrev" aria-label="이전 슬라이드">‹</button>
+                                <div class="help-dots" id="helpDots"></div>
+                                <button class="help-nav-btn" id="helpNext" aria-label="다음 슬라이드">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="achievementModal" class="modal patchlog-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="achievementTitle">
+                    <div class="modal-content patchlog-content-wrap">
+                        <div class="patchlog-head">
+                            <div class="achievement-title-wrap">
+                                <h2 id="achievementTitle" class="patchlog-title">도전과제</h2>
+                                <div class="achievement-tip-wrap">
+                                    <span class="achievement-tip-btn">?</span>
+                                    <div class="achievement-tip-box">도전과제는 닉네임으로 기록이 남습니다. 다른 기기에서도 같은 닉네임을 사용해 진척도를 공유하세요.</div>
+                                </div>
+                            </div>
+                            <button id="achievementClose" class="patchlog-close" type="button"
+                                aria-label="도전과제 닫기">닫기</button>
+                        </div>
+                        <div id="achievementContent" class="achievement-list">
                         </div>
                     </div>
                 </div>
