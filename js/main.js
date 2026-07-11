@@ -827,7 +827,6 @@ const els = {
     dbStatusEl: document.getElementById("dbStatusValue"), // DB 연결 상태 텍스트
     userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
     topUsername: document.getElementById("topUsername"), // 상단 시드 도트 옆 닉네임 표시
-    debugTamperBtn: document.getElementById("debugTamperBtn"), // 검증 테스트용 값 조작 버튼 (릴리스 전 제거)
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     darkModeToggle: document.getElementById("darkModeToggle"),
@@ -2939,21 +2938,6 @@ function bindSettingsEvents() {
         els.achievementBtn.addEventListener("click", () => {
             setSettingsOpen(false);
             openAchievementModal();
-        });
-    }
-
-    // 검증 테스트용: 현재 값을 즉시 9999999로 조작해 로그-리시뮬레이션 불일치를 만든다.
-    // 게임 도중 누르고 그대로 완주하면 업로드가 verification_failed로 거부되어야 정상.
-    if (els.debugTamperBtn) {
-        els.debugTamperBtn.addEventListener("click", () => {
-            setSettingsOpen(false);
-            if (!state.started || state.phase === "finished") {
-                els.message.textContent = "테스트 조작은 게임 진행 중에만 가능합니다.";
-                return;
-            }
-            state.pointVal = 9999999;
-            els.message.textContent = "[테스트] 현재 값을 9,999,999로 조작했습니다. 게임을 끝까지 진행해 거부 토스트를 확인하세요.";
-            renderStatus();
         });
     }
 

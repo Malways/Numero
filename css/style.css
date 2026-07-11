@@ -2544,12 +2544,6 @@ body {
     font-weight: 700;
 }
 
-/* 검증 테스트용 값 조작 버튼 — 릴리스 전 제거 */
-.debug-tamper-btn {
-    color: #b91c1c;
-    border-color: rgba(185, 28, 28, 0.4);
-}
-
 /* 검증 거부 경고 토스트 — 붉은 배경, 긴 문구 대응 */
 .achievement-toast.toast-warning {
     background: rgba(130, 22, 18, 0.95);
