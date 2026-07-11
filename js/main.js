@@ -2,7 +2,7 @@
 // NUMERO GAME - 5턴 안에 가장 큰 숫자를 만드는 게임
 // ============================================================================
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
-import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick } from "./supabase.js";
+import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates } from "./supabase.js";
 import { APP_CONFIG } from "./config.js";
 
 // ============================================================================
@@ -826,6 +826,7 @@ const els = {
     patchLogBtn: document.getElementById("patchLogBtn"), // 패치노트 열기 버튼
     dbStatusEl: document.getElementById("dbStatusValue"), // DB 연결 상태 텍스트
     userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
+    topUsername: document.getElementById("topUsername"), // 상단 시드 도트 옆 닉네임 표시
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     darkModeToggle: document.getElementById("darkModeToggle"),
@@ -2065,8 +2066,8 @@ const ACHIEVEMENTS = [
     { id: "first-game", name: "첫 발걸음", desc: "게임을 처음으로 완료한다." },
     { id: "billionaire", name: "누메로의 세계", desc: "최종 값 1억 이상을 달성한다." },
     { id: "no-skip", name: "스텝 바이 스텝", desc: "한 번도 스킵하지 않고 게임을 완료한다" },
-    { id: "skip-master", name: "행운 더블로 가", desc: "5턴 중 3번 이상 스킵해 게임을 완료한다" },
-    { id: "lucky-guy", name: "100%", desc: "행운 166 이상인 상태로 게임을 완료한다." },
+    { id: "skip-master", name: "모르겠으면 일단 넘겨", desc: "5턴 중 3번 이상 스킵해 게임을 완료한다" },
+    { id: "lucky-guy", name: "100% Legendary Juice", desc: "행운 166 이상인 상태로 게임을 완료한다." },
     { id: "perk-collector", name: "누메로 마스터", desc: "모든 특성을 플레이 완료한다." },
 
 
@@ -2081,15 +2082,15 @@ const ACHIEVEMENTS = [
     { id: "wind-4", name: "Vento Aureo", desc: "황금의 바람 특성으로 최종 값 100억 이상을 달성한다." },
 
     { id: "67-1", name: "67", desc: "67 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "67-2", name: "68..?", desc: "67 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "67-3", name: "69???", desc: "67 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "67-4", name: "70", desc: "67 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "67-2", name: "리쿠..아니 68", desc: "67 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "67-3", name: "69??", desc: "67 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "67-4", name: "망고", desc: "67 특성으로 최종 값 100억 이상을 달성한다." },
     { id: "67-triple7", name: "트리플 세븐", desc: "한 게임에 7을 3번 이상 뽑았습니다." },
 
     { id: "reverse-1", name: "푸른「창」", desc: "반전 술식 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "reverse-2", name: "붉은「혁」", desc: "반전 술식 특성으로 최종 값 100만 이상을 달성한다." },
     { id: "reverse-3", name: "허식「자」", desc: "반전 술식 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "reverse-4", name: "천상천하 유아독존", desc: "반전 술식 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "reverse-4", name: "무하한", desc: "반전 술식 특성으로 최종 값 100억 이상을 달성한다." },
 
     { id: "cheat-1", name: "잃을 염려 없는 도박수", desc: "사기 주사위 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "cheat-2", name: "운명", desc: "사기 주사위 특성으로 최종 값 100만 이상을 달성한다." },
@@ -2106,10 +2107,10 @@ const ACHIEVEMENTS = [
     { id: "forward-3", name: "보장된 안전", desc: "순방 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "forward-4", name: "안정적인 고득점", desc: "순방 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "comet-1", name: "나도 참 운이 없는 남자로군", desc: "붉은 혜성 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "comet-2", name: "보다시피 군인이지", desc: "붉은 혜성 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "comet-1", name: "어디 한번 보여주실까", desc: "붉은 혜성 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "comet-2", name: "언제나 두 수 앞을", desc: "붉은 혜성 특성으로 최종 값 100만 이상을 달성한다." },
     { id: "comet-3", name: "통상 3배의 점수", desc: "붉은 혜성 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "comet-4", name: "가면을 쓴 남자", desc: "붉은 혜성 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "comet-4", name: "붉은 혜성", desc: "붉은 혜성 특성으로 최종 값 100억 이상을 달성한다." },
 
     { id: "timewarp-1", name: "차원문 개방", desc: "시간 왜곡 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "timewarp-2", name: "까먹고 스킵한 적 솔직히 있죠?", desc: "시간 왜곡 특성으로 최종 값 100만 이상을 달성한다." },
@@ -2125,83 +2126,229 @@ const ACHIEVEMENTS = [
     { id: "abyss-2", name: "총원, 조명이 점멸하는...", desc: "심연항로 특성으로 최종 값 100만 이상을 달성한다." },
     { id: "abyss-3", name: "절박 매듭", desc: "심연항로 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "abyss-4", name: "반짝이던 깊은 그 곳", desc: "심연항로 특성으로 최종 값 100억 이상을 달성한다." },
-    { id: "abyss-top", name: "심해", desc: "심연항로 특성으로 리더보드 꼴찌 점수를 달성한다." },
+    { id: "abyss-top", name: "심해", desc: "심연항로 특성으로 최종 값 -100억 이하를 달성한다." },
 
-    { id: "volcano-1", name: "휴화산1", desc: "휴화산 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "volcano-2", name: "휴화산2", desc: "휴화산 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "volcano-3", name: "휴화산3", desc: "휴화산 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "volcano-4", name: "휴화산4", desc: "휴화산 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "volcano-1", name: "잠잠한 산맥", desc: "휴화산 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "volcano-2", name: "폭발의 징조", desc: "휴화산 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "volcano-3", name: "갈라지는 대지", desc: "휴화산 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "volcano-4", name: "분출", desc: "휴화산 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "solo-1", name: "홀로서기1", desc: "홀로서기 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "solo-2", name: "홀로서기2", desc: "홀로서기 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "solo-3", name: "홀로서기3", desc: "홀로서기 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "solo-4", name: "홀로서기4", desc: "홀로서기 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "solo-1", name: "혼자서도 잘해요", desc: "홀로서기 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "solo-2", name: "언제나 외로이", desc: "홀로서기 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "solo-3", name: "오롯이 나 혼자", desc: "홀로서기 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "solo-4", name: "솔플컷", desc: "홀로서기 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "moody-1", name: "무디 블루스1", desc: "무디 블루스 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "moody-2", name: "무디 블루스2", desc: "무디 블루스 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "moody-3", name: "무디 블루스3", desc: "무디 블루스 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "moody-4", name: "무디 블루스4", desc: "무디 블루스 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "moody-1", name: "자존심과 체면을 걸고", desc: "무디 블루스 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "moody-2", name: "Play", desc: "무디 블루스 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "moody-3", name: "Rewind", desc: "무디 블루스 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "moody-4", name: "Record", desc: "무디 블루스 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "joker-1", name: "조커1", desc: "조커 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "joker-2", name: "조커2", desc: "조커 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "joker-3", name: "조커3", desc: "조커 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "joker-4", name: "조커4", desc: "조커 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "joker-1", name: "블러핑이 아니야", desc: "조커 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "joker-2", name: "괜찮은 패", desc: "조커 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "joker-3", name: "에이스처럼", desc: "조커 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "joker-4", name: "스트레이트 플러쉬", desc: "조커 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "kickstart-1", name: "킥스타터1", desc: "Kickstart My Heart 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "kickstart-2", name: "킥스타터2", desc: "Kickstart My Heart 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "kickstart-3", name: "킥스타터3", desc: "Kickstart My Heart 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "kickstart-4", name: "킥스타터4", desc: "Kickstart My Heart 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "kickstart-1", name: "흡입", desc: "Kickstart My Heart 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "kickstart-2", name: "압축", desc: "Kickstart My Heart 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "kickstart-3", name: "폭발", desc: "Kickstart My Heart 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "kickstart-4", name: "배기", desc: "Kickstart My Heart 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "beer-1", name: "맥주 한 잔1", desc: "맥주 한 잔 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "beer-2", name: "맥주 한 잔2", desc: "맥주 한 잔 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "beer-3", name: "맥주 한 잔3", desc: "맥주 한 잔 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "beer-4", name: "맥주 한 잔4", desc: "맥주 한 잔 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "beer-1", name: "N발의 공포탄", desc: "맥주 한 잔 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "beer-2", name: "N발의 실탄", desc: "맥주 한 잔 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "beer-3", name: "일단 한 잔 마시고", desc: "맥주 한 잔 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "beer-4", name: "운명을 겨누시게나", desc: "맥주 한 잔 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "overclock-1", name: "오버클록1", desc: "오버클록 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "overclock-2", name: "오버클록2", desc: "오버클록 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "overclock-3", name: "오버클록3", desc: "오버클록 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "overclock-4", name: "오버클록4", desc: "오버클록 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "overclock-1", name: "과부하", desc: "오버클록 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "overclock-2", name: "아직까지는 괜찮아", desc: "오버클록 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "overclock-3", name: "리미터 해제", desc: "오버클록 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "overclock-4", name: "속박과 대가", desc: "오버클록 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "death-1", name: "사의 경계1", desc: "사의 경계 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "death-2", name: "사의 경계2", desc: "사의 경계 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "death-3", name: "사의 경계3", desc: "사의 경계 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "death-4", name: "사의 경계4", desc: "사의 경계 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "death-1", name: "삭여라,", desc: "사의 경계 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "death-2", name: "그리고 새겨라.", desc: "사의 경계 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "death-3", name: "선택지와 행운,", desc: "사의 경계 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "death-4", name: "그리고 주사위가 전부인 게임이다", desc: "사의 경계 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "quest-1", name: "퀘스트1", desc: "퀘스트 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "quest-2", name: "퀘스트2", desc: "퀘스트 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "quest-3", name: "퀘스트3", desc: "퀘스트 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "quest-4", name: "퀘스트4", desc: "퀘스트 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "quest-1", name: "퀘스트를 받으세요", desc: "퀘스트 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "quest-2", name: "여기 보상입니다", desc: "퀘스트 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "quest-3", name: "미션 컴플리트", desc: "퀘스트 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "quest-4", name: "마지막 여정", desc: "퀘스트 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "reactor-1", name: "반응로1", desc: "반응로 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "reactor-2", name: "반응로2", desc: "반응로 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "reactor-3", name: "반응로3", desc: "반응로 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "reactor-4", name: "반응로4", desc: "반응로 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "reactor-1", name: "반응로 시동", desc: "반응로 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "reactor-2", name: "분열 과정 유도", desc: "반응로 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "reactor-3", name: "에너지 발생 확인", desc: "반응로 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "reactor-4", name: "터빈을 돌려라", desc: "반응로 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "energy-1", name: "에너지 전환1", desc: "에너지 전환 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "energy-2", name: "에너지 전환2", desc: "에너지 전환 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "energy-3", name: "에너지 전환3", desc: "에너지 전환 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "energy-4", name: "에너지 전환4", desc: "에너지 전환 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "energy-1", name: "적절한 거래", desc: "에너지 전환 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "energy-2", name: "괜찮은 교환비", desc: "에너지 전환 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "energy-3", name: "약간의 희생", desc: "에너지 전환 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "energy-4", name: "교환 성공", desc: "에너지 전환 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "lastshoot-1", name: "라스트 슈팅1", desc: "라스트 슈팅 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "lastshoot-2", name: "라스트 슈팅2", desc: "라스트 슈팅 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "lastshoot-3", name: "라스트 슈팅3", desc: "라스트 슈팅 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "lastshoot-4", name: "라스트 슈팅4", desc: "라스트 슈팅 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "clockup-1", name: "클락 업1", desc: "클락 업 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "clockup-2", name: "클락 업2", desc: "클락 업 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "clockup-3", name: "클락 업3", desc: "클락 업 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "clockup-4", name: "클락 업4", desc: "클락 업 특성으로 최종 값 100억 이상을 달성한다." },
 ];
+
+// 도전과제 id 접두사 → 특성 id (특성별 과제의 색상 표시용)
+const ACHIEVEMENT_PREFIX_TO_PERK = {
+    clover: "perk-clover",
+    wind: "perk-vento-aureo",
+    "67": "perk-67",
+    reverse: "perk-reversed-cursed",
+    cheat: "perk-rigged-dice",
+    jackpot: "perk-jackpot",
+    forward: "perk-sunbang",
+    comet: "perk-red-comet",
+    timewarp: "perk-time-warp",
+    sponsor: "perk-patron",
+    abyss: "perk-abyss-route",
+    volcano: "perk-dormant-volcano",
+    solo: "perk-solo",
+    moody: "perk-moody-blues",
+    joker: "perk-joker",
+    kickstart: "perk-kickstart",
+    beer: "perk-beer",
+    overclock: "perk-overclock",
+    death: "perk-death-boundary",
+    quest: "perk-quest",
+    reactor: "perk-reactor",
+    energy: "perk-energy-convert",
+    lastshoot: "perk-last-shooting",
+    clockup: "perk-clock-up",
+};
+
+// 상단 시드 도트 옆에 현재 닉네임을 표시합니다 (미설정 시 "익명").
+function updateTopUsername() {
+    if (!els.topUsername) return;
+    const username = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim().slice(0, 10);
+    els.topUsername.textContent = `닉네임 : ${username || "익명"}`;
+}
+
+function getAchievementPerk(achievementId) {
+    const prefix = achievementId.slice(0, achievementId.lastIndexOf("-"));
+    const perkId = ACHIEVEMENT_PREFIX_TO_PERK[prefix];
+    return perkId ? PERK_LIB.find((p) => p.id === perkId) ?? null : null;
+}
+
+// unlocked: Map<achievementId, unlockedAt(ISO string | null)>
+// rates: Map<achievementId, 달성률(%) > | null (로딩 전)
+function renderAchievementList(unlocked, rates) {
+    els.achievementContent.innerHTML = ACHIEVEMENTS.map(a => {
+        const isUnlocked = unlocked.has(a.id);
+        const unlockedAt = unlocked.get(a.id);
+        const dateLabel = isUnlocked && unlockedAt
+            ? `<p class="achievement-date">${new Date(unlockedAt).toLocaleDateString("ko-KR")} 달성</p>`
+            : "";
+        const percent = rates ? (rates.get(a.id) ?? 0) : null;
+        const rateLabel = percent !== null
+            ? `<span class="achievement-rate">${percent >= 10 ? Math.round(percent) : percent.toFixed(1)}%</span>`
+            : "";
+
+        // 특성별 과제는 해금 시 해당 특성의 색으로 표시
+        const perk = isUnlocked ? getAchievementPerk(a.id) : null;
+        const perkClass = perk ? " perk-colored" : "";
+        const perkStyle = perk
+            ? ` style="background:${perk.backgroundStyle}; border-color:${withAlpha(perk.glitterColor, 0.55)}; --ach-text:${perk.textColor || "#1a2233"};"`
+            : "";
+
+        return `<div class="achievement-card${isUnlocked ? "" : " locked"}${perkClass}"${perkStyle}>
+            <div class="achievement-body">
+                <p class="achievement-name">${a.name}</p>
+                <p class="achievement-desc">${a.desc}</p>
+                ${dateLabel}
+            </div>
+            <div class="achievement-side">
+                <span class="achievement-lock">${isUnlocked ? "✅" : "🔒"}</span>
+                ${rateLabel}
+            </div>
+        </div>`;
+    }).join("");
+}
 
 function openAchievementModal() {
     if (!els.achievementContent || !els.achievementModal) return;
 
-    const unlocked = new Set(); // 추후 localStorage/서버 연동 시 채울 예정
+    // 서버 저장 규칙(trim + 10자 제한)과 동일하게 정규화
+    const username = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim().slice(0, 10);
 
-    els.achievementContent.innerHTML = ACHIEVEMENTS.map(a => {
-        const isUnlocked = unlocked.has(a.id);
-        return `<div class="achievement-card${isUnlocked ? "" : " locked"}">
-            <div class="achievement-body">
-                <p class="achievement-name">${a.name}</p>
-                <p class="achievement-desc">${a.desc}</p>
-            </div>
-            <span class="achievement-lock">${isUnlocked ? "✅" : "🔒"}</span>
-        </div>`;
-    }).join("");
+    let unlocked = new Map();
+    let rates = null;
+    const render = () => {
+        renderAchievementList(unlocked, rates);
+        if (!username) {
+            els.achievementContent.insertAdjacentHTML(
+                "afterbegin",
+                `<div class="achievement-anon-notice">익명으로 플레이 중! 닉네임을 설정하고 도전과제를 동기화하세요!</div>`,
+            );
+        }
+    };
 
+    render();
     els.achievementModal.classList.add("is-visible");
     els.achievementModal.setAttribute("aria-hidden", "false");
+
+    // 전체 달성률은 익명 여부와 무관하게 표시 (fire-and-forget)
+    fetchAchievementRates().then(({ data }) => {
+        if (!Array.isArray(data)) return;
+        if (!els.achievementModal.classList.contains("is-visible")) return;
+        rates = new Map(data.map((r) => [
+            r.achievement_id,
+            r.total_players > 0 ? (r.unlock_count / r.total_players) * 100 : 0,
+        ]));
+        render();
+    });
+
+    // 익명 플레이 중이면 해금 목록 동기화는 생략
+    if (!username) return;
+
+    fetchAchievements(username).then(({ data, error }) => {
+        if (error || !Array.isArray(data)) return;
+        if (!els.achievementModal.classList.contains("is-visible")) return;
+        // 구버전 RPC(문자열 배열)와 신버전({achievement_id, unlocked_at}) 모두 지원
+        unlocked = new Map(data.map((row) =>
+            typeof row === "string" ? [row, null] : [row.achievement_id, row.unlocked_at ?? null]
+        ));
+        render();
+    });
 }
+
+// 우측 상단에 도전과제 달성 토스트를 띄웁니다.
+function showAchievementToast(name) {
+    let container = document.querySelector(".achievement-toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.className = "achievement-toast-container";
+        // 데스크탑에서 검은 베젤 안(게임 화면 내부)에 위치하도록 phone-screen에 부착
+        (document.querySelector(".phone-screen") ?? document.body).appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "achievement-toast";
+    toast.innerHTML = `<span class="achievement-toast-icon">🏆</span>
+        <div>
+            <div class="achievement-toast-title">도전과제 달성!</div>
+            <div class="achievement-toast-name">${escapeHtml(name)}</div>
+        </div>`;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    const dismiss = () => {
+        if (toast.classList.contains("hide")) return;
+        toast.classList.remove("show");
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 500);
+    };
+    toast.addEventListener("click", dismiss);
+    setTimeout(dismiss, 3500);
+}
+// 콘솔 테스트용: showAchievementToast("테스트")
+window.showAchievementToast = showAchievementToast;
 
 function openPerkListModal() {
     if (!els.perkListContent) return;
@@ -2608,8 +2755,10 @@ function bindSettingsEvents() {
         els.userNameInput.value = localStorage.getItem(USERNAME_STORAGE_KEY) ?? "";
         els.userNameInput.addEventListener("input", () => {
             localStorage.setItem(USERNAME_STORAGE_KEY, els.userNameInput.value.trim());
+            updateTopUsername();
         });
     }
+    updateTopUsername();
 
     applyDarkMode(isDarkMode());
 
@@ -3846,6 +3995,7 @@ function finishGame() {
         const username = storedName || `익명 #${String(Math.floor(Math.random() * 100000)).padStart(5, "0")}`;
         uploadResult({
             username,
+            anonymous: !storedName,
             seedInt8: seedEntry.seedInt8,
             perkId: state.selectedPerkId ?? "",
             score: state.pointVal ?? 0,
@@ -3862,12 +4012,19 @@ function finishGame() {
             }
 
             console.info("리더보드 업로드 성공");
-            const { rank, total } = result.data;
+            const { rank, total, newly_unlocked } = result.data;
             state.leaderboardRank = rank;
             const el = document.querySelector(".finished-rank");
             if (el) {
                 const topPercent = Math.ceil((rank / total) * 100);
                 el.innerHTML = `${total}개의 기록 중 ${rank}등!<br>(상위 ${topPercent}%)`;
+            }
+
+            if (Array.isArray(newly_unlocked)) {
+                newly_unlocked.forEach((id, i) => {
+                    const name = ACHIEVEMENTS.find((a) => a.id === id)?.name;
+                    if (name) setTimeout(() => showAchievementToast(name), i * 500);
+                });
             }
         });
     }
@@ -3951,6 +4108,7 @@ function buildGameplayLog() {
     };
     if (Object.keys(picks).length > 0) log.option_picks = picks;
     log.final_score = state.pointVal ?? 0;
+    log.final_luck = state.luck ?? 0;
 
     return log;
 }

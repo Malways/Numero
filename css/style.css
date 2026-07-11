@@ -61,6 +61,7 @@ body {
 .phone-screen {
     user-select: none;
     -webkit-user-select: none;
+    position: relative;
     width: 100%;
     min-height: 100dvh;
     height: auto;
@@ -220,6 +221,17 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.top-username {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary, #6b7683);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .seed-status-dot {
@@ -2369,6 +2381,33 @@ body {
     color: var(--text-secondary, #9aa1a4);
 }
 
+.achievement-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.achievement-rate {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary, #6b7683);
+    opacity: 0.85;
+}
+
+/* 특성별 과제 해금 시 해당 특성의 색으로 표시 (배경/테두리는 인라인, 글자는 변수) */
+.achievement-card.perk-colored .achievement-name {
+    color: var(--ach-text);
+}
+
+.achievement-card.perk-colored .achievement-desc,
+.achievement-card.perk-colored .achievement-date,
+.achievement-card.perk-colored .achievement-rate {
+    color: var(--ach-text);
+    opacity: 0.75;
+}
+
 .achievement-title-wrap {
     display: flex;
     align-items: center;
@@ -2417,6 +2456,97 @@ body {
 
 .achievement-tip-wrap:hover .achievement-tip-box {
     display: block;
+}
+
+.achievement-date {
+    font-size: 11px;
+    color: var(--text-secondary, #6b7683);
+    opacity: 0.85;
+    margin-top: 2px;
+}
+
+.achievement-anon-notice {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: rgba(224, 168, 39, 0.12);
+    border: 1px solid rgba(224, 168, 39, 0.35);
+    color: #8a6414;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* 도전과제 달성 토스트 (게임 화면 내 우상단) */
+.achievement-toast-container {
+    /* 모바일: 화면 전체가 게임 화면이므로 뷰포트 기준 고정 */
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top));
+    right: 14px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.achievement-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 280px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(20, 35, 38, 0.92);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    transform: translateX(120%);
+    opacity: 0;
+    /* 등장: 감속 곡선으로 미끄러지듯 들어옴 */
+    transition:
+        transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.5s ease-out;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.achievement-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.achievement-toast.hide {
+    transform: translateX(35%);
+    opacity: 0;
+    /* 퇴장: 살짝 밀리며 부드럽게 페이드 아웃 */
+    transition:
+        transform 0.45s cubic-bezier(0.55, 0, 0.55, 0.2),
+        opacity 0.4s ease-in;
+}
+
+.achievement-toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.achievement-toast-title {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.achievement-toast-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* 데스크탑: 검은 베젤(.phone-frame) 안쪽 게임 화면 기준으로 배치 */
+@media (min-width: 760px) {
+    .achievement-toast-container {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+    }
 }
 
 .perk-ad-badge {

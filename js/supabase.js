@@ -49,6 +49,20 @@ export async function logPerkPick(choices, selectedId) {
     });
 }
 
+// 전체 유저 대비 도전과제별 달성률을 가져옵니다.
+export async function fetchAchievementRates() {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_achievement_rates");
+    return { data, error: error?.message ?? null };
+}
+
+// 닉네임으로 해금된 도전과제 id 목록을 가져옵니다.
+export async function fetchAchievements(username) {
+    if (!supabase || !username) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_achievements", { p_username: username });
+    return { data, error: error?.message ?? null };
+}
+
 export async function fetchLeaderboard(n = 100) {
     if (!supabase) return { data: null, error: "no_connection" };
     const { data, error } = await supabase.rpc("get_leaderboard", { n });
@@ -122,7 +136,7 @@ export async function fetchGameSeed(_gameId) {
 }
 
 // 게임 결과를 리더보드에 업로드합니다.
-export async function uploadResult({ username, seedInt8, perkId, score, log }) {
+export async function uploadResult({ username, anonymous, seedInt8, perkId, score, log }) {
     if (!supabase) return { error: "no_connection" };
 
     try {
@@ -135,6 +149,7 @@ export async function uploadResult({ username, seedInt8, perkId, score, log }) {
     const { data, error } = await supabase.functions.invoke("uploadresult", {
         body: {
             username,
+            anonymous: Boolean(anonymous),
             seed: seedInt8,
             perk_id: perkId,
             score,
