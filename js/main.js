@@ -827,6 +827,7 @@ const els = {
     dbStatusEl: document.getElementById("dbStatusValue"), // DB 연결 상태 텍스트
     userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
     topUsername: document.getElementById("topUsername"), // 상단 시드 도트 옆 닉네임 표시
+    debugTamperBtn: document.getElementById("debugTamperBtn"), // 검증 테스트용 값 조작 버튼 (릴리스 전 제거)
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     darkModeToggle: document.getElementById("darkModeToggle"),
@@ -2317,8 +2318,9 @@ function openAchievementModal() {
     });
 }
 
-// 우측 상단에 도전과제 달성 토스트를 띄웁니다.
-function showAchievementToast(name) {
+// 게임 화면 우상단에 토스트를 띄우는 공용 헬퍼.
+// onClick이 있으면 클릭 시 실행 후 닫힘, 없으면 클릭 시 즉시 닫힘.
+function spawnGameToast({ icon, title, text, durationMs = 3500, className = "", onClick = null }) {
     let container = document.querySelector(".achievement-toast-container");
     if (!container) {
         container = document.createElement("div");
@@ -2328,11 +2330,11 @@ function showAchievementToast(name) {
     }
 
     const toast = document.createElement("div");
-    toast.className = "achievement-toast";
-    toast.innerHTML = `<span class="achievement-toast-icon">🏆</span>
+    toast.className = `achievement-toast${className ? ` ${className}` : ""}`;
+    toast.innerHTML = `<span class="achievement-toast-icon">${icon}</span>
         <div>
-            <div class="achievement-toast-title">도전과제 달성!</div>
-            <div class="achievement-toast-name">${escapeHtml(name)}</div>
+            <div class="achievement-toast-title">${escapeHtml(title)}</div>
+            <div class="achievement-toast-name">${escapeHtml(text)}</div>
         </div>`;
     container.appendChild(toast);
 
@@ -2344,11 +2346,63 @@ function showAchievementToast(name) {
         toast.classList.add("hide");
         setTimeout(() => toast.remove(), 500);
     };
-    toast.addEventListener("click", dismiss);
-    setTimeout(dismiss, 3500);
+    toast.addEventListener("click", () => {
+        if (onClick) onClick();
+        dismiss();
+    });
+    setTimeout(dismiss, durationMs);
+}
+
+// 우측 상단에 도전과제 달성 토스트를 띄웁니다.
+function showAchievementToast(name) {
+    spawnGameToast({ icon: "🏆", title: "도전과제 달성!", text: name });
 }
 // 콘솔 테스트용: showAchievementToast("테스트")
 window.showAchievementToast = showAchievementToast;
+
+// 서버 검증 거부 시 경고 토스트 — 클릭하면 게임플레이 로그를 클립보드에 복사합니다.
+function showRecordRejectedToast(logText) {
+    spawnGameToast({
+        icon: "⚠️",
+        title: "경고",
+        text: "최근 게임이 리더보드 등재에 실패했습니다. 이유는 다음 중 하나입니다.\n- 한 게임이 20분 이상 지속되었을 경우\n- 부정행위로 플레이 기록과 값이 불일치한 경우\n그렇지 않을 경우, 이 버튼을 눌러 로그를 복사해\n개발자에게 문의 부탁드립니다.",
+        durationMs: 10000,
+        className: "toast-warning",
+        onClick: () => {
+            copyTextToClipboard(logText).catch(() => {
+                console.warn("로그 복사 실패");
+            });
+        },
+    });
+}
+// 콘솔 테스트용: showRecordRejectedToast("{}")
+window.showRecordRejectedToast = showRecordRejectedToast;
+
+// 미지원 구버전 클라이언트 안내 토스트 — 클릭하면 새로고침해 최신 버전을 받습니다.
+function showUpdateRequiredToast() {
+    spawnGameToast({
+        icon: "⚠️",
+        title: "업데이트 필요",
+        text: "지원되지 않는 구버전이라 리더보드 등재에 실패했습니다. 클릭해 최신 버전으로 업데이트해 주세요.",
+        durationMs: 10000,
+        className: "toast-warning",
+        onClick: () => window.location.reload(),
+    });
+}
+// 콘솔 테스트용: showUpdateRequiredToast()
+window.showUpdateRequiredToast = showUpdateRequiredToast;
+
+// 리더보드 등재 성공 토스트 — 1초 후 자동 소멸.
+function showUploadSuccessToast() {
+    spawnGameToast({
+        icon: "✅",
+        title: "업로드 완료",
+        text: "기록이 리더보드에 등재되었습니다.",
+        durationMs: 1000,
+    });
+}
+// 콘솔 테스트용: showUploadSuccessToast()
+window.showUploadSuccessToast = showUploadSuccessToast;
 
 function openPerkListModal() {
     if (!els.perkListContent) return;
@@ -2888,6 +2942,21 @@ function bindSettingsEvents() {
         });
     }
 
+    // 검증 테스트용: 현재 값을 즉시 9999999로 조작해 로그-리시뮬레이션 불일치를 만든다.
+    // 게임 도중 누르고 그대로 완주하면 업로드가 verification_failed로 거부되어야 정상.
+    if (els.debugTamperBtn) {
+        els.debugTamperBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            if (!state.started || state.phase === "finished") {
+                els.message.textContent = "테스트 조작은 게임 진행 중에만 가능합니다.";
+                return;
+            }
+            state.pointVal = 9999999;
+            els.message.textContent = "[테스트] 현재 값을 9,999,999로 조작했습니다. 게임을 끝까지 진행해 거부 토스트를 확인하세요.";
+            renderStatus();
+        });
+    }
+
     if (els.achievementClose) {
         els.achievementClose.addEventListener("click", () => {
             els.achievementModal.classList.remove("is-visible");
@@ -3198,7 +3267,9 @@ async function animateDiceRoll(targetKey, duration = 760, tick = 122) {
 
     const start = Date.now();
     while (Date.now() - start < duration) {
-        state[targetKey] = rollDice();
+        // 연출용 스핀은 시드 RNG를 소비하지 않는다 (서버 검증의 결정성 보장).
+        // 루프 횟수가 기기 성능/타이머 지연에 따라 달라지므로 시드 스트림에서 분리한다.
+        state[targetKey] = Math.floor(Math.random() * 6) + 1;
         renderStatus();
 
         // 주사위 굴림 사운드 재생 (2배속)
@@ -3993,25 +4064,33 @@ function finishGame() {
 
         const storedName = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim();
         const username = storedName || `익명 #${String(Math.floor(Math.random() * 100000)).padStart(5, "0")}`;
+        const gameplayLog = buildGameplayLog();
         uploadResult({
             username,
             anonymous: !storedName,
             seedInt8: seedEntry.seedInt8,
             perkId: state.selectedPerkId ?? "",
             score: state.pointVal ?? 0,
-            log: buildGameplayLog(),
+            log: gameplayLog,
         }).then((result) => {
             const btn = document.querySelector("button[data-action='share-record']");
             if (btn) btn.disabled = false;
 
             if (result.error) {
                 console.warn("리더보드 업로드 실패:", result.error);
+                if (result.error === "verification_failed" || result.error === "seed_expired") {
+                    // seed_expired: 20분 이상 게임을 끌면 시드가 만료되어 등재가 거부되는 경우
+                    showRecordRejectedToast(JSON.stringify(gameplayLog, null, 2));
+                } else if (result.error === "unsupported_version") {
+                    showUpdateRequiredToast();
+                }
                 const el = document.querySelector(".finished-rank");
                 if (el) el.textContent = "";
                 return;
             }
 
             console.info("리더보드 업로드 성공");
+            showUploadSuccessToast();
             const { rank, total, newly_unlocked } = result.data;
             state.leaderboardRank = rank;
             const el = document.querySelector(".finished-rank");
@@ -4109,6 +4188,9 @@ function buildGameplayLog() {
     if (Object.keys(picks).length > 0) log.option_picks = picks;
     log.final_score = state.pointVal ?? 0;
     log.final_luck = state.luck ?? 0;
+    // 시드 RNG 소비 규칙 버전 (서버 리시뮬레이션 검증용).
+    // 연출 스핀이 시드를 소비하지 않는 클라이언트부터 2.
+    log.rng_v = 2;
 
     return log;
 }
