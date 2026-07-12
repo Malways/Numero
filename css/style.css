@@ -365,10 +365,34 @@ body {
     gap: 4px;
 }
 
+.settings-username-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .settings-username-label {
     font-size: 12px;
     font-weight: 700;
     color: #243b40;
+}
+
+.my-profile-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0a6f69;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.my-profile-btn:hover {
+    opacity: 0.75;
 }
 
 .settings-username-input {
@@ -990,6 +1014,20 @@ body {
     background: linear-gradient(150deg, rgba(234, 250, 248, 0.86), rgba(255, 255, 255, 0.94));
 }
 
+/* 주사위 대기/롤링 공용 확대 레이아웃 */
+.dice-stage {
+    padding: 24px 16px;
+}
+
+.dice-stage .placeholder-title {
+    font-size: 15px;
+    margin-bottom: 16px;
+}
+
+.dice-stage .dice-face {
+    width: 60px;
+}
+
 .placeholder-title {
     margin: 0 0 10px;
     font-size: 12px;
@@ -999,9 +1037,8 @@ body {
 }
 
 .rolling-dice-row {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    justify-content: center;
     align-items: center;
 }
 
@@ -1017,10 +1054,6 @@ body {
 .dice-card.active {
     border-color: rgba(11, 143, 135, 0.4);
     box-shadow: 0 0 0 2px rgba(11, 143, 135, 0.12);
-}
-
-.dice-card.ghost {
-    opacity: 0.72;
 }
 
 .dice-face {
@@ -2253,8 +2286,8 @@ body {
 }
 
 [data-theme="dark"] .lb-perk-filter {
-    background: rgba(22, 36, 40, 0.8);
-    border-color: rgba(200, 220, 224, 0.2);
+    background: rgba(62, 62, 62, 0.8);
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
@@ -2562,6 +2595,24 @@ body {
 /* 유저 검색 모달은 헤더/검색창/본문 3행 구조 */
 #userSearchModal .patchlog-content-wrap {
     grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+/* 리더보드 모달(z-index 1010) 위에 겹쳐 뜰 수 있도록 그보다 위 */
+#userSearchModal {
+    z-index: 1020;
+}
+
+/* 리더보드 닉네임 프로필 링크 */
+.lb-user-link {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.15s;
+}
+
+.lb-user-link:hover {
+    text-decoration-color: currentColor;
 }
 
 .user-search-input {
@@ -2979,33 +3030,35 @@ body {
    Dark Mode  (특성 옵션·표기·주사위 제외)
    ============================================================================ */
 
+/* 다크 모드 팔레트 — VS Code/Discord풍 무채색 그레이
+   #bcbcbc(텍스트) / #313a3e(슬레이트) / #373737(카드) / #2d2d2d(배경) / #474747(테두리) */
 [data-theme="dark"] {
-    --bg-main: #0f1a1c;
-    --bg-accent: #0d1f1e;
-    --ink: #dce8ea;
-    --ink-soft: #7a9298;
-    --card: #1b2d30;
-    --stroke: #2c4246;
+    --bg-main: #2d2d2d;
+    --bg-accent: #313a3e;
+    --ink: #cfcfcf;
+    --ink-soft: #9a9fa2;
+    --card: #373737;
+    --stroke: #474747;
     --shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
 }
 
 [data-theme="dark"] body {
     background:
-        radial-gradient(circle at 15% 15%, rgba(50, 35, 10, 0.25), transparent 35%),
-        radial-gradient(circle at 85% 85%, rgba(11, 100, 95, 0.18), transparent 40%),
-        linear-gradient(145deg, #0f1a1c, #0d1f1e);
+        radial-gradient(circle at 15% 15%, rgba(49, 58, 62, 0.35), transparent 35%),
+        radial-gradient(circle at 85% 85%, rgba(71, 71, 71, 0.25), transparent 40%),
+        linear-gradient(145deg, #2d2d2d, #262626);
 }
 
 [data-theme="dark"] .phone-screen {
     background:
-        linear-gradient(160deg, rgba(22, 38, 42, 0.97), rgba(18, 32, 36, 0.99)),
-        linear-gradient(200deg, #1a2830, #0e2020);
+        linear-gradient(160deg, rgba(55, 55, 55, 0.97), rgba(45, 45, 45, 0.99)),
+        linear-gradient(200deg, #313a3e, #2d2d2d);
 }
 
 [data-theme="dark"] .luck-panel,
 [data-theme="dark"] .options-panel,
 [data-theme="dark"] .footer-panel {
-    background: rgba(20, 34, 37, 0.9);
+    background: rgba(49, 52, 54, 0.9);
 }
 
 [data-theme="dark"] .luck-head h2 {
@@ -3013,15 +3066,15 @@ body {
 }
 
 [data-theme="dark"] .luck-info-btn {
-    background: #1b2d30;
-    border-color: rgba(200, 220, 224, 0.2);
+    background: #373737;
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .luck-info-float,
 [data-theme="dark"] .perk-badge-float {
-    background: rgba(14, 24, 27, 0.98);
-    border-color: rgba(200, 220, 224, 0.15);
+    background: rgba(38, 38, 38, 0.98);
+    border-color: rgba(188, 188, 188, 0.18);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
 }
 
@@ -3030,33 +3083,33 @@ body {
 }
 
 [data-theme="dark"] .settings-btn {
-    background: rgba(25, 40, 44, 0.9);
-    border-color: rgba(200, 220, 224, 0.2);
+    background: rgba(55, 55, 55, 0.9);
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .settings-float {
-    background: rgba(14, 24, 27, 0.98);
-    border-color: rgba(200, 220, 224, 0.15);
+    background: rgba(38, 38, 38, 0.98);
+    border-color: rgba(188, 188, 188, 0.18);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
 }
 
 [data-theme="dark"] .settings-username-input {
-    background: rgba(10, 18, 20, 0.8);
-    border-color: rgba(200, 220, 224, 0.2);
+    background: rgba(30, 30, 30, 0.8);
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .settings-action-btn {
-    background: rgba(22, 36, 40, 0.8);
-    border-color: rgba(200, 220, 224, 0.2);
+    background: rgba(62, 62, 62, 0.8);
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .dark-mode-btn.is-active {
-    background: rgba(11, 143, 135, 0.25);
-    border-color: rgba(11, 143, 135, 0.6);
-    color: #0ce6da;
+    background: rgba(188, 188, 188, 0.18);
+    border-color: rgba(188, 188, 188, 0.55);
+    color: #ffffff;
 }
 
 [data-theme="dark"] .option-btn:not(.perk-option-btn) {
@@ -3099,39 +3152,66 @@ body {
 }
 
 [data-theme="dark"] .badge {
-    background: rgba(30, 48, 52, 0.8);
+    background: rgba(62, 62, 62, 0.8);
     border-color: var(--stroke);
 }
 
 [data-theme="dark"] .options-placeholder {
-    background: linear-gradient(160deg, rgba(22, 55, 50, 0.5), rgba(20, 35, 38, 0.8));
-    border-color: rgba(11, 143, 135, 0.3);
+    background: linear-gradient(160deg, rgba(62, 66, 68, 0.5), rgba(45, 45, 45, 0.8));
+    border-color: rgba(160, 160, 160, 0.3);
 }
 
 [data-theme="dark"] .pre-roll-placeholder {
-    background: linear-gradient(150deg, rgba(20, 48, 44, 0.7), rgba(18, 35, 38, 0.85));
+    background: linear-gradient(150deg, rgba(58, 63, 66, 0.7), rgba(45, 47, 48, 0.85));
+}
+
+/* 주사위 관련 UI — 청록 액센트를 무채색으로 */
+[data-theme="dark"] .placeholder-title {
+    color: var(--ink);
+}
+
+[data-theme="dark"] .dice-card {
+    background: rgba(70, 70, 70, 0.6);
+    border-color: rgba(188, 188, 188, 0.15);
+}
+
+[data-theme="dark"] .dice-card.active {
+    border-color: rgba(188, 188, 188, 0.45);
+    box-shadow: 0 0 0 2px rgba(188, 188, 188, 0.12);
+}
+
+[data-theme="dark"] .primary-btn {
+    background: linear-gradient(120deg, #4a4a4a, #3a3a3a);
+    border: 1px solid rgba(188, 188, 188, 0.3);
+    color: #e6e6e6;
+}
+
+/* 주사위 굴림 중 스탯 숫자 — 청록 발광을 무채색으로 */
+[data-theme="dark"] .value.rolling {
+    color: var(--ink);
+    text-shadow: 0 0 14px rgba(188, 188, 188, 0.35);
 }
 
 [data-theme="dark"] .tag-enhanced {
     color: var(--ink);
-    background: #1b2d30;
-    border-color: rgba(200, 220, 224, 0.25);
+    background: #373737;
+    border-color: rgba(188, 188, 188, 0.3);
 }
 
 [data-theme="dark"] .skip-luck-btn {
-    background: rgba(10, 60, 55, 0.5);
-    border-color: rgba(11, 143, 135, 0.4);
-    color: #6ac8c2;
+    background: rgba(71, 71, 71, 0.5);
+    border-color: rgba(160, 160, 160, 0.4);
+    color: #c8c8c8;
 }
 
 [data-theme="dark"] .skip-luck-btn:hover,
 [data-theme="dark"] .skip-luck-btn:focus-visible {
-    background: rgba(10, 70, 65, 0.6);
+    background: rgba(85, 85, 85, 0.6);
 }
 
 [data-theme="dark"] .calc-log-item {
-    background: rgba(18, 30, 33, 0.9);
-    border-color: rgba(200, 220, 224, 0.12);
+    background: rgba(40, 40, 40, 0.9);
+    border-color: rgba(188, 188, 188, 0.14);
 }
 
 [data-theme="dark"] .calc-log-row {
@@ -3139,23 +3219,23 @@ body {
 }
 
 [data-theme="dark"] .finished-panel {
-    background: linear-gradient(160deg, rgba(15, 35, 40, 0.96), rgba(12, 28, 32, 0.98));
-    border-color: rgba(11, 143, 135, 0.25);
+    background: linear-gradient(160deg, rgba(52, 55, 57, 0.96), rgba(43, 44, 45, 0.98));
+    border-color: rgba(160, 160, 160, 0.25);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 [data-theme="dark"] .modal-content {
-    background: #162428;
+    background: #2d2d2d;
 }
 
 [data-theme="dark"] .modal-btn {
-    background: #1b2d30;
-    border-color: rgba(200, 220, 224, 0.2);
+    background: #373737;
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .patchlog-content-wrap {
-    background: #162428;
+    background: #2d2d2d;
 }
 
 [data-theme="dark"] .patchlog-title {
@@ -3163,15 +3243,15 @@ body {
 }
 
 [data-theme="dark"] .patchlog-close {
-    background: rgba(22, 36, 40, 0.8);
-    border-color: rgba(200, 220, 224, 0.2);
+    background: rgba(62, 62, 62, 0.8);
+    border-color: rgba(188, 188, 188, 0.25);
     color: var(--ink);
 }
 
 [data-theme="dark"] .patchlog-content {
-    background: #1b2d30;
+    background: #373737;
     color: var(--ink);
-    border-color: rgba(200, 220, 224, 0.1);
+    border-color: rgba(188, 188, 188, 0.12);
 }
 
 [data-theme="dark"] .patchlog-content h1,
@@ -3189,16 +3269,16 @@ body {
 }
 
 [data-theme="dark"] .leaderboard-table thead {
-    background: #162428;
+    background: #2d2d2d;
 }
 
 [data-theme="dark"] .leaderboard-table th {
-    color: rgba(200, 220, 224, 0.55);
-    border-bottom-color: rgba(200, 220, 224, 0.1);
+    color: rgba(188, 188, 188, 0.6);
+    border-bottom-color: rgba(188, 188, 188, 0.12);
 }
 
 [data-theme="dark"] .leaderboard-table td {
-    border-bottom-color: rgba(200, 220, 224, 0.06);
+    border-bottom-color: rgba(188, 188, 188, 0.07);
 }
 
 [data-theme="dark"] .lb-username {
@@ -3206,16 +3286,16 @@ body {
 }
 
 [data-theme="dark"] .leaderboard-rank {
-    color: rgba(200, 220, 224, 0.45);
+    color: rgba(188, 188, 188, 0.5);
 }
 
 [data-theme="dark"] .settings-credit-link {
-    color: rgba(200, 220, 224, 0.65);
-    text-decoration-color: rgba(200, 220, 224, 0.3);
+    color: rgba(188, 188, 188, 0.65);
+    text-decoration-color: rgba(188, 188, 188, 0.3);
 }
 
 [data-theme="dark"] .settings-credit-link:hover,
 [data-theme="dark"] .settings-credit-link:focus-visible {
-    color: #0ce6da;
+    color: #ffffff;
     text-decoration-color: currentColor;
 }

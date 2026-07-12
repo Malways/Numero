@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Numero Dice</title>
+    <title>Numero</title>
     <meta name="description" content="5턴 안에 숫자를 최대한 키우세요!" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -40,7 +40,10 @@
                                         type="button">꺼짐</button>
                                 </div>
                                 <div class="settings-username-row">
-                                    <label class="settings-username-label" for="userNameInput">유저 이름</label>
+                                    <div class="settings-username-head">
+                                        <label class="settings-username-label" for="userNameInput">유저 이름</label>
+                                        <button id="myProfileBtn" class="my-profile-btn" type="button">내 정보 보기</button>
+                                    </div>
                                     <input id="userNameInput" class="settings-username-input" type="text"
                                         placeholder="이름을 입력하세요" maxlength="10" autocomplete="off" spellcheck="false" />
                                 </div>

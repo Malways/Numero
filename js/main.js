@@ -648,7 +648,7 @@ const PERK_LIB = [
     },
     {
         id: "perk-kickstart",
-        name: "Kickstart My Heart",
+        name: "킥스타터",
         description: "2턴까지 주사위를 굴릴 때마다 그만큼 현재 값을 곱합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(220, 30, 30, 0.97), rgba(255, 110, 20, 0.95))",
         glitterColor: "rgba(255, 195, 70, 1)",
@@ -829,6 +829,7 @@ const els = {
     topUsername: document.getElementById("topUsername"), // 상단 시드 도트 옆 닉네임 표시
     surveyBtn: document.getElementById("surveyBtn"), // 설문조사 링크 버튼
     userSearchBtn: document.getElementById("userSearchBtn"), // 유저 검색 열기 버튼
+    myProfileBtn: document.getElementById("myProfileBtn"), // 내 정보 보기 (내 닉네임으로 유저 검색)
     userSearchModal: document.getElementById("userSearchModal"),
     userSearchClose: document.getElementById("userSearchClose"),
     userSearchInput: document.getElementById("userSearchInput"),
@@ -1631,11 +1632,14 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
             diceEl.classList.remove("dice-update");
             void diceEl.offsetWidth;
             diceEl.classList.add("dice-update");
-            // 눈금 상승마다 주사위 사운드 재생
-            if (els.diceRollSound) {
-                els.diceRollSound.playbackRate = 2.0;
-                els.diceRollSound.currentTime = 0;
-                els.diceRollSound.play().catch(() => { });
+            // 눈금 +1마다 특성 발동 사운드 재생 — 같은 엘리먼트를 되감으면
+            // 직전 소리가 끊겨 뭉개지므로 클론으로 겹쳐 재생한다
+            if (els.perkActivateSound) {
+                const tick = els.perkActivateSound.cloneNode(true);
+                tick.volume = els.perkActivateSound.volume;
+                tick.muted = els.perkActivateSound.muted;
+                tick.playbackRate = 1.0;
+                tick.play().catch(() => { });
             }
             renderStatus();
             await wait(190);
@@ -2160,10 +2164,10 @@ const ACHIEVEMENTS = [
     { id: "joker-3", name: "에이스처럼", desc: "조커 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "joker-4", name: "스트레이트 플러쉬", desc: "조커 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "kickstart-1", name: "흡입", desc: "Kickstart My Heart 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "kickstart-2", name: "압축", desc: "Kickstart My Heart 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "kickstart-3", name: "폭발", desc: "Kickstart My Heart 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "kickstart-4", name: "배기", desc: "Kickstart My Heart 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "kickstart-1", name: "흡입", desc: "킥스타터 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "kickstart-2", name: "압축", desc: "킥스타터 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "kickstart-3", name: "폭발", desc: "킥스타터 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "kickstart-4", name: "배기", desc: "킥스타터 특성으로 최종 값 100억 이상을 달성한다." },
 
     { id: "beer-1", name: "N발의 공포탄", desc: "맥주 한 잔 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "beer-2", name: "N발의 실탄", desc: "맥주 한 잔 특성으로 최종 값 100만 이상을 달성한다." },
@@ -2447,7 +2451,7 @@ function renderUserSearchProfile(username, stats) {
             score: true,
             tier: hasSeasonRecord ? scoreTierClass(stats.seasonBest) : "",
         },
-        { label: "시즌 플레이", value: `${formatNum(stats.seasonPlays)}회`, centered: true, tier: playsTierClass(stats.seasonPlays) },
+        { label: "이번 시즌 플레이 횟수", value: `${formatNum(stats.seasonPlays)}회`, centered: true, tier: playsTierClass(stats.seasonPlays) },
         { label: "도전과제", value: `${stats.achievementCount}/${stats.achievementTotal}`, centered: true, tier: achievementTier },
         { label: "플레이한 특성", value: `${stats.perksPlayed}/${stats.perksTotal}`, centered: true, tier: perksTier },
         {
@@ -2661,6 +2665,13 @@ function renderLeaderboardData(data) {
 
     const perkMap = Object.fromEntries(PERK_LIB.map((p) => [p.id, p]));
 
+    // 익명 기록은 프로필 조회 대상에서 제외
+    const isAnonymousName = (name) => /^익명 #\d+$/.test(name ?? "");
+    // 닉네임을 클릭 가능한 프로필 링크로 감싼다 (익명은 일반 텍스트)
+    const usernameLink = (name) => isAnonymousName(name)
+        ? escapeHtml(name)
+        : `<span class="lb-user-link" data-profile-user="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
+
     const rows = data.map((entry, i) => {
         const rank = i + 1;
         const rankClass = rank <= 3 ? "leaderboard-rank leaderboard-rank-top" : "leaderboard-rank";
@@ -2675,7 +2686,7 @@ function renderLeaderboardData(data) {
             : escapeHtml(entry.perk_id);
         return `<tr>
             <td class="${rankClass}">${medal}</td>
-            <td class="${usernameClass}">${escapeHtml(entry.username)}</td>
+            <td class="${usernameClass}">${usernameLink(entry.username)}</td>
             <td>${perkBadge(perk)}</td>
             <td class="leaderboard-score">${formatNum(entry.score)}</td>
         </tr>`;
@@ -2694,7 +2705,7 @@ function renderLeaderboardData(data) {
             : escapeHtml(entry.perk_id);
         return `<div class="lb-card">
             <div class="lb-card-left">
-                <div class="${rankNameClass}">${medal} / ${escapeHtml(entry.username)}</div>
+                <div class="${rankNameClass}">${medal} / ${usernameLink(entry.username)}</div>
                 <div class="lb-card-perk">${perkBadge}</div>
             </div>
             <div class="lb-card-score">${formatNum(entry.score)}</div>
@@ -3163,6 +3174,23 @@ function bindSettingsEvents() {
         });
     }
 
+    // 내 정보 보기: 내 닉네임으로 유저 검색을 바로 실행
+    if (els.myProfileBtn) {
+        els.myProfileBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openUserSearchModal();
+            const myName = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim().slice(0, 10);
+            if (!myName) {
+                if (els.userSearchContent) {
+                    els.userSearchContent.innerHTML = `<p class="user-search-hint">닉네임을 먼저 설정해주세요.</p>`;
+                }
+                return;
+            }
+            if (els.userSearchInput) els.userSearchInput.value = myName;
+            searchAndRenderUserProfile(myName);
+        });
+    }
+
     if (els.userSearchClose) {
         els.userSearchClose.addEventListener("click", () => {
             closeUserSearchModal();
@@ -3210,6 +3238,19 @@ function bindSettingsEvents() {
     if (els.leaderboardClose) {
         els.leaderboardClose.addEventListener("click", () => {
             closeLeaderboardModal();
+        });
+    }
+
+    // 리더보드 닉네임 클릭 → 해당 유저 프로필을 위에 겹쳐 표시 (익명 제외)
+    if (els.leaderboardContent) {
+        els.leaderboardContent.addEventListener("click", (e) => {
+            const link = e.target.closest("[data-profile-user]");
+            if (!link) return;
+            const name = link.dataset.profileUser;
+            if (!name) return;
+            openUserSearchModal();
+            if (els.userSearchInput) els.userSearchInput.value = name;
+            searchAndRenderUserProfile(name);
         });
     }
 
@@ -4595,17 +4636,15 @@ function renderDiceFace(value, extraClass = "", starCenter = false) {
 function renderRollingPlaceholder() {
     /**
      * 주사위 굴리는 중 플레이스홀더 렌더링
-     * 좌측(작음), 중앙(큼), 우측(작음) 주사위 표시 + 좌우 깜빡임 애니메이션
+     * 중앙 주사위 1개만 표시
      */
     const rollingValue = clamp(state.rollingTarget === "pointVal" ? state.pointVal : state.modVal, 1, 6);
 
     els.options.innerHTML = `
-            <div class="options-placeholder fade-in" role="status" aria-live="polite">
+            <div class="options-placeholder dice-stage fade-in" role="status" aria-live="polite">
                 <p class="placeholder-title">주사위를 굴리는 중...</p>
                 <div class="rolling-dice-row">
-                    <div class="dice-card ghost">${renderDiceFace(rollingValue, "small")}</div>
                     <div class="dice-card active">${renderDiceFace(rollingValue)}</div>
-                    <div class="dice-card ghost">${renderDiceFace(rollingValue, "small")}</div>
                 </div>
             </div>
         `;
@@ -4614,17 +4653,13 @@ function renderRollingPlaceholder() {
 function renderAwaitRollPlaceholder() {
     /**
      * 사용자가 버튼을 눌러 주사위를 확정하기 전 플레이스홀더
-     * idle-spin 애니메이션이 적용된 주사위 3개 (좌우 흔들림)
+     * idle-spin 흔들림이 적용된 중앙 주사위 1개 (눈금 고정)
      */
-    const previewValues = [2, 4, 6];
-
     els.options.innerHTML = `
-            <div class="options-placeholder pre-roll-placeholder fade-in" role="status" aria-live="polite">
-                <p class="placeholder-title">버튼을 누르면 주사위가 확정됩니다</p>
+            <div class="options-placeholder pre-roll-placeholder dice-stage fade-in" role="status" aria-live="polite">
+                <p class="placeholder-title">버튼을 눌러 주사위를 굴리세요</p>
                 <div class="rolling-dice-row">
-                    <div class="dice-card ghost">${renderDiceFace(previewValues[0], "small idle-spin")}</div>
-                    <div class="dice-card active">${renderDiceFace(previewValues[1], "idle-spin")}</div>
-                    <div class="dice-card ghost">${renderDiceFace(previewValues[2], "small idle-spin")}</div>
+                    <div class="dice-card active">${renderDiceFace(4, "idle-spin")}</div>
                 </div>
             </div>
         `;
@@ -4645,11 +4680,11 @@ function renderRolledDicePreview() {
             ? clamp(state[target] + sunbangDelta, 1, 6)
             : clamp(state[target], 1, 6);
     const titleSuffix = is67Transition ? " → 7!" : "";
-    const title = target === "pointVal" ? "초기 시작 값 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
+    const title = target === "pointVal" ? "시작 점수 확정" : `${state.turn}턴 주사위 값 확정${titleSuffix}`;
     const transitionClass = is67Transition ? " perk67-flash" : "";
 
     els.options.innerHTML = `
-            <div class="options-placeholder rolled-dice-preview fade-in" role="status" aria-live="polite">
+            <div class="options-placeholder rolled-dice-preview dice-stage fade-in" role="status" aria-live="polite">
                 <p class="placeholder-title">${title}</p>
                 <div class="reveal-dice-wrap">
                     <div class="dice-card reveal-card${transitionClass}">${renderDiceFace(rolledValue, "", is67Transition)}</div>
