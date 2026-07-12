@@ -2399,13 +2399,13 @@ function renderUserSearchProfile(username, stats) {
 
     const favoritePerk = PERK_LIB.find((p) => p.id === stats.favoritePerkId) ?? null;
 
-    // 점수 수준별 등급 색: 동(100만+) < 은(1억+) < 금(100억+) < 다이아(1조+) < 마스터(100조+)
+    // 점수 수준별 등급 색: 동(10만+) < 은(1000만+) < 금(10억+) < 다이아(1000억+) < 마스터(10조+)
     const scoreTierClass = (score) => {
-        if (score >= 1e14) return "tier-master";
-        if (score >= 1e12) return "tier-diamond";
-        if (score >= 1e10) return "tier-gold";
-        if (score >= 1e8) return "tier-silver";
-        if (score >= 1e6) return "tier-bronze";
+        if (score >= 1e13) return "tier-master";
+        if (score >= 1e11) return "tier-diamond";
+        if (score >= 1e9) return "tier-gold";
+        if (score >= 1e7) return "tier-silver";
+        if (score >= 1e5) return "tier-bronze";
         return "";
     };
 
