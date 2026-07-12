@@ -56,6 +56,13 @@ export async function fetchAchievementRates() {
     return { data, error: error?.message ?? null };
 }
 
+// 닉네임으로 유저 프로필 통계(역대/시즌 최고, 플레이 수, 도전과제, 특성, 최근 기록)를 가져옵니다.
+export async function fetchUserProfile(username) {
+    if (!supabase || !username) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_user_profile", { p_username: username });
+    return { data, error: error?.message ?? null };
+}
+
 // 닉네임으로 해금된 도전과제 id 목록을 가져옵니다.
 export async function fetchAchievements(username) {
     if (!supabase || !username) return { data: null, error: "no_connection" };

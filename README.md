@@ -92,3 +92,39 @@ private repo Pages는 요금제/조직 정책에 따라 제약이 있을 수 있
 
 - 모바일에서는 화면을 꽉 채우고,
 - 데스크탑에서는 중앙에 폰 비율 프레임을 유지하며 바깥은 배경으로 채웁니다.
+
+## 특성 글린트(반짝임) 구현 규칙
+
+특성 카드의 글린트는 두 방식이 있으며, 표시 위치가 3곳이라 셀렉터를 빠짐없이 챙겨야 합니다.
+
+### 1) 기본 글린트 (대부분의 특성)
+
+PERK_LIB의 `glitterColor`(빛줄기 색) + `glitterIntensity`(불투명도 0~1)만 정의하면
+아래 3곳에 자동 적용됩니다. 별도 CSS 불필요.
+
+- 특성 선택지 카드 (`.perk-option-btn::before`)
+- 리더보드 특성 뱃지 (`.lb-perk-badge::before`)
+- 유저 검색 최다 플레이 특성 카드 (`.user-stat-row.perk-colored::before`
+  — JS가 인라인 변수 `--tier-glitter`, `--stat-glitter-opacity`로 전달)
+
+주의: 배경(`backgroundStyle`)이 밝은 특성에 흰색/연한 glitterColor를 주면
+글린트가 안 보입니다 (라스트 슈팅이 이 케이스여서 전용 글린트로 해결).
+
+### 2) 전용 글린트 (라스트 슈팅, 붉은 혜성 등 커스텀 애니메이션)
+
+전용 keyframes를 쓰는 특성은 `data-perk-id` 셀렉터로 오버라이드합니다.
+**새 전용 글린트를 만들 때는 아래 3개 셀렉터를 반드시 함께 등록할 것:**
+
+```css
+.perk-option-btn[data-perk-id="perk-이름"]::before,
+.lb-perk-badge[data-perk-id="perk-이름"]::before,
+.user-stat-row.perk-colored[data-perk-id="perk-이름"]::before {
+    /* 전용 배경/애니메이션 */
+}
+```
+
+- 유저 검색 셀렉터는 `.perk-colored`를 붙여 특이도를 올려야 합니다 —
+  일반 글린트 규칙(`.user-stat-row.perk-colored::before`)이 CSS 뒤쪽에 있어서
+  특이도가 같으면 전용 규칙이 덮어써집니다.
+- 애니메이션 주기는 다른 특성과 동일하게 2.2s로 맞춥니다
+  (유저 검색의 점수 등급 카드만 예외적으로 1.6s).

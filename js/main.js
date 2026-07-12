@@ -2,7 +2,7 @@
 // NUMERO GAME - 5턴 안에 가장 큰 숫자를 만드는 게임
 // ============================================================================
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
-import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates } from "./supabase.js";
+import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates, fetchUserProfile } from "./supabase.js";
 import { APP_CONFIG } from "./config.js";
 
 // ============================================================================
@@ -827,6 +827,12 @@ const els = {
     dbStatusEl: document.getElementById("dbStatusValue"), // DB 연결 상태 텍스트
     userNameInput: document.getElementById("userNameInput"), // 유저 이름 입력
     topUsername: document.getElementById("topUsername"), // 상단 시드 도트 옆 닉네임 표시
+    surveyBtn: document.getElementById("surveyBtn"), // 설문조사 링크 버튼
+    userSearchBtn: document.getElementById("userSearchBtn"), // 유저 검색 열기 버튼
+    userSearchModal: document.getElementById("userSearchModal"),
+    userSearchClose: document.getElementById("userSearchClose"),
+    userSearchInput: document.getElementById("userSearchInput"),
+    userSearchContent: document.getElementById("userSearchContent"),
     audioVolumeSlider: document.getElementById("audioVolumeSlider"), // 소리 슬라이더
     audioVolumeLabel: document.getElementById("audioVolumeLabel"), // 소리 퍼센트 라벨
     darkModeToggle: document.getElementById("darkModeToggle"),
@@ -1614,7 +1620,7 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
         const luckBefore = currentLuck;
         const diceEl = targetKey === "modVal" ? els.modVal : els.pointVal;
 
-        await wait(350);
+        await wait(175);
 
         let increased = 0;
         while (state.luck >= 8 && state[targetKey] < 6) {
@@ -1625,8 +1631,14 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
             diceEl.classList.remove("dice-update");
             void diceEl.offsetWidth;
             diceEl.classList.add("dice-update");
+            // 눈금 상승마다 주사위 사운드 재생
+            if (els.diceRollSound) {
+                els.diceRollSound.playbackRate = 2.0;
+                els.diceRollSound.currentTime = 0;
+                els.diceRollSound.play().catch(() => { });
+            }
             renderStatus();
-            await wait(380);
+            await wait(190);
         }
 
         diceEl.classList.remove("dice-update");
@@ -2317,6 +2329,185 @@ function openAchievementModal() {
     });
 }
 
+// ============================================================================
+// 유저 검색 모달
+// ============================================================================
+
+function openUserSearchModal() {
+    if (!els.userSearchModal) return;
+    els.userSearchModal.classList.add("is-visible");
+    els.userSearchModal.setAttribute("aria-hidden", "false");
+    if (els.userSearchInput) {
+        els.userSearchInput.value = "";
+        els.userSearchInput.focus();
+    }
+    if (els.userSearchContent) {
+        els.userSearchContent.innerHTML = `<p class="user-search-hint">닉네임으로 유저의 기록을 검색해보세요.</p>`;
+    }
+}
+
+function closeUserSearchModal() {
+    if (!els.userSearchModal) return;
+    els.userSearchModal.classList.remove("is-visible");
+    els.userSearchModal.setAttribute("aria-hidden", "true");
+}
+
+// 유저 검색: 서버에서 프로필을 받아 렌더링합니다.
+async function searchAndRenderUserProfile(query) {
+    if (!els.userSearchContent) return;
+
+    els.userSearchContent.innerHTML = `<p class="user-search-hint">검색 중...</p>`;
+
+    const { data, error } = await fetchUserProfile(query);
+
+    // 모달이 닫혔거나 그 사이 다른 검색이 시작됐으면 무시
+    if (!els.userSearchModal?.classList.contains("is-visible")) return;
+
+    if (error || !data) {
+        els.userSearchContent.innerHTML = `<p class="user-search-hint">검색에 실패했습니다. 잠시 후 다시 시도해주세요.</p>`;
+        console.warn("유저 검색 실패:", error);
+        return;
+    }
+
+    if (!data.found) {
+        els.userSearchContent.innerHTML = `<p class="user-search-hint">'${escapeHtml(query)}' 유저의 기록을 찾을 수 없습니다.</p>`;
+        return;
+    }
+
+    renderUserSearchProfile(query, {
+        allTimeBest: data.all_time_best ?? 0,
+        seasonBest: data.season_best,           // 시즌 기록 없으면 null
+        seasonPlays: data.season_plays ?? 0,
+        achievementCount: data.achievement_count ?? 0,
+        achievementTotal: ACHIEVEMENTS.length,
+        perksPlayed: data.perks_played ?? 0,
+        perksTotal: PERK_LIB.filter((p) => !p.hidden && !p.legacy).length,
+        favoritePerkId: data.favorite_perk ?? null,
+        recentGames: Array.isArray(data.recent_games)
+            ? data.recent_games.map((g) => ({ perkId: g.perk_id, score: g.score, ts: g.ts }))
+            : [],
+    });
+}
+
+// 검색된 유저의 프로필 통계를 렌더링합니다.
+function renderUserSearchProfile(username, stats) {
+    if (!els.userSearchContent) return;
+
+    const favoritePerk = PERK_LIB.find((p) => p.id === stats.favoritePerkId) ?? null;
+
+    // 점수 수준별 등급 색: 동(100만+) < 은(1억+) < 금(100억+) < 다이아(1조+) < 마스터(100조+)
+    const scoreTierClass = (score) => {
+        if (score >= 1e14) return "tier-master";
+        if (score >= 1e12) return "tier-diamond";
+        if (score >= 1e10) return "tier-gold";
+        if (score >= 1e8) return "tier-silver";
+        if (score >= 1e6) return "tier-bronze";
+        return "";
+    };
+
+    // 시즌 플레이 횟수 등급: 동(10+) < 은(50+) < 금(100+) < 다이아(1000+) < 마스터(5000+)
+    const playsTierClass = (plays) => {
+        if (plays >= 5000) return "tier-master";
+        if (plays >= 1000) return "tier-diamond";
+        if (plays >= 100) return "tier-gold";
+        if (plays >= 50) return "tier-silver";
+        if (plays >= 10) return "tier-bronze";
+        return "";
+    };
+
+    // 도전과제 등급: 동(10+) < 은(30+) < 금(50+) < 다이아(70+) < 마스터(전체 달성)
+    const achievementTier = stats.achievementCount >= stats.achievementTotal ? "tier-master"
+        : stats.achievementCount >= 70 ? "tier-diamond"
+            : stats.achievementCount >= 50 ? "tier-gold"
+                : stats.achievementCount >= 30 ? "tier-silver"
+                    : stats.achievementCount >= 10 ? "tier-bronze"
+                        : "";
+
+    // 플레이한 특성 등급: 동(5+) < 은(10+) < 금(15+) < 다이아(20+) < 마스터(전체 달성)
+    const perksTier = stats.perksPlayed >= stats.perksTotal ? "tier-master"
+        : stats.perksPlayed >= 20 ? "tier-diamond"
+            : stats.perksPlayed >= 15 ? "tier-gold"
+                : stats.perksPlayed >= 10 ? "tier-silver"
+                    : stats.perksPlayed >= 5 ? "tier-bronze"
+                        : "";
+
+    // 최다 플레이 특성 이름은 줄바꿈 없이 한 줄 유지 — 길이에 따라 글자 크기 단계 축소
+    const favoriteName = favoritePerk?.name ?? "-";
+    const favoriteFontPx = favoriteName.length <= 4 ? 40
+        : favoriteName.length <= 6 ? 28
+            : favoriteName.length <= 10 ? 19
+                : 15;
+
+    const hasSeasonRecord = stats.seasonBest != null;
+    const rows = [
+        { label: "역대 최고 점수", value: formatNum(stats.allTimeBest), score: true, tier: scoreTierClass(stats.allTimeBest) },
+        {
+            label: "시즌 최고 점수",
+            value: hasSeasonRecord ? formatNum(stats.seasonBest) : "-",
+            score: true,
+            tier: hasSeasonRecord ? scoreTierClass(stats.seasonBest) : "",
+        },
+        { label: "시즌 플레이", value: `${formatNum(stats.seasonPlays)}회`, centered: true, tier: playsTierClass(stats.seasonPlays) },
+        { label: "도전과제", value: `${stats.achievementCount}/${stats.achievementTotal}`, centered: true, tier: achievementTier },
+        { label: "플레이한 특성", value: `${stats.perksPlayed}/${stats.perksTotal}`, centered: true, tier: perksTier },
+        {
+            label: "최다 플레이 특성",
+            value: favoriteName,
+            perk: favoritePerk,
+            centered: true,
+            valueStyle: `font-size:${favoriteFontPx}px; white-space:nowrap;`,
+        },
+    ];
+
+    const recentGames = stats.recentGames ?? [];
+
+    const formatRecentTs = (ts) => {
+        const d = new Date(ts);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const recentRows = recentGames.map((game) => {
+        const perk = PERK_LIB.find((p) => p.id === game.perkId) ?? null;
+        const chipStyle = perk
+            ? ` style="background:${perk.backgroundStyle}; border-color:${withAlpha(perk.glitterColor, 0.55)}; color:${perk.textColor || "#16292d"};"`
+            : "";
+        return `
+            <div class="user-recent-row">
+                <span class="user-recent-perk"${chipStyle}>${escapeHtml(perk?.name ?? "-")}</span>
+                <span class="user-recent-score">${formatNum(game.score)}</span>
+                <span class="user-recent-date">${formatRecentTs(game.ts)}</span>
+            </div>`;
+    }).join("");
+
+    els.userSearchContent.innerHTML = `
+        <p class="user-profile-name">${escapeHtml(username)}</p>
+        <div class="user-stat-list">
+            ${rows.map((row) => {
+                // 특성 카드는 해당 특성의 배경/글자색 + 글린트 색 적용
+                // data-perk-id로 전용 글린트(라스트 슈팅, 붉은 혜성 등)도 연결
+                const perkStyle = row.perk
+                    ? ` data-perk-id="${row.perk.id}" style="background:${row.perk.backgroundStyle}; border-color:${withAlpha(row.perk.glitterColor, 0.55)}; --stat-text:${row.perk.textColor || "#16292d"}; --tier-glitter:${row.perk.glitterColor}; --stat-glitter-opacity:${row.perk.glitterIntensity ?? 0.6};"`
+                    : "";
+                const classes = [
+                    "user-stat-row",
+                    row.perk ? "perk-colored" : "",
+                    row.centered ? "center-value" : "",
+                    row.score ? "center-score" : "",
+                    row.tier || "",
+                ].filter(Boolean).join(" ");
+                const valueStyle = row.valueStyle ? ` style="${row.valueStyle}"` : "";
+                return `
+                <div class="${classes}"${perkStyle}>
+                    <span class="user-stat-label">${row.label}</span>
+                    <span class="user-stat-value"${valueStyle}>${escapeHtml(String(row.value))}</span>
+                </div>`;
+            }).join("")}
+        </div>
+        <p class="user-recent-title">최근 기록</p>
+        <div class="user-recent-list">${recentRows || `<p class="user-search-hint">이번 시즌 기록이 없습니다.</p>`}</div>`;
+}
+
 // 게임 화면 우상단에 토스트를 띄우는 공용 헬퍼.
 // onClick이 있으면 클릭 시 실행 후 닫힘, 없으면 클릭 시 즉시 닫힘.
 function spawnGameToast({ icon, title, text, durationMs = 3500, className = "", onClick = null }) {
@@ -2402,6 +2593,23 @@ function showUploadSuccessToast() {
 }
 // 콘솔 테스트용: showUploadSuccessToast()
 window.showUploadSuccessToast = showUploadSuccessToast;
+
+// 설문조사 링크
+const SURVEY_URL = "https://forms.gle/ztfvzWSNwaYymd4NA";
+
+function openSurvey() {
+    window.open(SURVEY_URL, "_blank", "noopener");
+}
+
+// 게임 로드 시 설문조사 안내 토스트 — 이동 없이 설정 메뉴의 설문 버튼만 안내합니다.
+function showSurveyToast() {
+    spawnGameToast({
+        icon: "📋",
+        title: "설문조사",
+        text: "게임플레이 후 설문으로 보상 받으세요! (설정 버튼 참고)",
+        durationMs: 3000,
+    });
+}
 
 function openPerkListModal() {
     if (!els.perkListContent) return;
@@ -2512,7 +2720,7 @@ async function openLeaderboardModal() {
     if (!els.leaderboardModal || !els.leaderboardContent) return;
 
     if (els.leaderboardPerkFilter && els.leaderboardPerkFilter.options.length === 1) {
-        PERK_LIB.filter(p => !p.hidden).forEach((p) => {
+        PERK_LIB.filter(p => !p.hidden && !p.legacy).forEach((p) => {
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.textContent = p.name;
@@ -2938,6 +3146,41 @@ function bindSettingsEvents() {
         els.achievementBtn.addEventListener("click", () => {
             setSettingsOpen(false);
             openAchievementModal();
+        });
+    }
+
+    if (els.surveyBtn) {
+        els.surveyBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openSurvey();
+        });
+    }
+
+    if (els.userSearchBtn) {
+        els.userSearchBtn.addEventListener("click", () => {
+            setSettingsOpen(false);
+            openUserSearchModal();
+        });
+    }
+
+    if (els.userSearchClose) {
+        els.userSearchClose.addEventListener("click", () => {
+            closeUserSearchModal();
+        });
+    }
+
+    if (els.userSearchModal) {
+        els.userSearchModal.addEventListener("click", (e) => {
+            if (e.target === els.userSearchModal) closeUserSearchModal();
+        });
+    }
+
+    if (els.userSearchInput) {
+        els.userSearchInput.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter") return;
+            const query = els.userSearchInput.value.trim().slice(0, 10);
+            if (!query) return;
+            searchAndRenderUserProfile(query);
         });
     }
 
@@ -5084,6 +5327,9 @@ function init() {
     window.requestAnimationFrame(() => {
         centerPhoneFrameOnDesktop();
     });
+
+    // 로드 직후 설문조사 안내 (화면 정착 후 표시)
+    window.setTimeout(showSurveyToast, 800);
 
     window.addEventListener("resize", () => {
         fitPointValueFont();

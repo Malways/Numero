@@ -45,9 +45,11 @@
                                         placeholder="이름을 입력하세요" maxlength="10" autocomplete="off" spellcheck="false" />
                                 </div>
                                 <button id="leaderboardBtn" class="settings-action-btn" type="button">리더보드 보기</button>
+                                <button id="userSearchBtn" class="settings-action-btn" type="button">유저 검색</button>
                                 <button id="patchLogBtn" class="settings-action-btn" type="button">패치노트 보기</button>
                                 <button id="perkListBtn" class="settings-action-btn" type="button">모든 특성 보기</button>
                                 <button id="achievementBtn" class="settings-action-btn" type="button">도전과제</button>
+                                <button id="surveyBtn" class="settings-action-btn" type="button">0.82b 설문조사</button>
                                 <div class="settings-db-row">
                                     <p class="settings-db-status">DB : <span id="dbStatusValue"
                                             class="db-status-value">"Disconnected"</span></p>
@@ -207,7 +209,7 @@
                                         <img src="./help/help_02.png" alt="기본 진행" class="help-slide-img" />
                                     </div>
                                     <p class="help-slide-title">기본 진행</p>
-                                    <p class="help-slide-text">시작 버튼을 누르면 시작 값을 먼저 굴리고, 5턴 게임이 시작됩니다. 매 턴마다 주사위를 굴려 3개의 선택지 중 하나를 골라 현재 값을 변경합니다.</p>
+                                    <p class="help-slide-text">시작 버튼을 누르면 시작 값을 먼저 굴리고, 5턴 게임이 시작됩니다.<br>매 턴마다 주사위를 굴려 3개의 선택지 중 하나를 골라 현재 값을 변경합니다.</p>
                                 </div>
                                 <div class="help-slide">
                                     <div class="help-slide-img-area">
@@ -221,7 +223,7 @@
                                         <img src="./help/help_04.png" alt="행운" class="help-slide-img" />
                                     </div>
                                     <p class="help-slide-title">행운 (Luck)</p>
-                                    <p class="help-slide-text">선택지를 고를 때 버린 선택지의 행운값만큼 Luck이 올라갑니다. Luck이 높을수록 희귀·특급·전설 등급 선택지가 더 자주 등장합니다.</p>
+                                    <p class="help-slide-text">선택지를 고를 때 버린 선택지의 행운값만큼 Luck이 올라갑니다.<br>Luck이 높을수록 희귀·특급·전설 등급 선택지가 더 자주 등장합니다.</p>
                                 </div>
                                 <div class="help-slide">
                                     <div class="help-slide-img-area">
@@ -255,6 +257,22 @@
                                 aria-label="도전과제 닫기">닫기</button>
                         </div>
                         <div id="achievementContent" class="achievement-list">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="userSearchModal" class="modal patchlog-modal" role="dialog" aria-hidden="true"
+                    aria-labelledby="userSearchTitle">
+                    <div class="modal-content patchlog-content-wrap">
+                        <div class="patchlog-head">
+                            <h2 id="userSearchTitle" class="patchlog-title">유저 검색</h2>
+                            <button id="userSearchClose" class="patchlog-close" type="button"
+                                aria-label="유저 검색 닫기">닫기</button>
+                        </div>
+                        <input id="userSearchInput" class="user-search-input" type="text"
+                            placeholder="닉네임을 입력하고 Enter" maxlength="10" autocomplete="off" spellcheck="false" />
+                        <div id="userSearchContent" class="user-search-content">
+                            <p class="user-search-hint">닉네임으로 유저의 기록을 검색해보세요.</p>
                         </div>
                     </div>
                 </div>
