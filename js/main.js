@@ -400,7 +400,7 @@ const ENHANCED_OPTION_LIBRARY = {
     ],
     legend: [
         { //1
-            formula: "5^modVal * turnVal",
+            formula: "= 5^modVal * turnVal",
             compute: (a, b, c) => Math.pow(5, b) * c,
             unselectedLuckGain: 12,
         },
