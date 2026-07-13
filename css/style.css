@@ -1303,8 +1303,8 @@ body {
 .perk-option-btn[data-perk-id="perk-reversed-cursed"] .perk-description,
 .perk-option-btn[data-perk-id="perk-overclock"] .perk-name,
 .perk-option-btn[data-perk-id="perk-overclock"] .perk-description,
-.perk-option-btn[data-perk-id="perk-clock-up"] .perk-name,
-.perk-option-btn[data-perk-id="perk-clock-up"] .perk-description {
+.perk-option-btn[data-perk-id="perk-upgrade"] .perk-name,
+.perk-option-btn[data-perk-id="perk-upgrade"] .perk-description {
     color: #f2f2f2;
 }
 
@@ -2693,12 +2693,22 @@ body {
     overflow-wrap: anywhere;
 }
 
-/* 점수 외 카드 — 값을 카드 중앙에 크게 표시 */
+/* 점수 외 카드 — 값을 카드 중앙에 크게 표시 (줄바꿈 금지)
+   최다 플레이 특성 카드는 JS가 --fav-font / --fav-font-mobile 변수로 길이별 크기를 지정 */
 .user-stat-row.center-value .user-stat-value {
     margin: auto 0;
-    font-size: 40px;
+    font-size: var(--fav-font, 40px);
     line-height: 1.05;
     word-break: keep-all;
+    overflow-wrap: normal;
+    white-space: nowrap;
+}
+
+/* 모바일 — 점수 카드를 제외한 통계 값 글자 크기 축소 */
+@media (max-width: 759px) {
+    .user-stat-row.center-value .user-stat-value {
+        font-size: var(--fav-font-mobile, 22px);
+    }
 }
 
 /* 점수 카드 — INT_MAX(9,007,199,254,740,991)까지 카드 안에 담기도록 중앙 + 축소 표시 */

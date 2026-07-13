@@ -257,7 +257,7 @@ const OPTION_LIBRARY = {
         //     unselectedLuckGain: 12,
         // },
         { //1
-            formula: "5^modVal * turnVal",
+            formula: "= 5^modVal * turnVal",
             compute: (a, b, c) => Math.pow(5, b) * c,
             unselectedLuckGain: 12,
         },
@@ -448,7 +448,7 @@ const PERK_LIB = [
     {
         id: "perk-vento-aureo",
         name: "황금의 바람",
-        description: "전설 선택지가 등장할 때마다 값이 2배가 됩니다.",
+        description: "전설 선택지가 등장할 때마다 점수를 2배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(244, 233, 179, 0.94), rgba(255, 250, 240, 0.97))",
         glitterColor: "rgba(229,169,79, 1)",
         glitterIntensity: 0.8,
@@ -472,7 +472,7 @@ const PERK_LIB = [
     {
         id: "perk-reversed-cursed",
         name: "반전 술식",
-        description: "매 턴 종료 시 값이 음수라면 양수로 반전하고 2배로 만듭니다.",
+        description: "매 턴 종료 시 현재 점수가 음수라면 양수로 반전하고 2배로 만듭니다.",
         backgroundStyle: "linear-gradient(165deg, rgba(20, 20, 20, 0.96), rgba(8, 8, 8, 0.98))",
         glitterColor: "rgba(255, 255, 255, 0.9)",
         glitterIntensity: 0.55,
@@ -509,7 +509,7 @@ const PERK_LIB = [
     {
         id: "perk-last-shooting",
         name: "라스트 슈팅",
-        description: "5턴 종료 후, 마지막 주사위 값을 2씩 줄여가며 3번 곱합니다. (최소 1)",
+        description: "5턴 종료 후, 마지막 주사위 눈금을 2씩 줄여가며 3번 곱합니다. (최소 1)",
         backgroundStyle: "linear-gradient(160deg, rgba(252, 252, 252, 0.96), rgba(240, 240, 240, 0.99))",
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.55,
@@ -521,7 +521,7 @@ const PERK_LIB = [
     {
         id: "perk-sunbang",
         name: "순방",
-        description: "주사위가 6이 아니면 주사위 값이 1 증가합니다.",
+        description: "주사위가 6이 아니면 주사위 눈금이 1 증가합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(255, 237, 210, 0.95), rgba(255, 248, 235, 0.98))",
         glitterColor: "rgba(255, 155, 60, 1)",
         glitterIntensity: 0.6,
@@ -533,7 +533,7 @@ const PERK_LIB = [
     {
         id: "perk-red-comet",
         name: "붉은 혜성",
-        description: "첫 3턴간 턴 종료시 값이 3배가 되고, 행운이 3분의 1만큼 감소합니다.",
+        description: "첫 3턴간 턴 종료시 점수를 3배로 만들고, 행운이 3분의 1만큼 감소합니다.",
         backgroundStyle: "linear-gradient(145deg, rgba(70,5,5,0.99) 0%, rgba(150,12,12,0.97) 28%, rgba(215,30,30,0.95) 48%, rgba(175,14,14,0.97) 68%, rgba(70,5,5,0.99) 100%)",
         glitterColor: "rgba(255, 160, 160, 1)",
         glitterIntensity: 0.92,
@@ -553,7 +553,7 @@ const PERK_LIB = [
     {
         id: "perk-patron",
         name: "후원자",
-        description: "시작 값을 500으로 고정합니다. 광고 봐주셔서 감사해요 :)",
+        description: "시작 점수를 500으로 고정합니다. 광고 봐주셔서 감사해요 :)",
         adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(255, 175, 200, 0.94), rgba(255, 215, 230, 0.96))",
         glitterColor: "rgba(240, 100, 145, 1)",
@@ -564,7 +564,7 @@ const PERK_LIB = [
     {
         id: "perk-abyss-route",
         name: "심연항로",
-        description: "턴 종료 시 현재 값이 음수면 3배로 만듭니다.",
+        description: "턴 종료 시 점수가 음수면 3배로 만듭니다.",
         adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(1, 9, 12, 0.99), rgba(1, 148, 155, 0.97), rgba(1, 223, 186, 0.95))",
         glitterColor: "rgba(229, 135, 41, 1)",
@@ -575,7 +575,7 @@ const PERK_LIB = [
     {
         id: "perk-dormant-volcano",
         name: "휴화산",
-        description: "5천 이상의 값을 만들면 깨어납니다...",
+        description: "5천 이상의 점수를 만들면 깨어납니다...",
         backgroundStyle: "linear-gradient(160deg, rgba(58, 60, 63, 0.97) 20%, rgba(88, 87, 85, 0.95) 55%, rgba(118, 116, 112, 0.93))",
         glitterColor: "rgba(170, 172, 175, 1)",
         glitterIntensity: 0.28,
@@ -585,7 +585,7 @@ const PERK_LIB = [
     {
         id: "perk-active-volcano",
         name: "활화산",
-        description: "주사위를 굴릴 때마다 눈금 × 5,000만큼 더합니다.",
+        description: "주사위를 굴릴 때마다 눈금 × 5,000만큼 점수에 더합니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(39, 7, 4, 0.99) 40%, rgba(198, 56, 21, 0.97) 80%, rgba(182, 45, 31, 0.95))",
         glitterColor: "rgba(253, 140, 34, 1)",
@@ -596,7 +596,7 @@ const PERK_LIB = [
     {
         id: "perk-strategic-retreat",
         name: "전략적 후퇴",
-        description: "주사위를 굴릴 때마다 눈금 × -50을 현재 값에 더합니다.",
+        description: "주사위를 굴릴 때마다 눈금 × -50을 점수에 더합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(5, 55, 20, 0.97) 0%, rgba(15, 90, 35, 0.96) 50%, rgba(8, 70, 25, 0.97) 100%)",
         glitterColor: "rgba(80, 220, 100, 1)",
         glitterIntensity: 0.72,
@@ -607,7 +607,7 @@ const PERK_LIB = [
     {
         id: "perk-solo",
         name: "홀로서기",
-        description: "턴 종료 시 현재 값이 홀수라면 3배로 만듭니다.",
+        description: "턴 종료 시 점수가 홀수라면 3배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(5, 10, 35, 0.98) 0%, rgba(10, 25, 70, 0.97) 50%, rgba(8, 18, 52, 0.98) 100%)",
         glitterColor: "rgba(80, 130, 220, 1)",
         glitterIntensity: 0.68,
@@ -628,7 +628,7 @@ const PERK_LIB = [
     {
         id: "perk-bullseye",
         name: "불스아이",
-        description: "주사위 번호와 턴이 일치하면 그만큼 값을 곱합니다.",
+        description: "주사위 번호와 턴이 일치하면 점수를 그만큼 배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(165, 0, 18, 0.97), rgba(232, 1, 36, 0.95))",
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.72,
@@ -639,7 +639,7 @@ const PERK_LIB = [
     {
         id: "perk-joker",
         name: "조커",
-        description: "일반 선택지를 고를 때마다 짐보가 현재 값에 4를 곱합니다.",
+        description: "일반 선택지를 고를 때마다 짐보가 점수를 4배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(247, 73, 62, 0.97), rgba(255, 152, 1, 0.96), rgba(115, 202, 255, 0.95))",
         glitterColor: "rgba(255, 152, 1, 1)",
         glitterIntensity: 0.78,
@@ -649,7 +649,7 @@ const PERK_LIB = [
     {
         id: "perk-kickstart",
         name: "킥스타터",
-        description: "2턴까지 주사위를 굴릴 때마다 그만큼 현재 값을 곱합니다.",
+        description: "2턴까지 주사위를 굴릴 때마다 점수를 눈금 배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(220, 30, 30, 0.97), rgba(255, 110, 20, 0.95))",
         glitterColor: "rgba(255, 195, 70, 1)",
         glitterIntensity: 0.8,
@@ -669,7 +669,7 @@ const PERK_LIB = [
     {
         id: "perk-overclock",
         name: "오버클록",
-        description: "매 턴 종료 시 현재 값에 (60 ÷ 행운)을 곱합니다.",
+        description: "매 턴 종료 시 점수를 (60 ÷ 행운)배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(15, 5, 0, 0.98) 0%, rgba(190, 70, 0, 0.97) 50%, rgba(255, 170, 20, 0.96) 100%)",
         glitterColor: "rgba(255, 200, 50, 1)",
         glitterIntensity: 0.88,
@@ -680,7 +680,7 @@ const PERK_LIB = [
         id: "perk-gros-michel",
         name: "그로 미셸",
         legacy: true,
-        description: "주사위가 1이 나올 때마다 현재 값에 6을 곱합니다.",
+        description: "주사위가 1이 나올 때마다 점수를 6배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(210, 165, 20, 0.96), rgba(245, 200, 42, 0.94))",
         glitterColor: "rgba(255, 232, 130, 1)",
         glitterIntensity: 0.75,
@@ -690,7 +690,7 @@ const PERK_LIB = [
     {
         id: "perk-death-boundary",
         name: "사의 경계",
-        description: "4턴에 주사위가 4라면 현재 값에 44를 곱합니다.",
+        description: "4턴에 주사위가 4라면 점수를 44배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(8, 8, 8, 0.99), rgba(25, 4, 4, 0.98))",
         glitterColor: "rgba(234, 8, 9, 1)",
         glitterIntensity: 0.88,
@@ -710,7 +710,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-common",
         name: "일반 퀘스트",
-        description: "일반 선택지 선택 시 값을 2배로 만들고, 새 퀘스트를 받습니다.",
+        description: "일반 선택지 선택 시 점수를 2배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(78, 85, 97, 0.97), rgba(138, 143, 154, 0.95))",
         glitterColor: "rgba(195, 202, 215, 1)",
@@ -721,7 +721,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-rare",
         name: "희귀 퀘스트",
-        description: "희귀 선택지 선택 시 값을 3배로 만들고, 새 퀘스트를 받습니다.",
+        description: "희귀 선택지 선택 시 점수를 3배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(15, 78, 155, 0.97), rgba(30, 157, 232, 0.95))",
         glitterColor: "rgba(145, 218, 255, 1)",
@@ -732,7 +732,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-epic",
         name: "특급 퀘스트",
-        description: "특급 선택지 선택 시 값을 4배로 만들고, 새 퀘스트를 받습니다.",
+        description: "특급 선택지 선택 시 점수를 4배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(55, 36, 138, 0.97), rgba(123, 97, 209, 0.95))",
         glitterColor: "rgba(207, 192, 255, 1)",
@@ -743,7 +743,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-legend",
         name: "전설 퀘스트",
-        description: "전설 선택지 선택 시 값을 5배로 만듭니다.",
+        description: "전설 선택지 선택 시 점수를 5배로 만듭니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(215, 100, 18, 0.97), rgba(255, 168, 65, 0.95))",
         glitterColor: "rgba(255, 225, 150, 1)",
@@ -754,7 +754,7 @@ const PERK_LIB = [
     {
         id: "perk-reactor",
         name: "반응로",
-        description: "매 턴 주사위를 굴리면 눈금만큼 현재 값에 1.2배를 반복 적용합니다.",
+        description: "매 턴 주사위를 굴리면 눈금 수만큼 점수에 1.2배를 반복해 적용합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(0, 221, 208, 0.97) 0%, rgba(121, 248, 253, 0.95) 50%, rgba(64, 144, 185, 0.97) 100%)",
         glitterColor: "rgba(121, 248, 253, 1)",
         glitterIntensity: 0.78,
@@ -773,9 +773,9 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-clock-up",
-        name: "클락 업",
-        description: "매 턴 종료 시 현재 값에 배율을 곱합니다. \n(기본 ×1.5, 스킵할 때마다 +0.5)",
+        id: "perk-upgrade",
+        name: "업그레이드",
+        description: "매 턴 종료 시 점수를 1.5배로 만듭니다. \n(스킵할 때마다 배율 +0.5)",
         backgroundStyle: "linear-gradient(160deg, rgba(8, 40, 95, 0.97) 0%, rgba(0, 145, 235, 0.96) 55%, rgba(150, 235, 255, 0.95) 100%)",
         glitterColor: "rgba(160, 235, 255, 1)",
         glitterIntensity: 0.82,
@@ -911,7 +911,7 @@ const state = {
     timewarpExtraTurn: false, // 시간 왜곡 특성으로 6턴이 추가됐는지 여부
     questLevel: "common", // 퀘스트 특성의 현재 단계: common | rare | epic | legend
     volcanoActivated: false, // 휴화산 → 활화산 전환 여부
-    clockUpMultiplier: 1.5, // 클락 업 특성의 턴 종료 배율 (스킵마다 +0.5)
+    upgradeMultiplier: 1.5, // 업그레이드 특성의 턴 종료 배율 (스킵마다 +0.5)
 };
 
 // ============================================================================
@@ -1434,8 +1434,8 @@ function applyPerkAfterTurnResolved() {
         return { messageText: `오버클록 (×${multiplier.toFixed(2)})`, messagePrefix: "" };
     }
 
-    if (selectedPerk.id === "perk-clock-up") {
-        const multiplier = state.clockUpMultiplier ?? 1.5;
+    if (selectedPerk.id === "perk-upgrade") {
+        const multiplier = state.upgradeMultiplier ?? 1.5;
         const prevPoint = state.pointVal ?? 0;
         state.pointVal = safeNumber(Math.round(prevPoint * multiplier));
         recordPerkActivationHistory(
@@ -1445,7 +1445,7 @@ function applyPerkAfterTurnResolved() {
         );
         triggerPerkBadgeActivationFeedback();
         triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `×${multiplier.toFixed(1)}`);
-        return { messageText: `클락 업 (×${multiplier.toFixed(1)})`, messagePrefix: "" };
+        return { messageText: `업그레이드 (×${multiplier.toFixed(1)})`, messagePrefix: "" };
     }
 
     if (selectedPerk.id === "perk-reversed-cursed") {
@@ -1796,12 +1796,12 @@ function updateLuckInfoTooltip() {
     }
 
     if (selectedPerk?.id === "perk-overclock") {
-        els.luckInfoSkipRule.textContent = "오버클록: 턴 종료 시 값에 (60 ÷ 행운) 배율 적용. 행운이 낮을수록 배율이 높아집니다.";
+        els.luckInfoSkipRule.textContent = "오버클록: 턴 종료 시 점수를 (60 ÷ 행운)배로 만듭니다. 행운이 낮을수록 배율이 높아집니다.";
         return;
     }
 
-    if (selectedPerk?.id === "perk-clock-up") {
-        els.luckInfoSkipRule.textContent = "클락 업: 턴 종료 시 값에 배율 적용. 스킵할 때마다 배율이 0.5씩 증가합니다.";
+    if (selectedPerk?.id === "perk-upgrade") {
+        els.luckInfoSkipRule.textContent = "업그레이드: 턴 종료 시 점수를 현재 배율(기본 1.5배)로 만듭니다. 스킵할 때마다 배율이 0.5씩 증가합니다.";
         return;
     }
 
@@ -2184,10 +2184,10 @@ const ACHIEVEMENTS = [
     { id: "death-3", name: "선택지와 행운,", desc: "사의 경계 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "death-4", name: "그리고 주사위가 전부인 게임이다", desc: "사의 경계 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "quest-1", name: "퀘스트를 받으세요", desc: "퀘스트 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "quest-2", name: "여기 보상입니다", desc: "퀘스트 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "quest-3", name: "미션 컴플리트", desc: "퀘스트 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "quest-4", name: "마지막 여정", desc: "퀘스트 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "quest-1", name: "세상의 끝에 그 저편에서", desc: "퀘스트 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "quest-2", name: "만약 마왕을 쓰러뜨렸다면", desc: "퀘스트 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "quest-3", name: "엔딩 롤이 흘러내려간다면", desc: "퀘스트 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "quest-4", name: "우리들의 내일은 어디에", desc: "퀘스트 특성으로 최종 값 100억 이상을 달성한다." },
 
     { id: "reactor-1", name: "반응로 시동", desc: "반응로 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "reactor-2", name: "분열 과정 유도", desc: "반응로 특성으로 최종 값 100만 이상을 달성한다." },
@@ -2204,10 +2204,10 @@ const ACHIEVEMENTS = [
     { id: "lastshoot-3", name: "라스트 슈팅3", desc: "라스트 슈팅 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "lastshoot-4", name: "라스트 슈팅4", desc: "라스트 슈팅 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "clockup-1", name: "클락 업1", desc: "클락 업 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "clockup-2", name: "클락 업2", desc: "클락 업 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "clockup-3", name: "클락 업3", desc: "클락 업 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "clockup-4", name: "클락 업4", desc: "클락 업 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "upgrade-1", name: "Harder", desc: "업그레이드 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "upgrade-2", name: "Better", desc: "업그레이드 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "upgrade-3", name: "Faster", desc: "업그레이드 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "upgrade-4", name: "Stronger", desc: "업그레이드 특성으로 최종 값 100억 이상을 달성한다." },
 ];
 
 // 도전과제 id 접두사 → 특성 id (특성별 과제의 색상 표시용)
@@ -2235,7 +2235,7 @@ const ACHIEVEMENT_PREFIX_TO_PERK = {
     reactor: "perk-reactor",
     energy: "perk-energy-convert",
     lastshoot: "perk-last-shooting",
-    clockup: "perk-clock-up",
+    upgrade: "perk-upgrade",
 };
 
 // 상단 시드 도트 옆에 현재 닉네임을 표시합니다 (미설정 시 "익명").
@@ -2411,8 +2411,8 @@ function renderUserSearchProfile(username, stats) {
 
     // 시즌 플레이 횟수 등급: 동(10+) < 은(50+) < 금(100+) < 다이아(1000+) < 마스터(5000+)
     const playsTierClass = (plays) => {
-        if (plays >= 5000) return "tier-master";
-        if (plays >= 1000) return "tier-diamond";
+        if (plays >= 1000) return "tier-master";
+        if (plays >= 500) return "tier-diamond";
         if (plays >= 100) return "tier-gold";
         if (plays >= 50) return "tier-silver";
         if (plays >= 10) return "tier-bronze";
@@ -2436,11 +2436,16 @@ function renderUserSearchProfile(username, stats) {
                         : "";
 
     // 최다 플레이 특성 이름은 줄바꿈 없이 한 줄 유지 — 길이에 따라 글자 크기 단계 축소
+    // 인라인 font-size 대신 CSS 변수로 넘겨 모바일 미디어 쿼리가 축소분을 적용할 수 있게 함
     const favoriteName = favoritePerk?.name ?? "-";
     const favoriteFontPx = favoriteName.length <= 4 ? 40
         : favoriteName.length <= 6 ? 28
             : favoriteName.length <= 10 ? 19
                 : 15;
+    const favoriteFontMobilePx = favoriteName.length <= 4 ? 22
+        : favoriteName.length <= 6 ? 16
+            : favoriteName.length <= 10 ? 12
+                : 10;
 
     const hasSeasonRecord = stats.seasonBest != null;
     const rows = [
@@ -2459,7 +2464,7 @@ function renderUserSearchProfile(username, stats) {
             value: favoriteName,
             perk: favoritePerk,
             centered: true,
-            valueStyle: `font-size:${favoriteFontPx}px; white-space:nowrap;`,
+            valueStyle: `--fav-font:${favoriteFontPx}px; --fav-font-mobile:${favoriteFontMobilePx}px; white-space:nowrap;`,
         },
     ];
 
@@ -2488,25 +2493,25 @@ function renderUserSearchProfile(username, stats) {
         <p class="user-profile-name">${escapeHtml(username)}</p>
         <div class="user-stat-list">
             ${rows.map((row) => {
-                // 특성 카드는 해당 특성의 배경/글자색 + 글린트 색 적용
-                // data-perk-id로 전용 글린트(라스트 슈팅, 붉은 혜성 등)도 연결
-                const perkStyle = row.perk
-                    ? ` data-perk-id="${row.perk.id}" style="background:${row.perk.backgroundStyle}; border-color:${withAlpha(row.perk.glitterColor, 0.55)}; --stat-text:${row.perk.textColor || "#16292d"}; --tier-glitter:${row.perk.glitterColor}; --stat-glitter-opacity:${row.perk.glitterIntensity ?? 0.6};"`
-                    : "";
-                const classes = [
-                    "user-stat-row",
-                    row.perk ? "perk-colored" : "",
-                    row.centered ? "center-value" : "",
-                    row.score ? "center-score" : "",
-                    row.tier || "",
-                ].filter(Boolean).join(" ");
-                const valueStyle = row.valueStyle ? ` style="${row.valueStyle}"` : "";
-                return `
+        // 특성 카드는 해당 특성의 배경/글자색 + 글린트 색 적용
+        // data-perk-id로 전용 글린트(라스트 슈팅, 붉은 혜성 등)도 연결
+        const perkStyle = row.perk
+            ? ` data-perk-id="${row.perk.id}" style="background:${row.perk.backgroundStyle}; border-color:${withAlpha(row.perk.glitterColor, 0.55)}; --stat-text:${row.perk.textColor || "#16292d"}; --tier-glitter:${row.perk.glitterColor}; --stat-glitter-opacity:${row.perk.glitterIntensity ?? 0.6};"`
+            : "";
+        const classes = [
+            "user-stat-row",
+            row.perk ? "perk-colored" : "",
+            row.centered ? "center-value" : "",
+            row.score ? "center-score" : "",
+            row.tier || "",
+        ].filter(Boolean).join(" ");
+        const valueStyle = row.valueStyle ? ` style="${row.valueStyle}"` : "";
+        return `
                 <div class="${classes}"${perkStyle}>
                     <span class="user-stat-label">${row.label}</span>
                     <span class="user-stat-value"${valueStyle}>${escapeHtml(String(row.value))}</span>
                 </div>`;
-            }).join("")}
+    }).join("")}
         </div>
         <p class="user-recent-title">최근 기록</p>
         <div class="user-recent-list">${recentRows || `<p class="user-search-hint">이번 시즌 기록이 없습니다.</p>`}</div>`;
@@ -3797,7 +3802,7 @@ function preparePerkSelection() {
     state.timewarpExtraTurn = false;
     state.questLevel = "common";
     state.volcanoActivated = false;
-    state.clockUpMultiplier = 1.5;
+    state.upgradeMultiplier = 1.5;
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -4106,7 +4111,7 @@ async function pickOption(optionIndex) {
     // 무디 블루스: 특급 선택 시 1회 계산 즉시 표시 → 애니메이션 완료 → 0.2초 후 2회 적용
     if (isMoodyBlues && selected.rarity === "epic") {
         refreshPointValueAndHistoryUi();
-        els.message.textContent = `무디 블루스: 1번째 계산 → 현재 값 ${formatNum(state.pointVal)}`;
+        els.message.textContent = `무디 블루스: 1번째 계산 → 현재 점수 ${formatNum(state.pointVal)}`;
         renderStatus();
 
         if (_pointValAnimFrame !== null) {
@@ -4135,15 +4140,15 @@ async function pickOption(optionIndex) {
         refreshPointValueAndHistoryUi();
         triggerPerkPointChangeFeedback(getSelectedPerk(), secondPrev, secondNext, "2회 적용");
         triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `무디 블루스: 2번째 계산 → 현재 값 ${formatNum(state.pointVal)}`;
+        els.message.textContent = `무디 블루스: 2번째 계산 → 현재 점수 ${formatNum(state.pointVal)}`;
         renderStatus();
     }
 
     const activatedPerkResult = applyPerkAfterTurnResolved();
     const messagePrefix = activatedPerkResult?.messagePrefix ? `${activatedPerkResult.messagePrefix} ` : "";
     els.message.textContent = activatedPerkResult
-        ? `${messagePrefix}선택이 적용되었습니다. ${activatedPerkResult.messageText} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
-        : `선택이 적용되었습니다. 현재 값 ${formatNum(nextPoint)}`;
+        ? `${messagePrefix}선택이 적용되었습니다. ${activatedPerkResult.messageText} 발동: 현재 점수 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+        : `선택이 적용되었습니다. 현재 점수 ${formatNum(nextPoint)}`;
 
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT;
     const effectiveMax = state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS;
@@ -4237,11 +4242,11 @@ async function skipTurnTakeAllLuck() {
         triggerPerkBadgeActivationFeedback();
     }
 
-    if (selectedPerk?.id === "perk-clock-up") {
-        const prevMultiplier = state.clockUpMultiplier ?? 1.5;
-        state.clockUpMultiplier = prevMultiplier + 0.5;
+    if (selectedPerk?.id === "perk-upgrade") {
+        const prevMultiplier = state.upgradeMultiplier ?? 1.5;
+        state.upgradeMultiplier = prevMultiplier + 0.5;
         recordPerkActivationHistory(selectedPerk,
-            `Turn ${state.turn} 스킵: 배율 ×${prevMultiplier.toFixed(1)} → ×${state.clockUpMultiplier.toFixed(1)}`,
+            `Turn ${state.turn} 스킵: 배율 ×${prevMultiplier.toFixed(1)} → ×${state.upgradeMultiplier.toFixed(1)}`,
             { turn: state.turn, trigger: "skip" },
         );
         triggerPerkBadgeActivationFeedback();
@@ -4264,7 +4269,7 @@ async function skipTurnTakeAllLuck() {
         ? "스킵을 적용했습니다. 좌살박도는 스킵 보너스가 없습니다."
         : `스킵을 적용했습니다. Luck +${addedLuck}`;
     els.message.textContent = activatedPerkResult
-        ? `${skipMessagePrefix}스킵 적용 후 ${activatedPerkResult.messageText} 발동: 현재 값 ${formatNum(state.pointVal)}, Luck ${state.luck}`
+        ? `${skipMessagePrefix}스킵 적용 후 ${activatedPerkResult.messageText} 발동: 현재 점수 ${formatNum(state.pointVal)}, Luck ${state.luck}`
         : skipBaseMessage;
 
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT;
@@ -4496,7 +4501,7 @@ function buildShareRecordText() {
         "perk-joker": "🃏",
         "perk-kickstart": "❤️‍🔥",
         "perk-beer": "🍺",
-        "perk-clock-up": "⏱️",
+        "perk-upgrade": "🆙",
         "perk-overclock": "💡",
         "perk-reactor": "⚡",
         "perk-energy-convert": "⚡",
@@ -4992,7 +4997,7 @@ function renderCalcHistory() {
                 <div class="calc-log-item">
                     <p class="calc-log-row"><strong>${item.turn}턴</strong>${enhancedMark}</p>
                     <p class="calc-log-row">· 굴린 주사위 값: ${formatNum(item.modVal)}</p>
-                    <p class="calc-log-row">· 계산 전 현재 값: ${formatNum(beforeValue)}</p>
+                    <p class="calc-log-row">· 계산 전 점수: ${formatNum(beforeValue)}</p>
                     <p class="calc-log-row">· 계산식: ${formulaWithValues}</p>
                     <p class="calc-log-row">· 턴 종료 획득 Luck: +${gainedLuckText}</p>
                     <p class="calc-log-row">· 계산 결과: ${formatNum(resultValue)}</p>
