@@ -649,7 +649,7 @@ const PERK_LIB = [
     {
         id: "perk-kickstart",
         name: "킥스타터",
-        description: "2턴까지 주사위를 굴릴 때마다 점수를 눈금 배로 만듭니다.",
+        description: "2턴까지 주사위를 굴릴 때마다 점수에 눈금만큼 곱합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(220, 30, 30, 0.97), rgba(255, 110, 20, 0.95))",
         glitterColor: "rgba(255, 195, 70, 1)",
         glitterIntensity: 0.8,
@@ -2386,11 +2386,21 @@ async function searchAndRenderUserProfile(query) {
         achievementTotal: ACHIEVEMENTS.length,
         perksPlayed: data.perks_played ?? 0,
         perksTotal: PERK_LIB.filter((p) => !p.hidden && !p.legacy).length,
+        playedPerks: Array.isArray(data.played_perks) ? data.played_perks : null,
         favoritePerkId: data.favorite_perk ?? null,
         recentGames: Array.isArray(data.recent_games)
             ? data.recent_games.map((g) => ({ perkId: g.perk_id, score: g.score, ts: g.ts }))
             : [],
     });
+}
+
+// 옛/파생 특성 id를 현행 선택 가능 id로 정규화 (서버 normalizeCollectorPerk와 동일 규칙)
+function normalizePlayedPerkId(perkId) {
+    if (typeof perkId !== "string") return "";
+    if (perkId.startsWith("perk-quest")) return "perk-quest";
+    if (perkId === "perk-active-volcano") return "perk-dormant-volcano";
+    if (perkId === "perk-clock-up") return "perk-upgrade";
+    return perkId;
 }
 
 // 검색된 유저의 프로필 통계를 렌더링합니다.
@@ -2428,11 +2438,19 @@ function renderUserSearchProfile(username, stats) {
                         : "";
 
     // 플레이한 특성 등급: 동(5+) < 은(10+) < 금(15+) < 다이아(20+) < 마스터(전체 달성)
-    const perksTier = stats.perksPlayed >= stats.perksTotal ? "tier-master"
-        : stats.perksPlayed >= 20 ? "tier-diamond"
-            : stats.perksPlayed >= 15 ? "tier-gold"
-                : stats.perksPlayed >= 10 ? "tier-silver"
-                    : stats.perksPlayed >= 5 ? "tier-bronze"
+    // 플레이한/미플레이 특성 대조 — RPC가 played_perks를 주면 카드 클릭 시 미플레이 목록 표시
+    const selectablePerks = PERK_LIB.filter((p) => !p.hidden && !p.legacy);
+    const playedSet = Array.isArray(stats.playedPerks)
+        ? new Set(stats.playedPerks.map(normalizePlayedPerkId))
+        : null;
+    const unplayedPerks = playedSet ? selectablePerks.filter((p) => !playedSet.has(p.id)) : null;
+    const playedCount = unplayedPerks ? selectablePerks.length - unplayedPerks.length : stats.perksPlayed;
+
+    const perksTier = playedCount >= stats.perksTotal ? "tier-master"
+        : playedCount >= 20 ? "tier-diamond"
+            : playedCount >= 15 ? "tier-gold"
+                : playedCount >= 10 ? "tier-silver"
+                    : playedCount >= 5 ? "tier-bronze"
                         : "";
 
     // 최다 플레이 특성 이름은 줄바꿈 없이 한 줄 유지 — 길이에 따라 글자 크기 단계 축소
@@ -2458,7 +2476,7 @@ function renderUserSearchProfile(username, stats) {
         },
         { label: "이번 시즌 플레이 횟수", value: `${formatNum(stats.seasonPlays)}회`, centered: true, tier: playsTierClass(stats.seasonPlays) },
         { label: "도전과제", value: `${stats.achievementCount}/${stats.achievementTotal}`, centered: true, tier: achievementTier },
-        { label: "플레이한 특성", value: `${stats.perksPlayed}/${stats.perksTotal}`, centered: true, tier: perksTier },
+        { label: "플레이한 특성", value: `${playedCount}/${stats.perksTotal}`, centered: true, tier: perksTier, expandable: unplayedPerks != null },
         {
             label: "최다 플레이 특성",
             value: favoriteName,
