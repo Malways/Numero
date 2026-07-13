@@ -2826,6 +2826,86 @@ body {
     color: #ffffff;
 }
 
+/* 플레이한 특성 카드 — 클릭해 미플레이 목록 펼치기 */
+.user-stat-row.stat-expandable {
+    position: relative;
+    cursor: pointer;
+}
+
+.stat-expand-hint {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-secondary, #6b7683);
+    opacity: 0.75;
+    z-index: 1;
+    transition: opacity 0.15s;
+}
+
+.user-stat-row.stat-expandable:hover .stat-expand-hint {
+    opacity: 1;
+}
+
+.user-stat-row.stat-expandable.is-expanded .stat-expand-hint {
+    display: none;
+}
+
+/* 등급색이 입혀진 카드에서도 힌트가 읽히도록 */
+.user-stat-row.stat-expandable[class*="tier-diamond"] .stat-expand-hint,
+.user-stat-row.stat-expandable[class*="tier-master"] .stat-expand-hint {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* 미플레이 특성 패널 — 기본 접힘, is-open 시 펼침 */
+.user-unplayed-panel {
+    display: none;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--card-bg, #f5f7fa);
+    border: 1.5px solid var(--border, #e2e6ed);
+}
+
+.user-unplayed-panel.is-open {
+    display: block;
+}
+
+.user-unplayed-title {
+    margin: 0 0 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary, #4a5568);
+}
+
+.user-unplayed-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.user-unplayed-chip {
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-secondary, #6b7683);
+    background: color-mix(in srgb, var(--text-secondary, #6b7683) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text-secondary, #6b7683) 22%, transparent);
+    white-space: nowrap;
+}
+
+.user-unplayed-done {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary, #16292d);
+}
+
 /* 최근 기록 (timestamp 기준 최근 5개) */
 .user-recent-title {
     margin: 14px 0 8px;

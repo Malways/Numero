@@ -2521,18 +2521,54 @@ function renderUserSearchProfile(username, stats) {
             row.perk ? "perk-colored" : "",
             row.centered ? "center-value" : "",
             row.score ? "center-score" : "",
+            row.expandable ? "stat-expandable" : "",
             row.tier || "",
         ].filter(Boolean).join(" ");
         const valueStyle = row.valueStyle ? ` style="${row.valueStyle}"` : "";
+        const expandAttr = row.expandable ? ` role="button" tabindex="0" aria-expanded="false"` : "";
+        const hint = row.expandable ? `<span class="stat-expand-hint">미플레이 보기 ▾</span>` : "";
         return `
-                <div class="${classes}"${perkStyle}>
+                <div class="${classes}"${perkStyle}${expandAttr}>
                     <span class="user-stat-label">${row.label}</span>
                     <span class="user-stat-value"${valueStyle}>${escapeHtml(String(row.value))}</span>
+                    ${hint}
                 </div>`;
     }).join("")}
         </div>
+        ${unplayedPerks != null ? renderUnplayedPanel(unplayedPerks) : ""}
         <p class="user-recent-title">최근 기록</p>
         <div class="user-recent-list">${recentRows || `<p class="user-search-hint">이번 시즌 기록이 없습니다.</p>`}</div>`;
+
+    // "플레이한 특성" 카드 클릭 시 미플레이 패널 토글
+    const expandCard = els.userSearchContent.querySelector(".user-stat-row.stat-expandable");
+    const panel = els.userSearchContent.querySelector(".user-unplayed-panel");
+    if (expandCard && panel) {
+        const toggle = () => {
+            const open = panel.classList.toggle("is-open");
+            expandCard.setAttribute("aria-expanded", open ? "true" : "false");
+            expandCard.classList.toggle("is-expanded", open);
+        };
+        expandCard.addEventListener("click", toggle);
+        expandCard.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+        });
+    }
+}
+
+// 미플레이 특성 목록 패널 HTML — 플레이한 특성 카드 클릭 시 펼쳐짐
+function renderUnplayedPanel(unplayedPerks) {
+    if (unplayedPerks.length === 0) {
+        return `<div class="user-unplayed-panel">
+            <p class="user-unplayed-done">🏆 모든 특성을 플레이했습니다!</p>
+        </div>`;
+    }
+    const chips = unplayedPerks.map((perk) =>
+        `<span class="user-unplayed-chip">${escapeHtml(perk.name)}</span>`
+    ).join("");
+    return `<div class="user-unplayed-panel">
+        <p class="user-unplayed-title">아직 플레이하지 않은 특성 (${unplayedPerks.length})</p>
+        <div class="user-unplayed-chips">${chips}</div>
+    </div>`;
 }
 
 // 게임 화면 우상단에 토스트를 띄우는 공용 헬퍼.
