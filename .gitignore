@@ -4,9 +4,9 @@
 .env.local
 .env.*.local
 
-# Supabase CLI artifacts
+# Supabase — CLI artifacts 및 서버 함수 소스 전체 (공개 리포 제외)
 .supabase/
-supabase/.env
+supabase/
 
 # Logs
 npm-debug.log*
