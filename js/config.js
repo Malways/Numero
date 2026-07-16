@@ -5,7 +5,7 @@
 //
 // Supabase 대시보드 → Project Settings → API 에서 값을 확인하세요.
 export const APP_CONFIG = {
-    version: "v0.85b",
+    version: "v0.86b",
     lastPatchDate: "2026-07-16", // 마지막 패치 배포일 (YYYY-MM-DD). 이 날부터 3일간 패치노트 안내 토스트 표시
     supabaseEnabled: true,         // 연결을 켜려면 true 로 바꾸세요
     supabaseUrl: "https://yspqjrrojcbljxbdsajn.supabase.co",                // Project URL

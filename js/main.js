@@ -4,6 +4,7 @@
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
 import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates, fetchUserProfile } from "./supabase.js";
 import { APP_CONFIG } from "./config.js";
+import { LEGACY_PERKS } from "./legacyPerks.js";
 
 // ============================================================================
 // 1. 게임 상수 및 유틸 함수
@@ -545,7 +546,7 @@ const PERK_LIB = [
     {
         id: "perk-time-warp",
         name: "시간 왜곡",
-        description: "5턴 동안 한 번도 스킵하지 않으면 6턴을 진행할 수 있습니다.",
+        description: "5턴 동안 스킵과 리롤을 한 번도 하지 않으면 6턴을 진행할 수 있습니다.",
         adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(185, 232, 248, 0.93), rgba(215, 244, 253, 0.97))",
         glitterColor: "rgba(105, 204, 240, 1)",
@@ -556,12 +557,32 @@ const PERK_LIB = [
     {
         id: "perk-patron",
         name: "후원자",
-        description: "시작 점수를 500으로 고정합니다. 광고 봐주셔서 감사해요 :)",
+        description: "시작 점수를 300으로 고정합니다. 광고 봐주셔서 감사해요 :)",
         adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(255, 175, 200, 0.94), rgba(255, 215, 230, 0.96))",
         glitterColor: "rgba(240, 100, 145, 1)",
         glitterIntensity: 0.65,
         textColor: "#5a1028",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-strikeout",
+        name: "쓰리 스트라이크",
+        description: "주사위를 게임당 3회까지 다시 굴릴 수 있습니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(250, 245, 232, 0.97), rgba(240, 230, 210, 0.95))",
+        glitterColor: "rgba(164, 25, 38, 1)",
+        glitterIntensity: 0.62,
+        textColor: "#8c2332",
+        applyTemplate: (_gameState) => { },
+    },
+    {
+        id: "perk-ready-chance",
+        name: "준비된 기회",
+        description: "주사위 리롤 시 눈금이 6으로 확정되고, 행운 10을 얻습니다.",
+        backgroundStyle: "linear-gradient(160deg, rgba(120, 10, 85, 0.97) 0%, rgba(200, 20, 140, 0.95) 55%, rgba(255, 70, 180, 0.94) 100%)",
+        glitterColor: "rgba(255, 150, 215, 1)",
+        glitterIntensity: 0.68,
+        textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
     {
@@ -597,17 +618,6 @@ const PERK_LIB = [
         applyTemplate: (_gameState) => { },
     },
     {
-        id: "perk-strategic-retreat",
-        name: "전략적 후퇴",
-        description: "주사위를 굴릴 때마다 눈금 × -50을 점수에 더합니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(5, 55, 20, 0.97) 0%, rgba(15, 90, 35, 0.96) 50%, rgba(8, 70, 25, 0.97) 100%)",
-        glitterColor: "rgba(80, 220, 100, 1)",
-        glitterIntensity: 0.72,
-        textColor: "#ffffff",
-        legacy: true,
-        applyTemplate: (_gameState) => { },
-    },
-    {
         id: "perk-solo",
         name: "홀로서기",
         description: "턴 종료 시 점수가 홀수라면 3배로 만듭니다.",
@@ -626,17 +636,6 @@ const PERK_LIB = [
         glitterColor: "rgba(246, 217, 253, 1)",
         glitterIntensity: 0.72,
         textColor: "#2a1545",
-        applyTemplate: (_gameState) => { },
-    },
-    {
-        id: "perk-bullseye",
-        name: "불스아이",
-        description: "주사위 번호와 턴이 일치하면 점수를 그만큼 배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(165, 0, 18, 0.97), rgba(232, 1, 36, 0.95))",
-        glitterColor: "rgba(255, 255, 255, 1)",
-        glitterIntensity: 0.72,
-        textColor: "#ffffff",
-        legacy: true,
         applyTemplate: (_gameState) => { },
     },
     {
@@ -677,17 +676,6 @@ const PERK_LIB = [
         glitterColor: "rgba(255, 200, 50, 1)",
         glitterIntensity: 0.88,
         textColor: "#ffffff",
-        applyTemplate: (_gameState) => { },
-    },
-    {
-        id: "perk-gros-michel",
-        name: "그로 미셸",
-        legacy: true,
-        description: "주사위가 1이 나올 때마다 점수를 6배로 만듭니다.",
-        backgroundStyle: "linear-gradient(160deg, rgba(210, 165, 20, 0.96), rgba(245, 200, 42, 0.94))",
-        glitterColor: "rgba(255, 232, 130, 1)",
-        glitterIntensity: 0.75,
-        textColor: "#2d2000",
         applyTemplate: (_gameState) => { },
     },
     {
@@ -757,7 +745,7 @@ const PERK_LIB = [
     {
         id: "perk-reactor",
         name: "반응로",
-        description: "매 턴 주사위를 굴리면 눈금 수만큼 점수에 1.2배를 반복해 적용합니다.",
+        description: "매 턴 주사위를 굴리면 눈금만큼 점수에 1.2배를 반복해 적용합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(0, 221, 208, 0.97) 0%, rgba(121, 248, 253, 0.95) 50%, rgba(64, 144, 185, 0.97) 100%)",
         glitterColor: "rgba(121, 248, 253, 1)",
         glitterIntensity: 0.78,
@@ -785,17 +773,8 @@ const PERK_LIB = [
         textColor: "#ffffff",
         applyTemplate: (_gameState) => { },
     },
-    {
-        id: "perk-salvation",
-        name: "구원",
-        description: "게임당 한 번, 주사위가 1이 나오면 6으로 변경합니다.",
-        legacy: true,
-        backgroundStyle: "linear-gradient(160deg, rgba(250, 238, 160, 0.96), rgba(255, 248, 200, 0.97))",
-        glitterColor: "rgba(255, 253, 230, 1)",
-        glitterIntensity: 0.7,
-        textColor: "#3a2c00",
-        applyTemplate: (_gameState) => { },
-    },
+    // 레거시(선택 불가) 특성은 js/legacyPerks.js에 모여 있다 — 과거 기록 표시용
+    ...LEGACY_PERKS,
 ];
 
 
@@ -915,8 +894,8 @@ const state = {
     questLevel: "common", // 퀘스트 특성의 현재 단계: common | rare | epic | legend
     volcanoActivated: false, // 휴화산 → 활화산 전환 여부
     upgradeMultiplier: 1.5, // 업그레이드 특성의 턴 종료 배율 (스킵마다 +0.5)
-    rerollUsed: false, // 이번 게임에서 주사위 다시 굴리기를 1회 사용했는지 여부
-    rerollCounts: {}, // 굴림별 리롤 횟수 (키: 0=시작 굴림, N=N턴). 로그 rng_v=3 검증용
+    rerollCounts: {}, // 굴림별 리롤 횟수 (키: 0=시작 굴림, N=N턴). 로그 rng_v 검증용 (상한: getRerollMax)
+    lastRawRolls: {}, // 굴림별 마지막 원본 눈금 (가공 전 1~6). 리롤 시 같은 눈금 제외용 — 스냅샷 복원에 휩쓸리면 안 됨
 };
 
 // ============================================================================
@@ -935,6 +914,13 @@ function clamp(value, min, max) {
  */
 function rollDice() {
     return Math.floor(_rng() * 6) + 1;
+}
+
+// 직전 원본 눈금(prev, 1~6)을 제외한 5개 눈금 중 균등 추첨 — 리롤 전용 (rng_v=4).
+// draw는 정확히 1회 소비하므로 서버 리시뮬레이션과 소비량이 어긋나지 않는다.
+function rollDiceExcluding(prev) {
+    const r = Math.floor(_rng() * 5) + 1; // 1~5
+    return r >= prev ? r + 1 : r;
 }
 
 /**
@@ -2090,6 +2076,7 @@ const ACHIEVEMENTS = [
     { id: "no-skip", name: "스텝 바이 스텝", desc: "한 번도 스킵하지 않고 게임을 완료한다" },
     { id: "skip-master", name: "모르겠으면 일단 넘겨", desc: "5턴 중 3번 이상 스킵해 게임을 완료한다" },
     { id: "lucky-guy", name: "100% Legendary Juice", desc: "행운 166 이상인 상태로 게임을 완료한다." },
+    { id: "absolute-zero", name: "Absolute Zero", desc: "게임플레이 도중 0의 점수를 달성한다." },
     { id: "perk-collector", name: "누메로 마스터", desc: "모든 특성을 플레이 완료한다." },
 
 
@@ -2108,6 +2095,7 @@ const ACHIEVEMENTS = [
     { id: "67-3", name: "69??", desc: "67 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "67-4", name: "망고", desc: "67 특성으로 최종 값 100억 이상을 달성한다." },
     { id: "67-triple7", name: "트리플 세븐", desc: "한 게임에 7을 3번 이상 뽑았습니다." },
+    { id: "67-mustard", name: "머스타드", desc: "게임플레이 도중 67의 점수를 달성한다." },
 
     { id: "reverse-1", name: "푸른「창」", desc: "반전 술식 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "reverse-2", name: "붉은「혁」", desc: "반전 술식 특성으로 최종 값 100만 이상을 달성한다." },
@@ -2205,15 +2193,26 @@ const ACHIEVEMENTS = [
     { id: "energy-3", name: "약간의 희생", desc: "에너지 전환 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "energy-4", name: "교환 성공", desc: "에너지 전환 특성으로 최종 값 100억 이상을 달성한다." },
 
-    { id: "lastshoot-1", name: "라스트 슈팅1", desc: "라스트 슈팅 특성으로 최종 값 1만 이상을 달성한다." },
-    { id: "lastshoot-2", name: "라스트 슈팅2", desc: "라스트 슈팅 특성으로 최종 값 100만 이상을 달성한다." },
-    { id: "lastshoot-3", name: "라스트 슈팅3", desc: "라스트 슈팅 특성으로 최종 값 1억 이상을 달성한다." },
-    { id: "lastshoot-4", name: "라스트 슈팅4", desc: "라스트 슈팅 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "lastshoot-1", name: "대지에 서다", desc: "라스트 슈팅 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "lastshoot-2", name: "메인 카메라가 당했을 뿐이야", desc: "라스트 슈팅 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "lastshoot-3", name: "라스트 슈팅", desc: "라스트 슈팅 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "lastshoot-4", name: "돌아갈 곳이 있어", desc: "라스트 슈팅 특성으로 최종 값 100억 이상을 달성한다." },
+    { id: "lastshoot-782", name: "오퍼레이션 V", desc: "게임플레이 도중 782의 점수를 달성한다." },
 
     { id: "upgrade-1", name: "Harder", desc: "업그레이드 특성으로 최종 값 1만 이상을 달성한다." },
     { id: "upgrade-2", name: "Better", desc: "업그레이드 특성으로 최종 값 100만 이상을 달성한다." },
     { id: "upgrade-3", name: "Faster", desc: "업그레이드 특성으로 최종 값 1억 이상을 달성한다." },
     { id: "upgrade-4", name: "Stronger", desc: "업그레이드 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "strikeout-1", name: "스트라이크아웃", desc: "쓰리 스트라이크 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "strikeout-2", name: "9회말", desc: "쓰리 스트라이크 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "strikeout-3", name: "결정타", desc: "쓰리 스트라이크 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "strikeout-4", name: "만루 홈런", desc: "쓰리 스트라이크 특성으로 최종 값 100억 이상을 달성한다." },
+
+    { id: "ready-1", name: "준비된 자에게는", desc: "준비된 기회 특성으로 최종 값 1만 이상을 달성한다." },
+    { id: "ready-2", name: "회생의 기회", desc: "준비된 기회 특성으로 최종 값 100만 이상을 달성한다." },
+    { id: "ready-3", name: "선택은 자유", desc: "준비된 기회 특성으로 최종 값 1억 이상을 달성한다." },
+    { id: "ready-4", name: "하이라이트", desc: "준비된 기회 특성으로 최종 값 100억 이상을 달성한다." },
 ];
 
 // 도전과제 id 접두사 → 특성 id (특성별 과제의 색상 표시용)
@@ -2242,6 +2241,8 @@ const ACHIEVEMENT_PREFIX_TO_PERK = {
     energy: "perk-energy-convert",
     lastshoot: "perk-last-shooting",
     upgrade: "perk-upgrade",
+    strikeout: "perk-strikeout",
+    ready: "perk-ready-chance",
 };
 
 // 상단 시드 도트 옆에 현재 닉네임을 표시합니다 (미설정 시 "익명").
@@ -3653,12 +3654,49 @@ async function animateDiceRoll(targetKey, duration = 760, tick = 122) {
         });
     }
 
-    const finalValue = rollDice();
+    // 리롤이면 직전 원본 눈금을 제외한 5개 중에서 뽑는다 (rng_v=4, draw 1회 고정)
+    const rerollKey = targetKey === "pointVal" ? 0 : state.turn;
+    const isReroll = (state.rerollCounts[rerollKey] ?? 0) > 0;
+    const prevRaw = state.lastRawRolls[rerollKey];
+    let finalValue = isReroll && prevRaw ? rollDiceExcluding(prevRaw) : rollDice();
+    state.lastRawRolls[rerollKey] = finalValue; // 가공(6 확정, 67 등) 전 원본 눈금 기록
+
+    // 준비된 기회: 리롤로 다시 굴린 주사위는 눈금 6 확정.
+    // draw는 그대로 소비해 시드 스트림을 서버 재현과 일치시킨다.
+    if (state.selectedPerkId === "perk-ready-chance" && isReroll) {
+        finalValue = 6;
+    }
     state[targetKey] = finalValue;
     state.rollingTarget = null;
     setRollingVisual(null);
     renderStatus();
     return finalValue;
+}
+
+// 실제 draw 소비 없이 스핀 연출만 하고 원래 값으로 되돌린다.
+// 준비된 기회 + 현재 눈금 6 리롤: 결과가 어차피 6이라 "하는 척"만 한다 (카운트/로그도 미소비).
+async function animateFakeDiceRoll(targetKey, keepValue, duration = 760, tick = 122) {
+    state.rollingTarget = targetKey;
+    setRollingVisual(targetKey);
+
+    const start = Date.now();
+    while (Date.now() - start < duration) {
+        state[targetKey] = Math.floor(Math.random() * 6) + 1;
+        renderStatus();
+        if (els.diceRollSound) {
+            els.diceRollSound.playbackRate = 2.0;
+            els.diceRollSound.currentTime = 0;
+            els.diceRollSound.play().catch(() => { });
+        }
+        await new Promise((resolve) => {
+            window.setTimeout(resolve, tick);
+        });
+    }
+
+    state[targetKey] = keepValue;
+    state.rollingTarget = null;
+    setRollingVisual(null);
+    renderStatus();
 }
 
 /**
@@ -3717,8 +3755,8 @@ async function startGame() {
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
-    state.rerollUsed = false;
     state.rerollCounts = {};
+    state.lastRawRolls = {};
     if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
@@ -3744,6 +3782,8 @@ async function startGame() {
     // 리롤 시 이 지점부터 다시 실행되도록 굴림 + 미리보기 효과를 루프로 감싼다
     while (true) {
         restoreRerollSnapshot(initRerollSnapshot);
+        // 준비된 기회 리롤 보상 — 복원이 luck을 되돌리므로 누적치를 매 반복 재적용
+        applyReadyChanceRerollLuck(state.rerollCounts[0] ?? 0);
 
         await animateDiceRoll("pointVal");
 
@@ -3752,22 +3792,22 @@ async function startGame() {
 
         const riggedDiceResult = await applyPerkAfterDiceRoll("pointVal", state.pointVal);
 
-        // 후원자: 미리보기 렌더 전에 100으로 고정해 "X→6" 재렌더를 방지
+        // 후원자: 미리보기 렌더 전에 300으로 고정해 "X→6" 재렌더를 방지
         const patronPerkEarly = getSelectedPerk();
         if (patronPerkEarly?.id === "perk-patron") {
             const origDiceVal = state.pointVal;
-            state.pointVal = 500;
+            state.pointVal = 300;
             recordPerkActivationHistory(
                 patronPerkEarly,
-                `초기 시작 값: 주사위 ${origDiceVal} → 500으로 고정`,
-                { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 500 },
+                `초기 시작 값: 주사위 ${origDiceVal} → 300으로 고정`,
+                { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 300 },
             );
             if (_pointValAnimFrame !== null) {
                 cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
                 _pointValAnimFrame = null;
             }
             _prevPointValForAnim = 100;
-            triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 500, "500 고정");
+            triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 300, "300 고정");
             triggerPerkBadgeActivationFeedback();
         }
 
@@ -3778,7 +3818,7 @@ async function startGame() {
                 ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
                 : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
             : patronPerkEarly?.id === "perk-patron"
-                ? `특성 발동! 후원자: 초기 값 500으로 고정`
+                ? `특성 발동! 후원자: 초기 값 300으로 고정`
                 : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
         renderStatus();
 
@@ -3874,12 +3914,20 @@ async function startGame() {
         }
 
         // 선택지(1턴 진행) 직전 — 다시 굴리기 기회 제공 (원본 굴림눈 전달)
-        const initRerollDecision = await awaitRerollDecision("pointVal", initialDiceFace);
-        if (initRerollDecision === "reroll") {
-            state.rerollUsed = true;
+        let initRerolled = false;
+        while (true) {
+            const initRerollDecision = await awaitRerollDecision("pointVal", initialDiceFace);
+            if (initRerollDecision !== "reroll") break;
+            // 준비된 기회 + 현재 눈금 6: 리롤해도 6이라 연출만 하고 실제 리롤은 하지 않는다
+            if (state.selectedPerkId === "perk-ready-chance" && initialDiceFace === 6) {
+                await animateFakeDiceRoll("pointVal", state.pointVal);
+                continue; // 게이트 재제시
+            }
             state.rerollCounts[0] = (state.rerollCounts[0] ?? 0) + 1; // 시작 굴림 리롤 기록
-            continue; // 루프 상단에서 스냅샷 복원 후 재굴림
+            initRerolled = true;
+            break;
         }
+        if (initRerolled) continue; // 루프 상단에서 스냅샷 복원 후 재굴림
         break;
     } // end while (리롤 루프)
 
@@ -3921,6 +3969,8 @@ function preparePerkSelection() {
     state.questLevel = "common";
     state.volcanoActivated = false;
     state.upgradeMultiplier = 1.5;
+    state.rerollCounts = {};
+    state.lastRawRolls = {};
     state.perkChoices = createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
@@ -3948,6 +3998,30 @@ function selectPerk(perkIndex) {
 // ---------- 주사위 다시 굴리기 (리롤) ----------
 // 굴림 직후의 효과들이 pointVal/luck/modVal을 직접 변형하므로, 리롤은
 // "굴림 직전 상태를 스냅샷 → 복원 후 재굴림" 방식으로 동작한다.
+// 게임당 리롤 상한 — 쓰리 스트라이크 특성은 3회, 그 외 1회
+function getRerollMax() {
+    return state.selectedPerkId === "perk-strikeout" ? 3 : REROLL_MAX_PER_GAME;
+}
+
+// 이번 게임에서 지금까지 사용한 리롤 총 횟수
+function getRerollsUsed() {
+    return Object.values(state.rerollCounts).reduce((sum, n) => sum + n, 0);
+}
+
+// 준비된 기회: 리롤할 때마다 행운 +10.
+// 스냅샷 복원이 luck을 되돌리므로 반드시 복원 이후에 호출해야 한다.
+// count = 이 굴림에 누적된 리롤 횟수 (초기 굴림 루프는 매 반복 복원되므로 누적치로 재적용)
+function applyReadyChanceRerollLuck(count) {
+    const perk = getSelectedPerk();
+    if (perk?.id !== "perk-ready-chance" || count <= 0) return;
+    const gained = 10 * count;
+    state.luck += gained;
+    recordPerkActivationHistory(perk, `리롤 보상: Luck +${gained}`,
+        { turn: state.turn, trigger: "reroll", luck_gained: gained });
+    triggerPerkBadgeActivationFeedback();
+    renderStatus();
+}
+
 function captureRerollSnapshot() {
     return {
         turn: state.turn,
@@ -3979,17 +4053,17 @@ function restoreRerollSnapshot(snap) {
 }
 
 // 주사위 굴림 + 효과 적용 후, 선택지 제시 직전에 호출.
-// "다시 굴리기" 버튼과 3초 카운트다운을 주사위 표기 하단에 띄우고,
-// 사용자가 리롤을 누르면 "reroll", 3초가 지나면 "proceed"로 resolve한다.
-// 이미 리롤을 1회라도 썼다면 UI/대기 없이 즉시 "proceed".
+// "리롤" 버튼과 카운트다운을 주사위 표기 하단에 띄우고,
+// 사용자가 리롤을 누르면 "reroll", 시간이 지나거나 스킵하면 "proceed"로 resolve한다.
+// 리롤을 전부 소진했다면 UI/대기 없이 즉시 "proceed".
 function awaitRerollDecision(targetKey, rolledValue) {
     return new Promise((resolve) => {
-        if (state.rerollUsed) {
+        if (getRerollsUsed() >= getRerollMax()) {
             resolve("proceed");
             return;
         }
 
-        // 후원자: 시작 점수가 500으로 고정되므로 시작 굴림 리롤은 의미가 없음 — 게이트 생략
+        // 후원자: 시작 점수가 300으로 고정되므로 시작 굴림 리롤은 의미가 없음 — 게이트 생략
         if (targetKey === "pointVal" && state.selectedPerkId === "perk-patron") {
             resolve("proceed");
             return;
@@ -3999,7 +4073,7 @@ function awaitRerollDecision(targetKey, rolledValue) {
         const diceFace = clamp(Math.round(rolledValue ?? state[targetKey] ?? 1), 1, 7);
         const isSeven = diceFace === 7; // 67 특성 — 중앙 pip를 별로 강조
         const title = targetKey === "pointVal" ? "시작 점수 확정" : `${state.turn}턴 주사위 값 확정`;
-        const rerollsLeft = Math.max(0, REROLL_MAX_PER_GAME - (state.rerollUsed ? 1 : 0));
+        const rerollsLeft = Math.max(0, getRerollMax() - getRerollsUsed());
 
         els.options.innerHTML = `
             <div class="options-placeholder rolled-dice-preview dice-stage fade-in reroll-stage" role="status" aria-live="polite">
@@ -4013,7 +4087,7 @@ function awaitRerollDecision(targetKey, rolledValue) {
                         <button class="skip-luck-btn reroll-skip-btn" type="button"><span>스킵하기</span></button>
                     </div>
                     <p class="reroll-note">※주사위를 굴리며 발생한 변동 사항은 모두 롤백됩니다</p>
-                    <p class="reroll-timer"><span class="reroll-count">5</span>초 후 자동 진행...</p>
+                    <p class="reroll-timer"><span class="reroll-count">10</span>초 후 자동 진행...</p>
                 </div>
             </div>
         `;
@@ -4023,7 +4097,7 @@ function awaitRerollDecision(targetKey, rolledValue) {
         const skipBtn = els.options.querySelector(".reroll-skip-btn");
 
         let settled = false;
-        let remaining = 5;
+        let remaining = 10;
 
         const finish = (result) => {
             if (settled) return;
@@ -4242,11 +4316,17 @@ async function rollModValForTurn() {
     }
 
     // 선택지 제시 직전 — 다시 굴리기 기회 제공
-    const rerollDecision = await awaitRerollDecision("modVal", state.modVal);
-    if (rerollDecision === "reroll") {
-        state.rerollUsed = true;
+    while (true) {
+        const rerollDecision = await awaitRerollDecision("modVal", state.modVal);
+        if (rerollDecision !== "reroll") break;
+        // 준비된 기회 + 현재 눈금 6: 리롤해도 6이라 연출만 하고 실제 리롤은 하지 않는다
+        if (state.selectedPerkId === "perk-ready-chance" && state.modVal === 6) {
+            await animateFakeDiceRoll("modVal", state.modVal);
+            continue; // 게이트 재제시
+        }
         state.rerollCounts[state.turn] = (state.rerollCounts[state.turn] ?? 0) + 1; // 이 턴 리롤 기록
         restoreRerollSnapshot(rerollSnapshot);
+        applyReadyChanceRerollLuck(1); // 준비된 기회 리롤 보상 (복원 이후 적용, 재귀 스냅샷에 포함됨)
         state.phase = "await-mod-roll";
         await rollModValForTurn();
         return;
@@ -4391,7 +4471,7 @@ async function pickOption(optionIndex) {
 
     if (state.turn >= MAX_TURNS && !state.timewarpExtraTurn && !reachedMaxValue) {
         const selectedPerk = getSelectedPerk();
-        if (selectedPerk?.id === "perk-time-warp" && !state.skipUsed) {
+        if (selectedPerk?.id === "perk-time-warp" && !state.skipUsed && getRerollsUsed() === 0) {
             state.resolvingOptionId = null;
             recordPerkActivationHistory(selectedPerk, `Turn ${state.turn} 종료: 퀘스트 달성! 6턴 추가`,
                 { turn: state.turn, trigger: "extra_turn" });
@@ -4700,8 +4780,9 @@ function buildGameplayLog() {
     log.final_score = state.pointVal ?? 0;
     log.final_luck = state.luck ?? 0;
     // 시드 RNG 소비 규칙 버전 (서버 리시뮬레이션 검증용).
-    // v2: 연출 스핀이 시드를 소비하지 않음. v3: 다시 굴리기(reroll) 지원 — 리롤 1회당 주사위 draw 1회 추가 소비.
-    log.rng_v = 3;
+    // v2: 연출 스핀이 시드를 소비하지 않음. v3: 리롤 1회당 주사위 draw 1회 추가 소비.
+    // v4: 리롤 draw는 직전 원본 눈금을 제외한 5면 리매핑 (rollDiceExcluding).
+    log.rng_v = 4;
 
     return log;
 }
@@ -4733,6 +4814,8 @@ function buildShareRecordText() {
         "perk-gros-michel": "🍌",
         "perk-death-boundary": "💀",
         "perk-patron": "🤝",
+        "perk-strikeout": "⚾",
+        "perk-ready-chance": "🔄",
         "perk-abyss-route": "⚓",
         "perk-moody-blues": "📼",
         "perk-bullseye": "🎯",

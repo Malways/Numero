@@ -1339,7 +1339,9 @@ body {
 .perk-option-btn[data-perk-id="perk-abyss-route"] .perk-name,
 .perk-option-btn[data-perk-id="perk-abyss-route"] .perk-description,
 .perk-option-btn[data-perk-id="perk-dormant-volcano"] .perk-name,
-.perk-option-btn[data-perk-id="perk-dormant-volcano"] .perk-description {
+.perk-option-btn[data-perk-id="perk-dormant-volcano"] .perk-description,
+.perk-option-btn[data-perk-id="perk-ready-chance"] .perk-name,
+.perk-option-btn[data-perk-id="perk-ready-chance"] .perk-description {
     color: #ffffff;
 }
 
@@ -2426,6 +2428,12 @@ body {
 
 .perk-list-content .option-btn {
     flex-shrink: 0;
+}
+
+/* 모든 특성 보기 — 카드가 가로로 길어, 기울어진(8deg) 글린트가 좌우 끝에서
+   상하로 밀려나며 모서리에 닿지 않음 → 세로 여유를 크게 늘려 전체를 덮게 한다 */
+.perk-list-content .perk-option-btn::before {
+    inset: -150% -48%;
 }
 
 .perk-list-counter {
