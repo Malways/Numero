@@ -1579,6 +1579,18 @@ body {
     border-color: rgba(84, 90, 100, 0.28);
 }
 
+.tag-reroll {
+    color: rgba(90, 100, 105, 0.7);
+    border: 1px solid rgba(90, 100, 105, 0.3);
+    background: rgba(90, 100, 105, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    margin-left: 4px;
+}
+
 .tag-enhanced.r-rare {
     border-color: rgba(30, 157, 232, 0.35);
 }
@@ -1645,10 +1657,22 @@ body {
     margin-top: 12px;
 }
 
-.reroll-gate .reroll-btn {
-    padding: 7px 16px;
-    font-size: 12px;
-    border-radius: 10px;
+.reroll-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.reroll-gate .reroll-btn,
+.reroll-gate .reroll-skip-btn {
+    flex: 1 1 0;
+    min-width: 150px;
+    padding: 9px 0 !important;
+    font-size: 15px !important;
+    border-radius: 10px !important;
+    border: 1px dashed rgba(90, 100, 105, 0.45) !important;
+    text-align: center;
 }
 
 .reroll-timer {

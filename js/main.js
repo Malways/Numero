@@ -535,7 +535,7 @@ const PERK_LIB = [
     {
         id: "perk-red-comet",
         name: "붉은 혜성",
-        description: "첫 3턴간 턴 종료시 점수를 3배로 만들고, 행운이 3분의 1만큼 감소합니다.",
+        description: "첫 3턴간 턴 종료시 점수를 3배로 만들고, \n행운이 3분의 1만큼 감소합니다.",
         backgroundStyle: "linear-gradient(145deg, rgba(70,5,5,0.99) 0%, rgba(150,12,12,0.97) 28%, rgba(215,30,30,0.95) 48%, rgba(175,14,14,0.97) 68%, rgba(70,5,5,0.99) 100%)",
         glitterColor: "rgba(255, 160, 160, 1)",
         glitterIntensity: 0.92,
@@ -546,6 +546,7 @@ const PERK_LIB = [
         id: "perk-time-warp",
         name: "시간 왜곡",
         description: "5턴 동안 한 번도 스킵하지 않으면 6턴을 진행할 수 있습니다.",
+        adReward: true,
         backgroundStyle: "linear-gradient(160deg, rgba(185, 232, 248, 0.93), rgba(215, 244, 253, 0.97))",
         glitterColor: "rgba(105, 204, 240, 1)",
         glitterIntensity: 0.72,
@@ -3988,6 +3989,12 @@ function awaitRerollDecision(targetKey, rolledValue) {
             return;
         }
 
+        // 후원자: 시작 점수가 500으로 고정되므로 시작 굴림 리롤은 의미가 없음 — 게이트 생략
+        if (targetKey === "pointVal" && state.selectedPerkId === "perk-patron") {
+            resolve("proceed");
+            return;
+        }
+
         // 주사위 확정 UI(제목 + 굴린 주사위)를 렌더하고, 그 밑에 바로 리롤/스킵을 표시
         const diceFace = clamp(Math.round(rolledValue ?? state[targetKey] ?? 1), 1, 7);
         const isSeven = diceFace === 7; // 67 특성 — 중앙 pip를 별로 강조
@@ -4001,18 +4008,22 @@ function awaitRerollDecision(targetKey, rolledValue) {
                     <div class="dice-card reveal-card">${renderDiceFace(diceFace, "idle-spin", isSeven)}</div>
                 </div>
                 <div class="reroll-gate">
-                    <button class="skip-luck-btn reroll-btn" type="button"><span>🎲 다시 굴리기 (${rerollsLeft}번 남음)</span></button>
+                    <div class="reroll-buttons">
+                        <button class="skip-luck-btn reroll-btn" type="button"><span>리롤 (${rerollsLeft}회 남음)</span></button>
+                        <button class="skip-luck-btn reroll-skip-btn" type="button"><span>스킵하기</span></button>
+                    </div>
                     <p class="reroll-note">※주사위를 굴리며 발생한 변동 사항은 모두 롤백됩니다</p>
-                    <p class="reroll-timer"><span class="reroll-count">3</span>초 후 스킵...</p>
+                    <p class="reroll-timer"><span class="reroll-count">5</span>초 후 자동 진행...</p>
                 </div>
             </div>
         `;
 
         const countEl = els.options.querySelector(".reroll-count");
         const rerollBtn = els.options.querySelector(".reroll-btn");
+        const skipBtn = els.options.querySelector(".reroll-skip-btn");
 
         let settled = false;
-        let remaining = 3;
+        let remaining = 5;
 
         const finish = (result) => {
             if (settled) return;
@@ -4033,6 +4044,7 @@ function awaitRerollDecision(targetKey, rolledValue) {
         }, 1000);
 
         rerollBtn.addEventListener("click", () => finish("reroll"));
+        skipBtn.addEventListener("click", () => finish("proceed"));
     });
 }
 
@@ -5219,11 +5231,12 @@ function renderCalcHistory() {
             const resultValue = item.to;
             const gainedLuckText = formatNum(item.gainedLuck ?? 0);
             const enhancedMark = item.isEnhanced ? ' <span class="tag tag-enhanced">강화됨</span>' : "";
+            const rerollMark = state.rerollCounts[item.turn] ? ' <span class="tag tag-reroll">(리롤)</span>' : "";
 
             return `
                 <div class="calc-log-item">
                     <p class="calc-log-row"><strong>${item.turn}턴</strong>${enhancedMark}</p>
-                    <p class="calc-log-row">· 굴린 주사위 값: ${formatNum(item.modVal)}</p>
+                    <p class="calc-log-row">· 굴린 주사위 값: ${formatNum(item.modVal)}${rerollMark}</p>
                     <p class="calc-log-row">· 계산 전 점수: ${formatNum(beforeValue)}</p>
                     <p class="calc-log-row">· 계산식: ${formulaWithValues}</p>
                     <p class="calc-log-row">· 턴 종료 획득 Luck: +${gainedLuckText}</p>
