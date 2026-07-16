@@ -1636,6 +1636,51 @@ body {
     border-style: solid;
 }
 
+/* 다시 굴리기 게이트 — 주사위 미리보기 하단에 표시 */
+.reroll-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.reroll-gate .reroll-btn {
+    padding: 7px 16px;
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+.reroll-timer {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(90, 100, 105, 0.55);
+    letter-spacing: 0.2px;
+}
+
+.reroll-timer .reroll-count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+.reroll-note {
+    margin: 0;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(90, 100, 105, 0.5);
+    letter-spacing: 0.1px;
+    text-align: center;
+}
+
+[data-theme="dark"] .reroll-timer {
+    color: rgba(200, 205, 208, 0.5);
+}
+
+[data-theme="dark"] .reroll-note {
+    color: rgba(200, 205, 208, 0.42);
+}
+
 .finished-panel {
     display: grid;
     place-items: center;
@@ -1711,6 +1756,12 @@ body {
 
 .reveal-card {
     animation: reveal-fadeout 1000ms ease forwards;
+}
+
+/* 리롤 게이트에서는 주사위가 페이드아웃되지 않고 결정할 때까지 유지된다 */
+.reroll-stage .reveal-card {
+    animation: none;
+    opacity: 1;
 }
 
 .reveal-card.perk67-flash {

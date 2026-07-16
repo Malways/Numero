@@ -10,6 +10,7 @@ import { APP_CONFIG } from "./config.js";
 // ============================================================================
 
 const MAX_TURNS = 5; // 게임 총 5턴 진행
+const REROLL_MAX_PER_GAME = 1; // 게임당 주사위 다시 굴리기 가능 횟수
 const SAFE_INT_LIMIT = Number.MAX_SAFE_INTEGER; // 오버플로우 방지용 최대 안전 정수값
 const ENHANCED_OPTION_CHANCE = 0; // 강화됨 선택지 등장 확률 (코더가 조정 가능)
 const OPTION_APPEAR_INTERVAL_MS = 400; // 선택지 순차 등장 간격
@@ -18,6 +19,7 @@ const DEFAULT_AUDIO_VOLUME = 0.25; // 초기 볼륨 25%
 const AUDIO_VOLUME_STORAGE_KEY = "numero.audioVolume";
 const USERNAME_STORAGE_KEY = "numero.username";
 const DARK_MODE_STORAGE_KEY = "numero.darkMode";
+const PATCH_NOTE_SEEN_STORAGE_KEY = "numero.patchNoteSeenVersion"; // 패치노트 안내를 확인한 버전
 
 // ============================================================================
 // 시드 기반 PRNG (mulberry32)
@@ -436,13 +438,13 @@ const PERK_LIB = [
     {
         id: "perk-clover",
         name: "네잎클로버",
-        description: "게임 시작 전 15의 행운을 가지고 시작합니다.",
+        description: "게임 시작 전 20의 행운을 가지고 시작합니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(213, 246, 239, 0.92), rgba(247, 255, 253, 0.96))",
         glitterColor: "rgba(126, 238, 198, 1)",
         glitterIntensity: 0.72,
         textColor: "#1c3436",
         applyTemplate: (gameState) => {
-            gameState.luck = 15;
+            gameState.luck = 20;
         },
     },
     {
@@ -575,7 +577,7 @@ const PERK_LIB = [
     {
         id: "perk-dormant-volcano",
         name: "휴화산",
-        description: "5천 이상의 점수를 만들면 깨어납니다...",
+        description: "500 이상의 점수를 만들면 깨어납니다...",
         backgroundStyle: "linear-gradient(160deg, rgba(58, 60, 63, 0.97) 20%, rgba(88, 87, 85, 0.95) 55%, rgba(118, 116, 112, 0.93))",
         glitterColor: "rgba(170, 172, 175, 1)",
         glitterIntensity: 0.28,
@@ -585,7 +587,7 @@ const PERK_LIB = [
     {
         id: "perk-active-volcano",
         name: "활화산",
-        description: "주사위를 굴릴 때마다 눈금 × 5,000만큼 점수에 더합니다.",
+        description: "주사위를 굴릴 때마다 눈금 × 500만큼 점수에 더합니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(39, 7, 4, 0.99) 40%, rgba(198, 56, 21, 0.97) 80%, rgba(182, 45, 31, 0.95))",
         glitterColor: "rgba(253, 140, 34, 1)",
@@ -639,7 +641,7 @@ const PERK_LIB = [
     {
         id: "perk-joker",
         name: "조커",
-        description: "일반 선택지를 고를 때마다 짐보가 점수를 4배로 만듭니다.",
+        description: "일반 선택지를 고를 때마다 짐보가 점수를 5배로 만듭니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(247, 73, 62, 0.97), rgba(255, 152, 1, 0.96), rgba(115, 202, 255, 0.95))",
         glitterColor: "rgba(255, 152, 1, 1)",
         glitterIntensity: 0.78,
@@ -659,7 +661,7 @@ const PERK_LIB = [
     {
         id: "perk-beer",
         name: "맥주 한 잔",
-        description: "스킵 시 5 × 현재 턴만큼 추가 행운을 얻습니다.",
+        description: "스킵 시 7 × 현재 턴만큼 추가 행운을 얻습니다.",
         backgroundStyle: "linear-gradient(160deg, rgba(170, 100, 10, 0.96), rgba(215, 155, 35, 0.94))",
         glitterColor: "rgba(255, 205, 50, 1)",
         glitterIntensity: 0.7,
@@ -710,7 +712,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-common",
         name: "일반 퀘스트",
-        description: "일반 선택지 선택 시 점수를 2배로 만들고, 새 퀘스트를 받습니다.",
+        description: "일반 선택지 선택 시 점수를 2.5배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(78, 85, 97, 0.97), rgba(138, 143, 154, 0.95))",
         glitterColor: "rgba(195, 202, 215, 1)",
@@ -721,7 +723,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-rare",
         name: "희귀 퀘스트",
-        description: "희귀 선택지 선택 시 점수를 3배로 만들고, 새 퀘스트를 받습니다.",
+        description: "희귀 선택지 선택 시 점수를 3.5배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(15, 78, 155, 0.97), rgba(30, 157, 232, 0.95))",
         glitterColor: "rgba(145, 218, 255, 1)",
@@ -732,7 +734,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-epic",
         name: "특급 퀘스트",
-        description: "특급 선택지 선택 시 점수를 4배로 만들고, 새 퀘스트를 받습니다.",
+        description: "특급 선택지 선택 시 점수를 4.5배로 만들고, 새 퀘스트를 받습니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(55, 36, 138, 0.97), rgba(123, 97, 209, 0.95))",
         glitterColor: "rgba(207, 192, 255, 1)",
@@ -743,7 +745,7 @@ const PERK_LIB = [
     {
         id: "perk-quest-legend",
         name: "전설 퀘스트",
-        description: "전설 선택지 선택 시 점수를 5배로 만듭니다.",
+        description: "전설 선택지 선택 시 점수를 5.5배로 만듭니다.",
         hidden: true,
         backgroundStyle: "linear-gradient(160deg, rgba(215, 100, 18, 0.97), rgba(255, 168, 65, 0.95))",
         glitterColor: "rgba(255, 225, 150, 1)",
@@ -912,6 +914,8 @@ const state = {
     questLevel: "common", // 퀘스트 특성의 현재 단계: common | rare | epic | legend
     volcanoActivated: false, // 휴화산 → 활화산 전환 여부
     upgradeMultiplier: 1.5, // 업그레이드 특성의 턴 종료 배율 (스킵마다 +0.5)
+    rerollUsed: false, // 이번 게임에서 주사위 다시 굴리기를 1회 사용했는지 여부
+    rerollCounts: {}, // 굴림별 리롤 횟수 (키: 0=시작 굴림, N=N턴). 로그 rng_v=3 검증용
 };
 
 // ============================================================================
@@ -1523,13 +1527,13 @@ function applyPerkAfterTurnResolved() {
 
     if (selectedPerk.id === "perk-dormant-volcano" && !state.volcanoActivated) {
         const curPoint = state.pointVal ?? 0;
-        if (curPoint >= 5000) {
+        if (curPoint >= 500) {
             state.volcanoActivated = true;
             const activeVolcano = PERK_LIB.find((p) => p.id === "perk-active-volcano");
             if (activeVolcano) {
                 recordPerkActivationHistory(
                     activeVolcano,
-                    `Turn ${state.turn} 종료: 5천 점 돌파 → 활화산 발동 (${formatNum(curPoint)})`,
+                    `Turn ${state.turn} 종료: 500점 돌파 → 활화산 발동 (${formatNum(curPoint)})`,
                     { turn: state.turn, trigger: "turn_end", after_val: curPoint },
                 );
                 updatePerkBadge(getSelectedPerk());
@@ -1562,25 +1566,25 @@ function applyPerkAfterTurnResolved() {
         if (!lastTurn || lastTurn.rarity !== "common" || lastTurn.isEnhanced) return null;
 
         const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * 4);
+        const nextPoint = safeNumber(prevPoint * 5);
         state.pointVal = nextPoint;
 
         recordPerkActivationHistory(
             selectedPerk,
-            `Turn ${state.turn} 종료: 일반 선택 → 값 x4 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+            `Turn ${state.turn} 종료: 일반 선택 → 값 x5 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
             { turn: state.turn, trigger: "turn_end", before_val: prevPoint, after_val: nextPoint },
         );
-        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 4");
+        triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, "× 5");
         triggerPerkBadgeActivationFeedback();
         return { messageText: selectedPerk.name, messagePrefix: "" };
     }
 
     if (selectedPerk.id.startsWith("perk-quest-")) {
         const questConfig = {
-            "perk-quest-common": { rarity: "common", multiplier: 2, label: "일반", nextLevel: "rare" },
-            "perk-quest-rare": { rarity: "rare", multiplier: 3, label: "희귀", nextLevel: "epic" },
-            "perk-quest-epic": { rarity: "epic", multiplier: 4, label: "특급", nextLevel: "legend" },
-            "perk-quest-legend": { rarity: "legend", multiplier: 5, label: "전설", nextLevel: null },
+            "perk-quest-common": { rarity: "common", multiplier: 2.5, label: "일반", nextLevel: "rare" },
+            "perk-quest-rare": { rarity: "rare", multiplier: 3.5, label: "희귀", nextLevel: "epic" },
+            "perk-quest-epic": { rarity: "epic", multiplier: 4.5, label: "특급", nextLevel: "legend" },
+            "perk-quest-legend": { rarity: "legend", multiplier: 5.5, label: "전설", nextLevel: null },
         };
         const config = questConfig[selectedPerk.id];
         const lastTurn = state.history.filter(item => item.turn === state.turn && item.rarity).at(-1);
@@ -1652,7 +1656,8 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
             `Turn ${state.turn} 주사위 ${rolledValue} → ${state[targetKey]} (+${increased}, 행운 -${increased * 8})`,
             { turn: state.turn, trigger: "dice_reveal", before_luck: luckBefore, after_luck: state.luck },
         );
-        triggerPerkBadgeActivationFeedback();
+        // 루프 안에서 눈금마다 tick 사운드를 이미 재생했으므로 여기선 사운드 없이 배지만 갱신
+        triggerPerkBadgeActivationFeedback(false);
 
         return { perkName: selectedPerk.name, label: `+${increased}` };
     }
@@ -1683,10 +1688,10 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
         const startPoint = state.pointVal ?? 0;
         for (let i = 0; i < rolledValue; i++) {
             const prevPoint = state.pointVal ?? 0;
-            const nextPoint = safeNumber(prevPoint + 5000);
+            const nextPoint = safeNumber(prevPoint + 500);
             state.pointVal = nextPoint;
             setPointValAnimated(formatNum(state.pointVal), state.pointVal);
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `+5,000`);
+            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `+500`);
             triggerPerkBadgeActivationFeedback();
             await wait(200);
             if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
@@ -2587,7 +2592,7 @@ function spawnGameToast({ icon, title, text, durationMs = 3500, className = "", 
     toast.innerHTML = `<span class="achievement-toast-icon">${icon}</span>
         <div>
             <div class="achievement-toast-title">${escapeHtml(title)}</div>
-            <div class="achievement-toast-name">${escapeHtml(text)}</div>
+            <div class="achievement-toast-name">${escapeHtml(text).replace(/\n/g, "<br>")}</div>
         </div>`;
     container.appendChild(toast);
 
@@ -2662,6 +2667,40 @@ const SURVEY_URL = "https://forms.gle/ztfvzWSNwaYymd4NA";
 
 function openSurvey() {
     window.open(SURVEY_URL, "_blank", "noopener");
+}
+
+// 마지막 패치일로부터 3일 이내면, 새로고침 시 패치노트 안내 토스트를 표시합니다.
+// 클릭하면 패치노트 모달이 열립니다.
+function showPatchNoteToast() {
+    const raw = APP_CONFIG.lastPatchDate;
+    if (!raw) return;
+
+    const patchDate = new Date(`${raw}T00:00:00`);
+    if (Number.isNaN(patchDate.getTime())) return;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((today - patchDate) / 86_400_000);
+    if (diffDays < 0 || diffDays > 3) return; // 배포일 당일~3일까지만 안내
+
+    // 이미 이번 버전의 패치노트를 확인했다면(클릭했다면) 다음 업데이트 전까지 표시하지 않음
+    try {
+        if (window.localStorage.getItem(PATCH_NOTE_SEEN_STORAGE_KEY) === APP_CONFIG.version) return;
+    } catch (e) { /* localStorage 접근 불가 시 그냥 표시 */ }
+
+    spawnGameToast({
+        icon: "ℹ️",
+        title: `업데이트 ${APP_CONFIG.version}`,
+        text: "새로운 패치가 적용되었어요!\n눌러서 패치노트를 확인하세요.",
+        durationMs: 5000,
+        onClick: () => {
+            // 확인 처리 — 다음 버전이 나올 때까지 이 안내를 다시 띄우지 않음
+            try {
+                window.localStorage.setItem(PATCH_NOTE_SEEN_STORAGE_KEY, APP_CONFIG.version);
+            } catch (e) { /* 저장 실패해도 패치노트는 연다 */ }
+            openPatchLogModal();
+        },
+    });
 }
 
 // 게임 로드 시 설문조사 안내 토스트 — 이동 없이 설정 메뉴의 설문 버튼만 안내합니다.
@@ -3677,6 +3716,8 @@ async function startGame() {
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
+    state.rerollUsed = false;
+    state.rerollCounts = {};
     if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
@@ -3696,128 +3737,150 @@ async function startGame() {
         : "초기 시작 값 주사위를 굴리는 중...";
     renderStatus();
 
-    await animateDiceRoll("pointVal");
+    // 리롤용 스냅샷 — 시작 굴림 이전 상태 (특성 사전 효과 적용 후)
+    const initRerollSnapshot = captureRerollSnapshot();
 
-    const riggedDiceResult = await applyPerkAfterDiceRoll("pointVal", state.pointVal);
+    // 리롤 시 이 지점부터 다시 실행되도록 굴림 + 미리보기 효과를 루프로 감싼다
+    while (true) {
+        restoreRerollSnapshot(initRerollSnapshot);
 
-    // 후원자: 미리보기 렌더 전에 100으로 고정해 "X→6" 재렌더를 방지
-    const patronPerkEarly = getSelectedPerk();
-    if (patronPerkEarly?.id === "perk-patron") {
-        const origDiceVal = state.pointVal;
-        state.pointVal = 500;
-        recordPerkActivationHistory(
-            patronPerkEarly,
-            `초기 시작 값: 주사위 ${origDiceVal} → 500으로 고정`,
-            { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 500 },
-        );
-        if (_pointValAnimFrame !== null) {
-            cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
-            _pointValAnimFrame = null;
+        await animateDiceRoll("pointVal");
+
+        // 원본 굴림눈(1~6) — 후원자 등 pointVal을 덮어쓰는 특성도 리롤 UI엔 실제 굴린 눈을 표시
+        let initialDiceFace = state.pointVal;
+
+        const riggedDiceResult = await applyPerkAfterDiceRoll("pointVal", state.pointVal);
+
+        // 후원자: 미리보기 렌더 전에 100으로 고정해 "X→6" 재렌더를 방지
+        const patronPerkEarly = getSelectedPerk();
+        if (patronPerkEarly?.id === "perk-patron") {
+            const origDiceVal = state.pointVal;
+            state.pointVal = 500;
+            recordPerkActivationHistory(
+                patronPerkEarly,
+                `초기 시작 값: 주사위 ${origDiceVal} → 500으로 고정`,
+                { turn: 0, trigger: "initial_dice_reveal", before_val: origDiceVal, after_val: 500 },
+            );
+            if (_pointValAnimFrame !== null) {
+                cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame);
+                _pointValAnimFrame = null;
+            }
+            _prevPointValForAnim = 100;
+            triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 500, "500 고정");
+            triggerPerkBadgeActivationFeedback();
         }
-        _prevPointValForAnim = 100;
-        triggerPerkPointChangeFeedback(patronPerkEarly, origDiceVal, 500, "500 고정");
-        triggerPerkBadgeActivationFeedback();
-    }
 
-    state.revealTarget = "pointVal";
-    state.phase = "rolled-point-preview";
-    els.message.textContent = riggedDiceResult
-        ? riggedDiceResult.label != null
-            ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
-            : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
-        : patronPerkEarly?.id === "perk-patron"
-            ? `특성 발동! 후원자: 초기 값 500으로 고정`
-            : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
-    renderStatus();
+        state.revealTarget = "pointVal";
+        state.phase = "rolled-point-preview";
+        els.message.textContent = riggedDiceResult
+            ? riggedDiceResult.label != null
+                ? `특성 발동! ${riggedDiceResult.perkName} (${riggedDiceResult.label}). 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
+                : `특성 발동! ${riggedDiceResult.perkName}: Luck +${riggedDiceResult.gainedLuck}. 초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`
+            : patronPerkEarly?.id === "perk-patron"
+                ? `특성 발동! 후원자: 초기 값 500으로 고정`
+                : `초기 시작 값 = ${state.pointVal}. 주사위를 확인하세요.`;
+        renderStatus();
 
-    const perk67point = getSelectedPerk();
-    const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
-    const shouldActivateSunbangPoint = perk67point?.id === "perk-sunbang" && state.pointVal !== 6;
-    if (shouldActivate67point) {
-        await wait(250);
+        const perk67point = getSelectedPerk();
+        const shouldActivate67point = state.pointVal === 6 && perk67point?.id === "perk-67";
+        const shouldActivateSunbangPoint = perk67point?.id === "perk-sunbang" && state.pointVal !== 6;
+        if (shouldActivate67point) {
+            await wait(250);
+            if (state.phase !== "rolled-point-preview") {
+                return;
+            }
+            state.perk67Previewing = true;
+            recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`,
+                { turn: 0, trigger: "initial_dice_mod", before_dice: 6, after_dice: 7 });
+            triggerPerkBadgeActivationFeedback();
+            els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
+            renderStatus();
+            await wait(1000);
+            await wait(250);
+        } else if (shouldActivateSunbangPoint) {
+            await wait(250);
+            if (state.phase !== "rolled-point-preview") {
+                return;
+            }
+            state.perkSunbangPreviewing = true;
+            state.perkSunbangDirection = "right";
+            recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 ${state.pointVal} → ${state.pointVal + 1}`,
+                { turn: 0, trigger: "initial_dice_mod", before_dice: state.pointVal, after_dice: state.pointVal + 1 });
+            triggerPerkBadgeActivationFeedback();
+            els.message.textContent = `특성 발동! 순방: 주사위 +1`;
+            renderStatus();
+            await wait(1000);
+            await wait(250);
+        } else {
+            await wait(1000);
+        }
+
         if (state.phase !== "rolled-point-preview") {
             return;
         }
-        state.perk67Previewing = true;
-        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 6 → 7로 변경`,
-            { turn: 0, trigger: "initial_dice_mod", before_dice: 6, after_dice: 7 });
-        triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `특성 발동! 67: 주사위 6 → 7`;
-        renderStatus();
-        await wait(1000);
-        await wait(250);
-    } else if (shouldActivateSunbangPoint) {
-        await wait(250);
-        if (state.phase !== "rolled-point-preview") {
-            return;
+
+        if (state.perk67Previewing) {
+            const prevPoint = state.pointVal;
+            state.pointVal = 7;
+            initialDiceFace = 7;
+            triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, "주사위 6 -> 7 적용");
+            state.perk67Previewing = false;
         }
-        state.perkSunbangPreviewing = true;
-        state.perkSunbangDirection = "right";
-        recordPerkActivationHistory(perk67point, `초기 시작 값: 주사위 ${state.pointVal} → ${state.pointVal + 1}`,
-            { turn: 0, trigger: "initial_dice_mod", before_dice: state.pointVal, after_dice: state.pointVal + 1 });
-        triggerPerkBadgeActivationFeedback();
-        els.message.textContent = `특성 발동! 순방: 주사위 +1`;
-        renderStatus();
-        await wait(1000);
-        await wait(250);
-    } else {
-        await wait(1000);
-    }
 
-    if (state.phase !== "rolled-point-preview") {
-        return;
-    }
+        if (state.perkSunbangPreviewing) {
+            const prevPoint = state.pointVal;
+            const delta = state.perkSunbangDirection === "right" ? 1 : -1;
+            state.pointVal = safeNumber(prevPoint + delta);
+            initialDiceFace = clamp(initialDiceFace + delta, 1, 6);
+            const actionText = delta > 0 ? "값 +1" : "값 -1";
+            triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, actionText);
+            state.perkSunbangPreviewing = false;
+            state.perkSunbangDirection = null;
+        }
 
-    if (state.perk67Previewing) {
-        const prevPoint = state.pointVal;
-        state.pointVal = 7;
-        triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, "주사위 6 -> 7 적용");
-        state.perk67Previewing = false;
-    }
+        const grosmichelInit = getSelectedPerk();
+        if (grosmichelInit?.id === "perk-gros-michel" && state.pointVal === 1) {
+            const prevPoint = state.pointVal;
+            const nextPoint = safeNumber(prevPoint * 6);
+            state.pointVal = nextPoint;
 
-    if (state.perkSunbangPreviewing) {
-        const prevPoint = state.pointVal;
-        const delta = state.perkSunbangDirection === "right" ? 1 : -1;
-        state.pointVal = safeNumber(prevPoint + delta);
-        const actionText = delta > 0 ? "값 +1" : "값 -1";
-        triggerPerkPointChangeFeedback(perk67point, prevPoint, state.pointVal, actionText);
-        state.perkSunbangPreviewing = false;
-        state.perkSunbangDirection = null;
-    }
+            recordPerkActivationHistory(
+                grosmichelInit,
+                `초기 시작 값: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+                { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
+            );
 
-    const grosmichelInit = getSelectedPerk();
-    if (grosmichelInit?.id === "perk-gros-michel" && state.pointVal === 1) {
-        const prevPoint = state.pointVal;
-        const nextPoint = safeNumber(prevPoint * 6);
-        state.pointVal = nextPoint;
+            refreshPointValueAndHistoryUi();
+            triggerPerkPointChangeFeedback(grosmichelInit, prevPoint, nextPoint, "× 6");
+            triggerPerkBadgeActivationFeedback();
+        }
 
-        recordPerkActivationHistory(
-            grosmichelInit,
-            `초기 시작 값: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
-        );
+        const kickstartInitPerk = getSelectedPerk();
+        if (kickstartInitPerk?.id === "perk-kickstart") {
+            const prevPoint = state.pointVal ?? 0;
+            const nextPoint = safeNumber(prevPoint * prevPoint);
+            state.pointVal = nextPoint;
 
-        refreshPointValueAndHistoryUi();
-        triggerPerkPointChangeFeedback(grosmichelInit, prevPoint, nextPoint, "× 6");
-        triggerPerkBadgeActivationFeedback();
-    }
+            recordPerkActivationHistory(
+                kickstartInitPerk,
+                `초기 시작 값: 주사위 ${prevPoint} → 값 x${prevPoint} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
+                { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
+            );
 
-    const kickstartInitPerk = getSelectedPerk();
-    if (kickstartInitPerk?.id === "perk-kickstart") {
-        const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * prevPoint);
-        state.pointVal = nextPoint;
+            refreshPointValueAndHistoryUi();
+            triggerPerkPointChangeFeedback(kickstartInitPerk, prevPoint, nextPoint, `× ${prevPoint}`);
+            triggerPerkBadgeActivationFeedback();
+        }
 
-        recordPerkActivationHistory(
-            kickstartInitPerk,
-            `초기 시작 값: 주사위 ${prevPoint} → 값 x${prevPoint} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-            { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
-        );
-
-        refreshPointValueAndHistoryUi();
-        triggerPerkPointChangeFeedback(kickstartInitPerk, prevPoint, nextPoint, `× ${prevPoint}`);
-        triggerPerkBadgeActivationFeedback();
-    }
+        // 선택지(1턴 진행) 직전 — 다시 굴리기 기회 제공 (원본 굴림눈 전달)
+        const initRerollDecision = await awaitRerollDecision("pointVal", initialDiceFace);
+        if (initRerollDecision === "reroll") {
+            state.rerollUsed = true;
+            state.rerollCounts[0] = (state.rerollCounts[0] ?? 0) + 1; // 시작 굴림 리롤 기록
+            continue; // 루프 상단에서 스냅샷 복원 후 재굴림
+        }
+        break;
+    } // end while (리롤 루프)
 
     state.initialPointRollValue = state.pointVal;
 
@@ -3881,12 +3944,104 @@ function selectPerk(perkIndex) {
     renderControl();
 }
 
+// ---------- 주사위 다시 굴리기 (리롤) ----------
+// 굴림 직후의 효과들이 pointVal/luck/modVal을 직접 변형하므로, 리롤은
+// "굴림 직전 상태를 스냅샷 → 복원 후 재굴림" 방식으로 동작한다.
+function captureRerollSnapshot() {
+    return {
+        turn: state.turn,
+        modVal: state.modVal,
+        pointVal: state.pointVal,
+        luck: state.luck,
+        questLevel: state.questLevel,
+        volcanoActivated: state.volcanoActivated,
+        upgradeMultiplier: state.upgradeMultiplier,
+        initialPointRollValue: state.initialPointRollValue,
+        historyLength: state.history.length,
+    };
+}
+
+function restoreRerollSnapshot(snap) {
+    state.turn = snap.turn;
+    state.modVal = snap.modVal;
+    state.pointVal = snap.pointVal;
+    state.luck = snap.luck;
+    state.questLevel = snap.questLevel;
+    state.volcanoActivated = snap.volcanoActivated;
+    state.upgradeMultiplier = snap.upgradeMultiplier;
+    state.initialPointRollValue = snap.initialPointRollValue;
+    state.history.length = snap.historyLength; // 리롤로 무효화된 특성 발동 기록 제거
+    state.perk67Previewing = false;
+    state.perkSunbangPreviewing = false;
+    state.perkSunbangDirection = null;
+    refreshPointValueAndHistoryUi();
+}
+
+// 주사위 굴림 + 효과 적용 후, 선택지 제시 직전에 호출.
+// "다시 굴리기" 버튼과 3초 카운트다운을 주사위 표기 하단에 띄우고,
+// 사용자가 리롤을 누르면 "reroll", 3초가 지나면 "proceed"로 resolve한다.
+// 이미 리롤을 1회라도 썼다면 UI/대기 없이 즉시 "proceed".
+function awaitRerollDecision(targetKey, rolledValue) {
+    return new Promise((resolve) => {
+        if (state.rerollUsed) {
+            resolve("proceed");
+            return;
+        }
+
+        // 주사위 확정 UI(제목 + 굴린 주사위)를 렌더하고, 그 밑에 바로 리롤/스킵을 표시
+        const diceFace = clamp(Math.round(rolledValue ?? state[targetKey] ?? 1), 1, 7);
+        const isSeven = diceFace === 7; // 67 특성 — 중앙 pip를 별로 강조
+        const title = targetKey === "pointVal" ? "시작 점수 확정" : `${state.turn}턴 주사위 값 확정`;
+        const rerollsLeft = Math.max(0, REROLL_MAX_PER_GAME - (state.rerollUsed ? 1 : 0));
+
+        els.options.innerHTML = `
+            <div class="options-placeholder rolled-dice-preview dice-stage fade-in reroll-stage" role="status" aria-live="polite">
+                <p class="placeholder-title">${title}</p>
+                <div class="reveal-dice-wrap">
+                    <div class="dice-card reveal-card">${renderDiceFace(diceFace, "idle-spin", isSeven)}</div>
+                </div>
+                <div class="reroll-gate">
+                    <button class="skip-luck-btn reroll-btn" type="button"><span>🎲 다시 굴리기 (${rerollsLeft}번 남음)</span></button>
+                    <p class="reroll-note">※주사위를 굴리며 발생한 변동 사항은 모두 롤백됩니다</p>
+                    <p class="reroll-timer"><span class="reroll-count">3</span>초 후 스킵...</p>
+                </div>
+            </div>
+        `;
+
+        const countEl = els.options.querySelector(".reroll-count");
+        const rerollBtn = els.options.querySelector(".reroll-btn");
+
+        let settled = false;
+        let remaining = 3;
+
+        const finish = (result) => {
+            if (settled) return;
+            settled = true;
+            window.clearInterval(timerId);
+            // 게이트만 제거 — 주사위/확정 미리보기는 그대로 두고 후속 렌더에 맡긴다
+            els.options.querySelector(".reroll-gate")?.remove();
+            resolve(result);
+        };
+
+        const timerId = window.setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                finish("proceed");
+                return;
+            }
+            if (countEl) countEl.textContent = String(remaining);
+        }, 1000);
+
+        rerollBtn.addEventListener("click", () => finish("reroll"));
+    });
+}
+
 /**
  * 현재 턴의 modVal 굴림 및 선택지 생성 (비동기)
- * 
+ *
  * 상태 머신 흐름:
  * await-mod-roll -> rolling-mod -> rolled-mod-preview -> await-option
- * 
+ *
  * 프로세스:
  * 1. 턴 번호 증가
  * 2. modVal 주사위 굴림 애니메이션
@@ -3902,6 +4057,9 @@ async function rollModValForTurn() {
         finishGame();
         return;
     }
+
+    // 리롤용 스냅샷 — 턴 증가/굴림 이전 상태를 저장 (리롤 시 이 지점으로 복원)
+    const rerollSnapshot = captureRerollSnapshot();
 
     state.turn += 1;
     state.modVal = null;
@@ -4070,6 +4228,18 @@ async function rollModValForTurn() {
         );
         if (state.phase !== "rolled-mod-preview") return;
     }
+
+    // 선택지 제시 직전 — 다시 굴리기 기회 제공
+    const rerollDecision = await awaitRerollDecision("modVal", state.modVal);
+    if (rerollDecision === "reroll") {
+        state.rerollUsed = true;
+        state.rerollCounts[state.turn] = (state.rerollCounts[state.turn] ?? 0) + 1; // 이 턴 리롤 기록
+        restoreRerollSnapshot(rerollSnapshot);
+        state.phase = "await-mod-roll";
+        await rollModValForTurn();
+        return;
+    }
+    if (state.phase !== "rolled-mod-preview") return;
 
     state.options = buildOptions();
     const selectedPerk = getSelectedPerk();
@@ -4287,10 +4457,10 @@ async function skipTurnTakeAllLuck() {
 
     let beerExtraLuck = 0;
     if (selectedPerk?.id === "perk-beer") {
-        beerExtraLuck = 5 * state.turn;
+        beerExtraLuck = 7 * state.turn;
         state.luck = Math.max(0, state.luck + beerExtraLuck);
         recordPerkActivationHistory(selectedPerk,
-            `Turn ${state.turn} 스킵: 추가 Luck +${beerExtraLuck} (5 × ${state.turn}턴)`,
+            `Turn ${state.turn} 스킵: 추가 Luck +${beerExtraLuck} (7 × ${state.turn}턴)`,
             { turn: state.turn, trigger: "skip", after_luck: state.luck },
         );
         triggerPerkBadgeActivationFeedback();
@@ -4480,6 +4650,7 @@ function buildGameplayLog() {
             before_val: item.from,
             after_val: item.to,
             luck_gained: item.gainedLuck ?? 0,
+            reroll_count: state.rerollCounts[item.turn] ?? 0,
         };
         turns.push(turnEntry);
     });
@@ -4510,14 +4681,15 @@ function buildGameplayLog() {
         seed,
         perk_id: state.selectedPerkId ?? null,
         initial_point: state.initialPointRollValue ?? null,
+        initial_reroll_count: state.rerollCounts[0] ?? 0,
         turns,
     };
     if (Object.keys(picks).length > 0) log.option_picks = picks;
     log.final_score = state.pointVal ?? 0;
     log.final_luck = state.luck ?? 0;
     // 시드 RNG 소비 규칙 버전 (서버 리시뮬레이션 검증용).
-    // 연출 스핀이 시드를 소비하지 않는 클라이언트부터 2.
-    log.rng_v = 2;
+    // v2: 연출 스핀이 시드를 소비하지 않음. v3: 다시 굴리기(reroll) 지원 — 리롤 1회당 주사위 draw 1회 추가 소비.
+    log.rng_v = 3;
 
     return log;
 }
@@ -4662,6 +4834,7 @@ function getDicePips(value) {
         4: [1, 3, 7, 9],        // 네 모서리
         5: [1, 3, 5, 7, 9],     // 네 모서리 + 중심
         6: [1, 3, 4, 6, 7, 9],  // 양쪽 3개씩
+        7: [1, 3, 4, 5, 6, 7, 9], // 67 특성 전용 — 6 배치 + 중심(별로 강조)
     };
 
     return table[value] || [5];
@@ -5422,8 +5595,9 @@ function init() {
         centerPhoneFrameOnDesktop();
     });
 
-    // 로드 직후 설문조사 안내 (화면 정착 후 표시)
-    window.setTimeout(showSurveyToast, 800);
+    // 로드 직후 패치노트 안내 (배포 3일 이내) 후 설문조사 안내를 순차 표시
+    window.setTimeout(showPatchNoteToast, 800);
+    window.setTimeout(showSurveyToast, 1400);
 
     window.addEventListener("resize", () => {
         fitPointValueFont();
