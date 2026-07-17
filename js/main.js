@@ -4079,7 +4079,7 @@ function awaitRerollDecision(targetKey, rolledValue) {
             <div class="options-placeholder rolled-dice-preview dice-stage fade-in reroll-stage" role="status" aria-live="polite">
                 <p class="placeholder-title">${title}</p>
                 <div class="reveal-dice-wrap">
-                    <div class="dice-card reveal-card">${renderDiceFace(diceFace, "idle-spin", isSeven)}</div>
+                    <div class="dice-card reveal-card">${renderDiceFace(isSeven ? 1 : diceFace, "idle-spin", isSeven)}</div>
                 </div>
                 <div class="reroll-gate">
                     <div class="reroll-buttons">
