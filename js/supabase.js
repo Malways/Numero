@@ -76,6 +76,54 @@ export async function fetchLeaderboard(n = 100) {
     return { data, error: error?.message ?? null };
 }
 
+// 오늘(GMT+0 자정 기준)의 일반 플레이 랭킹을 가져옵니다.
+export async function fetchDailyLeaderboard(n = 100) {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_daily_leaderboard", { p_n: n });
+    return { data, error: error?.message ?? null };
+}
+
+// 특정 유저의 최근 데일리 챌린지 기록을 가져옵니다 (유저 프로필의 "최근 기록"에 병합용).
+export async function fetchDailyChallengeRecent(username, n = 5) {
+    if (!supabase || !username) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_daily_challenge_recent", { p_username: username, p_n: n });
+    return { data, error: error?.message ?? null };
+}
+
+// 오늘(GMT+0 자정 기준)의 데일리 챌린지 랭킹을 가져옵니다.
+export async function fetchDailyChallengeLeaderboard(n = 100) {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_daily_challenge_leaderboard", { p_n: n });
+    return { data, error: error?.message ?? null };
+}
+
+// 오늘(GMT+0 자정 기준) 활성화된 데일리 챌린지(묶음 + 변형)를 가져옵니다.
+export async function fetchCurrentDailyChallenge() {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_current_daily_challenge");
+    return { data, error: error?.message ?? null };
+}
+
+// 닉네임 기준 데일리 챌린지 플레이 횟수를 원자적으로 확인+증가합니다 (게임당 최대 maxCount회).
+// 연결 실패/에러 시 allowed: true로 폴백 — 카운팅 불가 상황에서 플레이 자체를 막지 않는다.
+export async function checkDailyChallengeAttempt(username, maxCount = 5) {
+    if (!supabase) return { allowed: true, attempts: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("try_increment_daily_attempt", {
+        p_username: username,
+        p_max: maxCount,
+    });
+    if (error || !data) return { allowed: true, attempts: null, error: error?.message ?? "unknown" };
+    const row = Array.isArray(data) ? data[0] : data;
+    return { allowed: Boolean(row?.allowed ?? true), attempts: row?.attempts ?? null, error: null };
+}
+
+// 닉네임 기준 오늘 데일리 챌린지 사용 횟수를 증가 없이 조회합니다 ("남은 플레이 기회" 표시용).
+export async function fetchDailyChallengeAttempts(username) {
+    if (!supabase) return { data: null, error: "no_connection" };
+    const { data, error } = await supabase.rpc("get_daily_challenge_attempts", { p_username: username });
+    return { data, error: error?.message ?? null };
+}
+
 // hall of fame 반환 행을 리더보드 공통 포맷으로 변환합니다.
 function normalizeHallOfFameEntry(entry) {
     return {

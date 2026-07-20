@@ -2093,6 +2093,23 @@ body {
     padding: 0 !important;
 }
 
+.lb-reset-banner {
+    margin: 0 0 8px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--stroke);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.lb-reset-banner #lbResetCountdown {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
@@ -3023,6 +3040,12 @@ body {
     white-space: nowrap;
 }
 
+.user-recent-daily-badge {
+    background: #ffffff;
+    color: #16292d;
+    border-color: rgba(20, 35, 38, 0.18);
+}
+
 .user-recent-score {
     flex: 1;
     text-align: right;
@@ -3382,6 +3405,19 @@ body {
     background: rgba(85, 85, 85, 0.6);
 }
 
+/* 다크 모드 기본 버튼이 이미 회색 계열이라, 소진 상태는 더 어둡게 눌러 확실히 구분 */
+[data-theme="dark"] .mode-card.is-out-of-plays {
+    background: rgba(40, 40, 40, 0.6);
+    border-color: rgba(120, 120, 120, 0.3);
+    color: rgba(150, 150, 150, 0.7);
+}
+
+[data-theme="dark"] .mode-card.is-out-of-plays:hover,
+[data-theme="dark"] .mode-card.is-out-of-plays:focus-visible {
+    background: rgba(40, 40, 40, 0.6);
+    border-color: rgba(120, 120, 120, 0.3);
+}
+
 [data-theme="dark"] .calc-log-item {
     background: rgba(40, 40, 40, 0.9);
     border-color: rgba(188, 188, 188, 0.14);
@@ -3471,4 +3507,63 @@ body {
 [data-theme="dark"] .settings-credit-link:focus-visible {
     color: #ffffff;
     text-decoration-color: currentColor;
+}
+/* 게임 모드 선택 카드 (일반 / 데일리 챌린지) — 표기 전용 단계, 두 카드 동일 색상 */
+.mode-card {
+    min-height: 92px;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+}
+
+.mode-card .perk-name {
+    font-size: 15px;
+}
+
+.mode-daily-date {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.75;
+    margin-left: 4px;
+}
+
+.mode-daily-meta {
+    margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 모드 카드 내부 텍스트 정렬 (skip-luck-btn 점선 스타일 재사용) */
+.mode-card {
+    text-align: left;
+    display: grid;
+    gap: 6px;
+}
+
+.mode-plays-left {
+    margin: 2px 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.5; /* 반투명 안내 */
+}
+
+/* 오늘 데일리 챌린지 플레이 횟수를 다 쓴 경우 — 카드를 회색으로 바꾸고 클릭 불가(disabled 속성과 함께) */
+.mode-card.is-out-of-plays {
+    border-color: rgba(120, 120, 120, 0.4);
+    color: rgba(90, 90, 90, 0.9);
+    background: rgba(120, 120, 120, 0.12);
+    cursor: not-allowed;
+}
+
+.mode-card.is-out-of-plays::before {
+    animation: none;
+    opacity: 0;
+}
+
+.mode-card.is-out-of-plays:hover,
+.mode-card.is-out-of-plays:focus-visible {
+    border-color: rgba(120, 120, 120, 0.4);
+    background: rgba(120, 120, 120, 0.12);
 }

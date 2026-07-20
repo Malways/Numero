@@ -2,7 +2,7 @@
 // NUMERO GAME - 5턴 안에 가장 큰 숫자를 만드는 게임
 // ============================================================================
 // Supabase 통합은 현재 주석 처리됨 (향후 멀티플레이/리더보드용)
-import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates, fetchUserProfile } from "./supabase.js";
+import { getSupabaseStatus, fetchGameSeed, submitGameResult, uploadResult, fetchLeaderboard, fetchDailyLeaderboard, fetchDailyChallengeLeaderboard, fetchDailyChallengeRecent, fetchCurrentDailyChallenge, checkDailyChallengeAttempt, fetchDailyChallengeAttempts, fetchLeaderboardByPerk, fetchHallOfFame, logPerkPick, fetchAchievements, fetchAchievementRates, fetchUserProfile } from "./supabase.js";
 import { APP_CONFIG } from "./config.js";
 import { LEGACY_PERKS } from "./legacyPerks.js";
 
@@ -21,6 +21,8 @@ const AUDIO_VOLUME_STORAGE_KEY = "numero.audioVolume";
 const USERNAME_STORAGE_KEY = "numero.username";
 const DARK_MODE_STORAGE_KEY = "numero.darkMode";
 const PATCH_NOTE_SEEN_STORAGE_KEY = "numero.patchNoteSeenVersion"; // 패치노트 안내를 확인한 버전
+const DAILY_CHALLENGE_PLAY_LOCAL_KEY = "numero.dailyChallengePlays"; // 익명 전용 — 닉네임이 있으면 서버(닉네임) 카운트만 적용
+const DAILY_CHALLENGE_PLAY_LIMIT = 5; // 데일리 챌린지 게임당 최대 플레이 횟수
 
 // ============================================================================
 // 시드 기반 PRNG (mulberry32)
@@ -285,6 +287,11 @@ const OPTION_LIBRARY = {
             formula: "pointVal + modVal^turnVal * 5",
             compute: (a, b, c) => a + Math.pow(b, c) * 5,
             unselectedLuckGain: 12,
+        },
+        {
+            formula: "pointVal * modVal * 10",
+            compute: (a, b) => a * b * 10,
+            unselectedLuckGain: 12,
         }
     ],
 };
@@ -512,7 +519,7 @@ const PERK_LIB = [
     {
         id: "perk-last-shooting",
         name: "라스트 슈팅",
-        description: "5턴 종료 후, 마지막 주사위 눈금을 2씩 줄여가며 3번 곱합니다. (최소 1)",
+        description: "5턴 종료 후, 마지막 주사위 눈금을 2씩 줄여가며 3번 곱합니다.\n(최소 1)",
         backgroundStyle: "linear-gradient(160deg, rgba(252, 252, 252, 0.96), rgba(240, 240, 240, 0.99))",
         glitterColor: "rgba(255, 255, 255, 1)",
         glitterIntensity: 0.55,
@@ -896,6 +903,8 @@ const state = {
     upgradeMultiplier: 1.5, // 업그레이드 특성의 턴 종료 배율 (스킵마다 +0.5)
     rerollCounts: {}, // 굴림별 리롤 횟수 (키: 0=시작 굴림, N=N턴). 로그 rng_v 검증용 (상한: getRerollMax)
     lastRawRolls: {}, // 굴림별 마지막 원본 눈금 (가공 전 1~6). 리롤 시 같은 눈금 제외용 — 스냅샷 복원에 휩쓸리면 안 됨
+    dailyChallenge: null, // 데일리 챌린지로 진입한 경우 { bundleId, bundleName, modifierId, modifierName, modifierDesc, modifierEffect, perkIds, trialNumber } (일반 게임이면 null. trialNumber는 게임 시작 시 채워짐)
+    modifierBonusRerolls: 0, // 변형(기회 등)으로 게임 중 얻은 추가 리롤 횟수
 };
 
 // ============================================================================
@@ -1379,6 +1388,19 @@ function recordPerkActivationHistory(perk, detail, extra = null) {
     });
 }
 
+// 데일리 챌린지 특별 규칙(변형) 발동을 특성 발동 기록과 같은 자리(계산 기록/공유 텍스트)에 남긴다.
+function recordModifierActivationHistory(detail) {
+    if (!state.dailyChallenge) {
+        return;
+    }
+
+    state.history.push({
+        kind: "modifier-activation",
+        modifierName: state.dailyChallenge.modifierName,
+        detail,
+    });
+}
+
 function applyPerkBeforeInitialRoll() {
     const selectedPerk = getSelectedPerk();
     if (!selectedPerk) {
@@ -1649,28 +1671,6 @@ async function applyPerkAfterDiceRoll(targetKey, rolledValue) {
         return { perkName: selectedPerk.name, label: `+${increased}` };
     }
 
-    if (selectedPerk.id === "perk-strategic-retreat") {
-        const startPoint = state.pointVal ?? 0;
-        for (let i = 0; i < rolledValue; i++) {
-            const prevPoint = state.pointVal ?? 0;
-            const nextPoint = safeNumber(prevPoint - 50);
-            state.pointVal = nextPoint;
-            setPointValAnimated(formatNum(state.pointVal), state.pointVal);
-            triggerPerkPointChangeFeedback(selectedPerk, prevPoint, state.pointVal, `-50`);
-            triggerPerkBadgeActivationFeedback();
-            await wait(100);
-            if (state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT) break;
-        }
-        const finalPoint = state.pointVal ?? 0;
-        const totalDelta = finalPoint - startPoint;
-        recordPerkActivationHistory(
-            selectedPerk,
-            `Turn ${state.turn} 주사위 ${rolledValue}: -50 × ${rolledValue}회 (${formatNum(startPoint)} → ${formatNum(finalPoint)})`,
-            { turn: state.turn, trigger: "dice_reveal", before_val: startPoint, after_val: finalPoint },
-        );
-        return { perkName: selectedPerk.name, label: formatNum(totalDelta) };
-    }
-
     if (selectedPerk.id === "perk-active-volcano" && targetKey === "modVal") {
         const startPoint = state.pointVal ?? 0;
         for (let i = 0; i < rolledValue; i++) {
@@ -1732,7 +1732,7 @@ function getLastShootingDiceMultipliers() {
     return [n, Math.max(1, n - 2), Math.max(1, n - 4)];
 }
 
-async function applyLastShootingBeforeFinish() {
+async function applyBeforeFinish() {
     const selectedPerk = getSelectedPerk();
     if (!selectedPerk || selectedPerk.id !== "perk-last-shooting") {
         return;
@@ -1772,9 +1772,6 @@ async function applyLastShootingBeforeFinish() {
     }
 }
 
-async function applyHighlanderBeforeFinish() {
-    // 원 포 올은 게임 종료 시 별도 처리 없음
-}
 
 function updateLuckInfoTooltip() {
     if (!els.luckInfoSkipRule) {
@@ -2385,6 +2382,19 @@ async function searchAndRenderUserProfile(query) {
         return;
     }
 
+    // 데일리 챌린지 기록은 별도 테이블이라 get_user_profile엔 없음 — 따로 받아와 병합
+    const { data: dailyRecent } = await fetchDailyChallengeRecent(query, 5);
+
+    const normalGames = Array.isArray(data.recent_games)
+        ? data.recent_games.map((g) => ({ perkId: g.perk_id, score: g.score, ts: g.ts, isDaily: false }))
+        : [];
+    const dailyGames = Array.isArray(dailyRecent)
+        ? dailyRecent.map((g) => ({ perkId: g.perk_id, score: g.score, ts: g.created_at, isDaily: true }))
+        : [];
+    const mergedRecent = [...normalGames, ...dailyGames]
+        .sort((a, b) => new Date(b.ts) - new Date(a.ts))
+        .slice(0, 5);
+
     renderUserSearchProfile(query, {
         allTimeBest: data.all_time_best ?? 0,
         seasonBest: data.season_best,           // 시즌 기록 없으면 null
@@ -2395,9 +2405,7 @@ async function searchAndRenderUserProfile(query) {
         perksTotal: PERK_LIB.filter((p) => !p.hidden && !p.legacy).length,
         playedPerks: Array.isArray(data.played_perks) ? data.played_perks : null,
         favoritePerkId: data.favorite_perk ?? null,
-        recentGames: Array.isArray(data.recent_games)
-            ? data.recent_games.map((g) => ({ perkId: g.perk_id, score: g.score, ts: g.ts }))
-            : [],
+        recentGames: mergedRecent,
     });
 }
 
@@ -2506,9 +2514,13 @@ function renderUserSearchProfile(username, stats) {
         const chipStyle = perk
             ? ` style="background:${perk.backgroundStyle}; border-color:${withAlpha(perk.glitterColor, 0.55)}; color:${perk.textColor || "#16292d"};"`
             : "";
+        const dailyBadge = game.isDaily
+            ? `<span class="user-recent-perk user-recent-daily-badge">데일리 이벤트</span>`
+            : "";
         return `
             <div class="user-recent-row">
                 <span class="user-recent-perk"${chipStyle}>${escapeHtml(perk?.name ?? "-")}</span>
+                ${dailyBadge}
                 <span class="user-recent-score">${formatNum(game.score)}</span>
                 <span class="user-recent-date">${formatRecentTs(game.ts)}</span>
             </div>`;
@@ -2755,11 +2767,11 @@ function closeLeaderboardModal() {
     setLeaderboardModalOpen(false);
 }
 
-function renderLeaderboardData(data) {
+function renderLeaderboardData(data, resetBannerHtml = "") {
     if (!els.leaderboardContent) return;
 
     if (!data || data.length === 0) {
-        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">아직 기록이 없습니다.</p>';
+        els.leaderboardContent.innerHTML = `${resetBannerHtml}<p class="patchlog-loading">아직 기록이 없습니다.</p>`;
         return;
     }
 
@@ -2813,6 +2825,7 @@ function renderLeaderboardData(data) {
     }).join("");
 
     els.leaderboardContent.innerHTML = `
+        ${resetBannerHtml}
         <table class="leaderboard-table lb-desktop-only">
             <thead>
                 <tr>
@@ -2825,6 +2838,50 @@ function renderLeaderboardData(data) {
             <tbody>${rows}</tbody>
         </table>
         <div class="lb-cards lb-mobile-only">${cards}</div>`;
+}
+
+// 데일리(일반)/데일리 챌린지 리더보드 상단에 붙는 "언제 초기화되는지 · 얼마나 남았는지" 배너
+function renderLeaderboardResetBanner() {
+    return `<p class="lb-reset-banner">매일 00:00 (UTC) 초기화 · 남은 시간 <span id="lbResetCountdown">${formatDailyResetRemaining()}</span></p>`;
+}
+
+let _lbResetCountdownTimer = null;
+function startLeaderboardCountdownTicker() {
+    if (_lbResetCountdownTimer) window.clearInterval(_lbResetCountdownTimer);
+    _lbResetCountdownTimer = window.setInterval(() => {
+        const el = document.getElementById("lbResetCountdown");
+        const isOpen = els.leaderboardModal?.classList.contains("is-visible");
+        if (!el || !isOpen) {
+            window.clearInterval(_lbResetCountdownTimer);
+            _lbResetCountdownTimer = null;
+            return;
+        }
+        el.textContent = formatDailyResetRemaining();
+    }, 1000);
+}
+
+// scope: "" (현재) | "daily" (데일리 일반) | "daily-challenge" (데일리 챌린지) | 버전 문자열 (명예의 전당)
+async function loadLeaderboardScope(scope) {
+    if (!els.leaderboardContent) return;
+
+    els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
+
+    const { data, error } = scope === "daily"
+        ? await fetchDailyLeaderboard(100)
+        : scope === "daily-challenge"
+            ? await fetchDailyChallengeLeaderboard(100)
+            : scope !== ""
+                ? await fetchHallOfFame(scope)
+                : await fetchLeaderboard(100);
+
+    if (error || !data) {
+        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
+        return;
+    }
+
+    const isDailyScope = scope === "daily" || scope === "daily-challenge";
+    renderLeaderboardData(data, isDailyScope ? renderLeaderboardResetBanner() : "");
+    if (isDailyScope) startLeaderboardCountdownTicker();
 }
 
 async function openLeaderboardModal() {
@@ -2844,17 +2901,8 @@ async function openLeaderboardModal() {
         els.leaderboardPerkFilter.disabled = false;
     }
 
-    els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
     setLeaderboardModalOpen(true);
-
-    const { data, error } = await fetchLeaderboard(100);
-
-    if (error || !data) {
-        els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
-        return;
-    }
-
-    renderLeaderboardData(data);
+    await loadLeaderboardScope("");
 }
 
 function escapeHtml(value) {
@@ -3129,6 +3177,14 @@ function bindSettingsEvents() {
             localStorage.setItem(USERNAME_STORAGE_KEY, els.userNameInput.value.trim());
             updateTopUsername();
         });
+        // 닉네임이 완전히 바뀐 뒤(포커스 해제)에만 서버 재조회 — 타이핑 중 매 글자마다 호출하지 않음
+        els.userNameInput.addEventListener("change", () => {
+            _dailyPlaysRemainingCache = null;
+            if (state.phase === "mode-select") {
+                renderModeSelection(); // 우선 local 추정치로 즉시 갱신
+                loadDailyChallengePlaysRemaining();
+            }
+        });
     }
     updateTopUsername();
 
@@ -3356,23 +3412,17 @@ function bindSettingsEvents() {
 
     if (els.leaderboardVersionFilter) {
         els.leaderboardVersionFilter.addEventListener("change", async () => {
-            const version = els.leaderboardVersionFilter.value;
-            const isHallOfFame = version !== "";
+            const scope = els.leaderboardVersionFilter.value;
+            const isDailyScope = scope === "daily" || scope === "daily-challenge";
+            const isHallOfFame = scope !== "" && !isDailyScope;
 
+            // 데일리/명예의 전당 모두 특성 필터와 조합 미지원 — 기존 명예의 전당 패턴과 동일
             if (els.leaderboardPerkFilter) {
                 els.leaderboardPerkFilter.value = "";
-                els.leaderboardPerkFilter.disabled = isHallOfFame;
+                els.leaderboardPerkFilter.disabled = isHallOfFame || isDailyScope;
             }
 
-            els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오는 중...</p>';
-            const { data, error } = isHallOfFame
-                ? await fetchHallOfFame(version)
-                : await fetchLeaderboard(100);
-            if (error || !data) {
-                els.leaderboardContent.innerHTML = '<p class="patchlog-loading">불러오기 실패. 다시 시도해 주세요.</p>';
-                return;
-            }
-            renderLeaderboardData(data);
+            await loadLeaderboardScope(scope);
         });
     }
 
@@ -3699,12 +3749,39 @@ async function animateFakeDiceRoll(targetKey, keepValue, duration = 760, tick = 
     renderStatus();
 }
 
+// 오늘(GMT+0) 날짜 키 — 데일리 챌린지 로테이션/서버 카운트와 동일한 경계
+function getUtcDateKey() {
+    const now = new Date();
+    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
+}
+
+// 익명 플레이 전용 데일리 챌린지 플레이 횟수 (localStorage). 닉네임이 있으면 이 카운팅은 쓰지 않는다.
+function getAnonymousDailyPlayCount() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(DAILY_CHALLENGE_PLAY_LOCAL_KEY) ?? "null");
+        return raw?.date === getUtcDateKey() ? (raw.count ?? 0) : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function incrementAnonymousDailyPlayCount() {
+    try {
+        localStorage.setItem(
+            DAILY_CHALLENGE_PLAY_LOCAL_KEY,
+            JSON.stringify({ date: getUtcDateKey(), count: getAnonymousDailyPlayCount() + 1 }),
+        );
+    } catch {
+        // storage 사용 불가(시크릿 모드 등) — 조용히 무시, 이 경우 제한 없이 플레이 허용
+    }
+}
+
 /**
  * 게임 시작 (비동기)
- * 
+ *
  * 상태 머신 흐름:
  * idle -> rolling-point -> rolled-point-preview -> await-mod-roll
- * 
+ *
  * 프로세스:
  * 1. 게임 상태 초기화 (점수 = null, 턴 = 0, 행운 = 0 등)
  * 2. pointVal 주사위 굴림 애니메이션
@@ -3724,6 +3801,33 @@ async function startGame() {
     state.started = true;
     state.phase = "rolling-point";
     renderStatus();
+
+    // 데일리 챌린지 플레이 횟수 제한 (게임당 최대 5회) — "게임 시작" 시점에 카운팅.
+    // 닉네임이 있으면 서버(닉네임 기준) 카운트만 적용하고, 없으면(익명) localStorage로만 제한한다.
+    if (state.dailyChallenge) {
+        const storedName = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim();
+        let allowed = true;
+
+        if (storedName) {
+            const result = await checkDailyChallengeAttempt(storedName, DAILY_CHALLENGE_PLAY_LIMIT);
+            allowed = result.allowed;
+            if (allowed) state.dailyChallenge.trialNumber = result.attempts;
+        } else {
+            allowed = getAnonymousDailyPlayCount() < DAILY_CHALLENGE_PLAY_LIMIT;
+            if (allowed) {
+                incrementAnonymousDailyPlayCount();
+                state.dailyChallenge.trialNumber = getAnonymousDailyPlayCount();
+            }
+        }
+
+        if (!allowed) {
+            state.started = false;
+            state.phase = "perk-select";
+            els.message.textContent = `데일리 챌린지는 오늘 최대 ${DAILY_CHALLENGE_PLAY_LIMIT}회까지 플레이할 수 있습니다.`;
+            renderStatus();
+            return;
+        }
+    }
 
     // 게임 렌더 이전에 시드 수신
     const gameId = crypto.randomUUID();
@@ -3751,12 +3855,14 @@ async function startGame() {
     state.options = [];
     state.history = [];
     state.leaderboardRank = null;
+    state.dailyLeaderboardRank = null;
     state.optionPredictionsReady = true;
     state.initialPointRollValue = null;
     state.perkSunbangPreviewing = false;
     state.perkSunbangDirection = null;
     state.rerollCounts = {};
     state.lastRawRolls = {};
+    state.modifierBonusRerolls = 0;
     if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
     stopVacSound();
     _onPointValAnimComplete = null;
@@ -3771,6 +3877,12 @@ async function startGame() {
 
     const didActivatePerk = applyPerkBeforeInitialRoll();
 
+    // 데일리 챌린지 변형 — 특성 처리(네잎클로버/좌살박도 등) 다음, 맨 마지막에 적용
+    if (applyDailyModifierEffect("initial_luck")) {
+        recordModifierActivationHistory(`게임 시작: ${state.dailyChallenge.modifierDesc}`);
+        triggerModifierBadgeActivationFeedback();
+    }
+
     els.message.textContent = didActivatePerk
         ? `특성 발동! 네잎클로버로 Luck ${state.luck}. 초기 시작 값 주사위를 굴리는 중...`
         : "초기 시작 값 주사위를 굴리는 중...";
@@ -3782,6 +3894,10 @@ async function startGame() {
     // 리롤 시 이 지점부터 다시 실행되도록 굴림 + 미리보기 효과를 루프로 감싼다
     while (true) {
         restoreRerollSnapshot(initRerollSnapshot);
+        // 킥스타터 등 직전 반복의 값 변경 카운팅 사운드/애니메이션이 남아있으면
+        // 곧이어 재생될 주사위 굴림 사운드와 겹치므로, 재굴림 직전에 확실히 정리한다.
+        if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
+        stopVacSound();
         // 준비된 기회 리롤 보상 — 복원이 luck을 되돌리므로 누적치를 매 반복 재적용
         applyReadyChanceRerollLuck(state.rerollCounts[0] ?? 0);
 
@@ -3879,23 +3995,6 @@ async function startGame() {
             state.perkSunbangDirection = null;
         }
 
-        const grosmichelInit = getSelectedPerk();
-        if (grosmichelInit?.id === "perk-gros-michel" && state.pointVal === 1) {
-            const prevPoint = state.pointVal;
-            const nextPoint = safeNumber(prevPoint * 6);
-            state.pointVal = nextPoint;
-
-            recordPerkActivationHistory(
-                grosmichelInit,
-                `초기 시작 값: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-                { turn: 0, trigger: "initial_dice_reveal", before_val: prevPoint, after_val: nextPoint },
-            );
-
-            refreshPointValueAndHistoryUi();
-            triggerPerkPointChangeFeedback(grosmichelInit, prevPoint, nextPoint, "× 6");
-            triggerPerkBadgeActivationFeedback();
-        }
-
         const kickstartInitPerk = getSelectedPerk();
         if (kickstartInitPerk?.id === "perk-kickstart") {
             const prevPoint = state.pointVal ?? 0;
@@ -3911,6 +4010,20 @@ async function startGame() {
             refreshPointValueAndHistoryUi();
             triggerPerkPointChangeFeedback(kickstartInitPerk, prevPoint, nextPoint, `× ${prevPoint}`);
             triggerPerkBadgeActivationFeedback();
+        }
+
+        // 데일리 챌린지 변형 — 특성 처리 다음, 맨 마지막에 적용
+        if (applyDailyModifierEffect("initial_dice")) {
+            recordModifierActivationHistory(`초기 시작 값: ${state.dailyChallenge.modifierDesc}`);
+            // 리롤 게이트에 표시되는 원본 눈금(initialDiceFace)도 함께 갱신 — 67/순방과 동일한 처리.
+            // 안 해주면 안정/구제가 바꾼 값이 반영 안 된 채로 그대로 Skip 질문 화면까지 넘어감.
+            if (state.dailyChallenge.modifierEffect === "dice_plus_1_all" && initialDiceFace !== 7) {
+                initialDiceFace = Math.min(6, initialDiceFace + 1);
+            } else if (state.dailyChallenge.modifierEffect === "rescue_one_to_six" && initialDiceFace === 1) {
+                initialDiceFace = 6;
+            }
+            refreshPointValueAndHistoryUi();
+            triggerModifierBadgeActivationFeedback();
         }
 
         // 선택지(1턴 진행) 직전 — 다시 굴리기 기회 제공 (원본 굴림눈 전달)
@@ -3940,7 +4053,158 @@ async function startGame() {
     renderStatus();
 }
 
-function preparePerkSelection() {
+// ---------- 게임 모드 선택 (일반 / 데일리 챌린지) ----------
+let _dailyCountdownTimer = null;
+// 서버에서 받아온 오늘의 챌린지 캐시 — { bundleId, bundleName, perkIds, modifierId, modifierName, modifierDesc, modifierEffect }
+let _dailyChallengeData = null;
+let _dailyChallengeLoading = false;
+// 닉네임 기준 서버 조회로 받아온 실제 남은 플레이 기회 (닉네임 없거나 아직 못 받아왔으면 null → local 추정치 표시)
+let _dailyPlaysRemainingCache = null;
+let _dailyPlaysRemainingLoading = false;
+
+function prepareModeSelection() {
+    preparePerkSelection(); // 상태 전체 리셋 재사용
+    state.phase = "mode-select";
+    els.message.textContent = "게임 모드를 선택하세요.";
+    renderStatus();
+    loadDailyChallenge();
+    loadDailyChallengePlaysRemaining();
+}
+
+// 익명 전용 localStorage 카운트 기반 추정치 — 서버 값이 아직 없을 때의 기본 표시값
+function computeLocalPlaysRemainingGuess() {
+    return Math.max(0, DAILY_CHALLENGE_PLAY_LIMIT - getAnonymousDailyPlayCount());
+}
+
+// 닉네임이 있으면 서버에서 실제 남은 횟수를 조회해 캐시하고, 모드 선택 화면이면 텍스트만 갱신한다.
+// 닉네임이 없으면(익명) 서버 조회를 하지 않고 local 추정치를 그대로 유지한다.
+async function loadDailyChallengePlaysRemaining() {
+    const storedName = localStorage.getItem(USERNAME_STORAGE_KEY)?.trim();
+    if (!storedName) {
+        _dailyPlaysRemainingCache = null;
+        return;
+    }
+    if (_dailyPlaysRemainingLoading) return;
+    _dailyPlaysRemainingLoading = true;
+    const { data, error } = await fetchDailyChallengeAttempts(storedName);
+    _dailyPlaysRemainingLoading = false;
+
+    if (error || typeof data !== "number") {
+        console.warn("데일리 챌린지 남은 플레이 기회 조회 실패 (local 추정치 유지):", error ?? `data=${JSON.stringify(data)}`);
+        return;
+    }
+    _dailyPlaysRemainingCache = Math.max(0, DAILY_CHALLENGE_PLAY_LIMIT - data);
+
+    // 0회 도달 여부는 카드 비활성화에도 영향을 주므로 텍스트만 바꾸지 않고 통째로 다시 렌더한다
+    if (state.phase === "mode-select") {
+        renderModeSelection();
+    }
+}
+
+// 서버의 오늘의 챌린지를 가져와 캐시하고, 아직 모드 선택 화면이면 다시 렌더한다.
+async function loadDailyChallenge() {
+    if (_dailyChallengeLoading) return;
+    _dailyChallengeLoading = true;
+    const { data, error } = await fetchCurrentDailyChallenge();
+    _dailyChallengeLoading = false;
+
+    const row = !error && Array.isArray(data) ? data[0] : null;
+    _dailyChallengeData = row
+        ? {
+            bundleId: row.bundle_id,
+            bundleName: row.bundle_name,
+            perkIds: row.perk_ids ?? [],
+            modifierId: row.modifier_id,
+            modifierName: row.modifier_name,
+            modifierDesc: row.modifier_desc,
+            modifierEffect: row.modifier_effect,
+        }
+        : null;
+
+    if (state.phase === "mode-select") renderModeSelection();
+}
+
+// GMT+0(UTC) 자정까지 남은 시간 문자열 — rotate_daily_challenge()가 UTC 자정에 실행되는 것과 일치시킴
+function formatDailyResetRemaining() {
+    const now = new Date();
+    const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0);
+    let sec = Math.max(0, Math.floor((next - now.getTime()) / 1000));
+    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    const ss = String(sec % 60).padStart(2, "0");
+    return `${h}:${m}:${ss}`;
+}
+
+function startDailyCountdownTicker() {
+    if (_dailyCountdownTimer) window.clearInterval(_dailyCountdownTimer);
+    _dailyCountdownTimer = window.setInterval(() => {
+        const el = document.getElementById("dailyResetCountdown");
+        if (!el || state.phase !== "mode-select") {
+            window.clearInterval(_dailyCountdownTimer);
+            _dailyCountdownTimer = null;
+            return;
+        }
+        el.textContent = formatDailyResetRemaining();
+    }, 1000);
+}
+
+function renderModeSelection() {
+    const today = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+    const challenge = _dailyChallengeData;
+    const playsRemaining = _dailyPlaysRemainingCache ?? computeLocalPlaysRemainingGuess();
+
+    const dailyBody = challenge
+        ? `
+            <p class="perk-name">📅 데일리 챌린지 : ${escapeHtml(challenge.bundleName)} - ${escapeHtml(challenge.modifierName)}</p>
+            <span class="mode-daily-date">${today} · 종료까지 <span id="dailyResetCountdown">${formatDailyResetRemaining()}</span></span>
+            <p class="mode-daily-meta">특성 : ${challenge.perkIds.map((id) => escapeHtml(PERK_LIB.find((p) => p.id === id)?.name ?? id)).join(" / ")}</p>
+            <p class="mode-daily-meta">특별 규칙 : ${escapeHtml(challenge.modifierDesc)}</p>
+            <p id="dailyPlaysRemaining" class="mode-plays-left">남은 플레이 기회 ${playsRemaining}/${DAILY_CHALLENGE_PLAY_LIMIT}</p>
+        `
+        : `
+            <p class="perk-name">📅 데일리 챌린지</p>
+            <span class="mode-daily-date">${today} · 종료까지 <span id="dailyResetCountdown">${formatDailyResetRemaining()}</span></span>
+            <p class="mode-daily-meta">불러오는 중...</p>
+        `;
+
+    // 남은 기회가 0이면(서버 값이 확정된 경우만 — local 추정치 단계에선 아직 판단 보류) 카드 자체를 비활성화
+    const isOutOfPlays = _dailyPlaysRemainingCache !== null && _dailyPlaysRemainingCache <= 0;
+    const dailyDisabled = !challenge || isOutOfPlays;
+
+    els.options.innerHTML = `
+        <button class="skip-luck-btn mode-card fade-in" type="button" data-action="select-mode" data-mode="normal">
+            <p class="perk-name">🎲 일반 게임</p>
+            <p class="perk-description">특성을 선택해 자유롭게 플레이합니다.</p>
+        </button>
+        <button class="skip-luck-btn mode-card fade-in${isOutOfPlays ? " is-out-of-plays" : ""}" type="button" data-action="select-mode" data-mode="daily"
+            style="animation-delay:${OPTION_APPEAR_INTERVAL_MS}ms;" ${dailyDisabled ? "disabled" : ""}>
+            ${dailyBody}
+        </button>
+    `;
+    startDailyCountdownTicker();
+}
+
+function selectMode(mode) {
+    if (state.started || state.phase !== "mode-select") return;
+    if (mode === "daily") {
+        if (!_dailyChallengeData) return; // 아직 로딩 중 — 버튼도 disabled 상태
+        if (_dailyPlaysRemainingCache !== null && _dailyPlaysRemainingCache <= 0) return; // 오늘 플레이 횟수 소진
+        preparePerkSelection({
+            bundleId: _dailyChallengeData.bundleId,
+            bundleName: _dailyChallengeData.bundleName,
+            modifierId: _dailyChallengeData.modifierId,
+            modifierName: _dailyChallengeData.modifierName,
+            modifierDesc: _dailyChallengeData.modifierDesc,
+            modifierEffect: _dailyChallengeData.modifierEffect,
+            perkIds: _dailyChallengeData.perkIds,
+        });
+        return;
+    }
+    preparePerkSelection();
+}
+
+// dailyChallenge가 있으면 무작위 3장 대신 지정된 특성만 선택지로 표시한다 (null이면 일반 게임)
+function preparePerkSelection(dailyChallenge = null) {
     clearEnhancedAppearSoundSchedule();
 
     state.started = false;
@@ -3951,6 +4215,7 @@ function preparePerkSelection() {
     state.options = [];
     state.history = [];
     state.leaderboardRank = null;
+    state.dailyLeaderboardRank = null;
     state.rollingTarget = null;
     state.revealTarget = null;
     state.resolvingOptionId = null;
@@ -3971,11 +4236,17 @@ function preparePerkSelection() {
     state.upgradeMultiplier = 1.5;
     state.rerollCounts = {};
     state.lastRawRolls = {};
-    state.perkChoices = createPerkChoices();
+    state.modifierBonusRerolls = 0;
+    state.dailyChallenge = dailyChallenge;
+    state.perkChoices = dailyChallenge
+        ? dailyChallenge.perkIds.map((id) => PERK_LIB.find((p) => p.id === id)).filter(Boolean)
+        : createPerkChoices();
     state.phase = "perk-select";
     updatePerkBadge(null);
 
-    els.message.textContent = "첫 주사위를 굴리기 전에 특성을 선택하세요.";
+    els.message.textContent = dailyChallenge
+        ? `데일리 챌린지 : ${dailyChallenge.bundleName} - ${dailyChallenge.modifierName} — 특성을 선택하세요.`
+        : "첫 주사위를 굴리기 전에 특성을 선택하세요.";
     renderStatus();
 }
 
@@ -3998,14 +4269,90 @@ function selectPerk(perkIndex) {
 // ---------- 주사위 다시 굴리기 (리롤) ----------
 // 굴림 직후의 효과들이 pointVal/luck/modVal을 직접 변형하므로, 리롤은
 // "굴림 직전 상태를 스냅샷 → 복원 후 재굴림" 방식으로 동작한다.
-// 게임당 리롤 상한 — 쓰리 스트라이크 특성은 3회, 그 외 1회
+// 게임당 리롤 상한 — 쓰리 스트라이크 특성은 3회, 그 외 1회. 데일리 변형(대비/무책임/기회)이 가감한다.
 function getRerollMax() {
-    return state.selectedPerkId === "perk-strikeout" ? 3 : REROLL_MAX_PER_GAME;
+    let max = state.selectedPerkId === "perk-strikeout" ? 3 : REROLL_MAX_PER_GAME;
+    const effect = state.dailyChallenge?.modifierEffect;
+    if (effect === "reroll_plus_3_game") max += 3;
+    if (effect === "reroll_minus_1_game") max = Math.max(0, max - 1);
+    return max + state.modifierBonusRerolls;
 }
 
 // 이번 게임에서 지금까지 사용한 리롤 총 횟수
 function getRerollsUsed() {
     return Object.values(state.rerollCounts).reduce((sum, n) => sum + n, 0);
+}
+
+// ============================================================================
+// 데일리 챌린지 변형(modifier) 효과 — 특성 처리가 전부 끝난 뒤 이벤트 맨 마지막에 적용.
+// event: "initial_luck" | "initial_dice" | "turn_dice" | "turn_end"
+// 발동하면 true를 반환 (호출부가 토스트/사운드 재생 여부를 판단하는 데 사용).
+// 67 특성과의 상호작용은 별도 플래그 없이, 눈금이 이미 7이면 건드리지 않는 방식으로 처리.
+// ============================================================================
+function applyDailyModifierEffect(event) {
+    const effect = state.dailyChallenge?.modifierEffect;
+    if (!effect) return false;
+
+    switch (event) {
+        case "initial_luck":
+            if (effect === "luck_plus_20_start") {
+                state.luck += 20;
+                return true;
+            }
+            return false;
+
+        case "initial_dice":
+            if (effect === "dice_plus_1_all" && state.pointVal !== 7) {
+                state.pointVal = Math.min(6, state.pointVal + 1);
+                return true;
+            }
+            if (effect === "rescue_one_to_six" && state.pointVal === 1) {
+                state.pointVal = 6;
+                return true;
+            }
+            return false;
+
+        case "turn_dice":
+            if (effect === "last_turn_dice_6" && state.turn === MAX_TURNS) {
+                state.modVal = 6;
+                return true;
+            }
+            if (effect === "dice_plus_1_all" && state.modVal !== 7) {
+                state.modVal = Math.min(6, state.modVal + 1);
+                return true;
+            }
+            if (effect === "rescue_one_to_six" && state.modVal === 1) {
+                state.modVal = 6;
+                return true;
+            }
+            return false;
+
+        case "turn_end":
+            if (effect === "turn_end_mult_5") {
+                state.pointVal = safeNumber(state.pointVal * 5);
+                return true;
+            }
+            if (effect === "turn_end_plus_777") {
+                state.pointVal = safeNumber(state.pointVal + 777);
+                return true;
+            }
+            if (effect === "reroll_plus_1_per_turn") {
+                state.modifierBonusRerolls += 1;
+                return true;
+            }
+            if (effect === "luck_plus_5_per_turn") {
+                state.luck += 5;
+                return true;
+            }
+            if (effect === "luck_mult_15_per_turn") {
+                state.luck = Math.round(state.luck * 1.5);
+                return true;
+            }
+            return false;
+
+        default:
+            return false;
+    }
 }
 
 // 준비된 기회: 리롤할 때마다 행운 +10.
@@ -4240,40 +4587,6 @@ async function rollModValForTurn() {
         if (state.phase !== "rolled-mod-preview") return;
     }
 
-    const grosmichel = getSelectedPerk();
-    if (grosmichel?.id === "perk-gros-michel" && state.modVal === 1) {
-        const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * 6);
-        state.pointVal = nextPoint;
-
-        recordPerkActivationHistory(
-            grosmichel,
-            `Turn ${state.turn}: 주사위 1 발동 → 값 x6 (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
-        );
-
-        refreshPointValueAndHistoryUi();
-        triggerPerkPointChangeFeedback(grosmichel, prevPoint, nextPoint, "× 6");
-        triggerPerkBadgeActivationFeedback();
-    }
-
-    const bullseyePerk = getSelectedPerk();
-    if (bullseyePerk?.id === "perk-bullseye" && state.turn === state.modVal) {
-        const prevPoint = state.pointVal ?? 0;
-        const nextPoint = safeNumber(prevPoint * state.turn);
-        state.pointVal = nextPoint;
-
-        recordPerkActivationHistory(
-            bullseyePerk,
-            `Turn ${state.turn}: 턴 = 주사위 ${state.modVal} → 값 x${state.turn} (${formatNum(prevPoint)} -> ${formatNum(nextPoint)})`,
-            { turn: state.turn, trigger: "dice_reveal", before_val: prevPoint, after_val: nextPoint },
-        );
-
-        refreshPointValueAndHistoryUi();
-        triggerPerkPointChangeFeedback(bullseyePerk, prevPoint, nextPoint, `× ${state.turn}`);
-        triggerPerkBadgeActivationFeedback();
-    }
-
     const kickstartPerk = getSelectedPerk();
     if (kickstartPerk?.id === "perk-kickstart" && state.turn <= 2) {
         const prevPoint = state.pointVal ?? 0;
@@ -4315,6 +4628,13 @@ async function rollModValForTurn() {
         if (state.phase !== "rolled-mod-preview") return;
     }
 
+    // 데일리 챌린지 변형 — 특성 처리 다음, 맨 마지막에 적용
+    if (applyDailyModifierEffect("turn_dice")) {
+        recordModifierActivationHistory(`Turn ${state.turn}: ${state.dailyChallenge.modifierDesc}`);
+        renderStatus();
+        triggerModifierBadgeActivationFeedback();
+    }
+
     // 선택지 제시 직전 — 다시 굴리기 기회 제공
     while (true) {
         const rerollDecision = await awaitRerollDecision("modVal", state.modVal);
@@ -4326,6 +4646,10 @@ async function rollModValForTurn() {
         }
         state.rerollCounts[state.turn] = (state.rerollCounts[state.turn] ?? 0) + 1; // 이 턴 리롤 기록
         restoreRerollSnapshot(rerollSnapshot);
+        // 킥스타터(1~2턴) 등 직전 값 변경 카운팅 사운드/애니메이션이 남아있으면
+        // 재귀 호출에서 곧 재생될 주사위 굴림 사운드와 겹치므로 재굴림 전에 정리한다.
+        if (_pointValAnimFrame !== null) { cancelAnimationFrame(_pointValAnimFrame); clearTimeout(_pointValAnimFrame); _pointValAnimFrame = null; }
+        stopVacSound();
         applyReadyChanceRerollLuck(1); // 준비된 기회 리롤 보상 (복원 이후 적용, 재귀 스냅샷에 포함됨)
         state.phase = "await-mod-roll";
         await rollModValForTurn();
@@ -4466,6 +4790,13 @@ async function pickOption(optionIndex) {
         ? `${messagePrefix}선택이 적용되었습니다. ${activatedPerkResult.messageText} 발동: 현재 점수 ${formatNum(state.pointVal)}, Luck ${state.luck}`
         : `선택이 적용되었습니다. 현재 점수 ${formatNum(nextPoint)}`;
 
+    // 데일리 챌린지 변형 — 특성 처리 다음, 턴 종료 이벤트 맨 마지막에 적용
+    if (applyDailyModifierEffect("turn_end")) {
+        recordModifierActivationHistory(`Turn ${state.turn} 종료: ${state.dailyChallenge.modifierDesc}`);
+        refreshPointValueAndHistoryUi();
+        triggerModifierBadgeActivationFeedback();
+    }
+
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT;
     const effectiveMax = state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS;
 
@@ -4491,8 +4822,7 @@ async function pickOption(optionIndex) {
 
     if (state.turn >= effectiveMax || reachedMaxValue) {
         state.resolvingOptionId = null;
-        await applyLastShootingBeforeFinish();
-        await applyHighlanderBeforeFinish();
+        await applyBeforeFinish();
         finishGame();
         return;
     }
@@ -4588,11 +4918,17 @@ async function skipTurnTakeAllLuck() {
         ? `${skipMessagePrefix}스킵 적용 후 ${activatedPerkResult.messageText} 발동: 현재 점수 ${formatNum(state.pointVal)}, Luck ${state.luck}`
         : skipBaseMessage;
 
+    // 데일리 챌린지 변형 — 특성 처리 다음, 턴 종료 이벤트 맨 마지막에 적용
+    if (applyDailyModifierEffect("turn_end")) {
+        recordModifierActivationHistory(`Turn ${state.turn} 종료: ${state.dailyChallenge.modifierDesc}`);
+        refreshPointValueAndHistoryUi();
+        triggerModifierBadgeActivationFeedback();
+    }
+
     const reachedMaxValue = state.pointVal === SAFE_INT_LIMIT || state.pointVal === -SAFE_INT_LIMIT;
     if (state.turn >= (state.timewarpExtraTurn ? MAX_TURNS + 1 : MAX_TURNS) || reachedMaxValue) {
         state.resolvingOptionId = null;
-        await applyLastShootingBeforeFinish();
-        await applyHighlanderBeforeFinish();
+        await applyBeforeFinish();
         finishGame();
         return;
     }
@@ -4667,22 +5003,43 @@ function finishGame() {
 
             if (result.error) {
                 console.warn("리더보드 업로드 실패:", result.error);
-                if (result.error === "verification_failed" || result.error === "seed_expired") {
+                if (
+                    result.error === "verification_failed" || result.error === "seed_expired"
+                    || result.error === "perk_not_in_daily_bundle" || result.error === "daily_challenge_not_found"
+                ) {
                     // seed_expired: 20분 이상 게임을 끌면 시드가 만료되어 등재가 거부되는 경우
                     showRecordRejectedToast(JSON.stringify(gameplayLog, null, 2));
                 } else if (result.error === "unsupported_version") {
                     showUpdateRequiredToast();
                 }
                 const el = document.querySelector(".finished-rank");
-                if (el) el.textContent = "";
+                if (el) {
+                    // daily_play_limit_reached: 다른 기기 등에서 이미 오늘 플레이 한도를 다 쓴 경우 —
+                    // 조작/버그 신고용 토스트 없이 안내만 표시
+                    el.textContent = result.error === "daily_play_limit_reached"
+                        ? "오늘 데일리 챌린지 플레이 횟수를 모두 사용했습니다."
+                        : "";
+                }
                 return;
             }
 
             console.info("리더보드 업로드 성공");
             showUploadSuccessToast();
-            const { rank, total, newly_unlocked } = result.data;
-            state.leaderboardRank = rank;
             const el = document.querySelector(".finished-rank");
+
+            if (result.data.is_daily) {
+                // 데일리 챌린지 제출 — 일반 리더보드 순위/도전과제 판정은 없음
+                const { challenge_rank, challenge_total } = result.data;
+                if (el) {
+                    const topPercent = Math.ceil((challenge_rank / challenge_total) * 100);
+                    el.innerHTML = `데일리 챌린지 ${challenge_total}개의 기록 중 ${challenge_rank}등!<br>(상위 ${topPercent}%)`;
+                }
+                return;
+            }
+
+            const { rank, total, daily_rank, newly_unlocked } = result.data;
+            state.leaderboardRank = rank;
+            state.dailyLeaderboardRank = daily_rank ?? null;
             if (el) {
                 const topPercent = Math.ceil((rank / total) * 100);
                 el.innerHTML = `${total}개의 기록 중 ${rank}등!<br>(상위 ${topPercent}%)`;
@@ -4727,7 +5084,7 @@ function buildGameplayLog() {
         if (item.kind === "perk-selection") {
             return;
         }
-        if (item.kind === "perk-activation") {
+        if (item.kind === "perk-activation" || item.kind === "modifier-activation") {
             return;
         }
         // 턴 항목
@@ -4779,6 +5136,12 @@ function buildGameplayLog() {
     if (Object.keys(picks).length > 0) log.option_picks = picks;
     log.final_score = state.pointVal ?? 0;
     log.final_luck = state.luck ?? 0;
+    // 데일리 챌린지 여부 표시용 — 서버는 이 값을 신뢰하지 않고 DB의 오늘 챌린지로 직접 재검증한다.
+    if (state.dailyChallenge) {
+        log.is_daily = true;
+        log.daily_bundle_id = state.dailyChallenge.bundleId ?? null;
+        log.daily_modifier_id = state.dailyChallenge.modifierId ?? null;
+    }
     // 시드 RNG 소비 규칙 버전 (서버 리시뮬레이션 검증용).
     // v2: 연출 스핀이 시드를 소비하지 않음. v3: 리롤 1회당 주사위 draw 1회 추가 소비.
     // v4: 리롤 draw는 직전 원본 눈금을 제외한 5면 리매핑 (rollDiceExcluding).
@@ -4833,8 +5196,15 @@ function buildShareRecordText() {
 
     const lines = [
         `🎲🎲 ${headingText} 🎲🎲`,
-        "",
     ];
+
+    if (state.dailyChallenge) {
+        const eventName = `${state.dailyChallenge.bundleName} - ${state.dailyChallenge.modifierName}`;
+        const trial = state.dailyChallenge.trialNumber ?? 1;
+        lines.push(`(${getUtcDateKey()}) Daily - ${eventName} / Trial ${trial}`);
+    }
+
+    lines.push("");
 
     if (selectedPerk) {
         const perkEmoji = perkShareEmojiMap[selectedPerk.id] || "✨";
@@ -4854,6 +5224,13 @@ function buildShareRecordText() {
             return;
         }
 
+        if (item.kind === "modifier-activation") {
+            lines.push(`[특별 규칙 발동] ${item.modifierName}`);
+            lines.push(item.detail);
+            lines.push("");
+            return;
+        }
+
         const formulaWithValues = formatFormulaWithValuesPlain(item.expression, item.from, item.modVal, item.turn);
         const gainedLuckText = formatNum(item.gainedLuck ?? 0);
         const enhancedText = item.isEnhanced ? " / Enhanced" : "";
@@ -4863,8 +5240,15 @@ function buildShareRecordText() {
     });
 
     lines.push(`🔥 Final Record : ${finalRecordText} 🔥`);
+    const rankLabels = [];
     if (state.leaderboardRank !== null && state.leaderboardRank <= 100) {
-        lines.push(`(리더보드 ${state.leaderboardRank}위!)`);
+        rankLabels.push(`리더보드 ${state.leaderboardRank}위!`);
+    }
+    if (state.dailyLeaderboardRank !== null && state.dailyLeaderboardRank <= 50) {
+        rankLabels.push(`데일리 ${state.dailyLeaderboardRank}위!`);
+    }
+    if (rankLabels.length > 0) {
+        lines.push(`(${rankLabels.join(" / ")})`);
     }
     lines.push("");
     lines.push("Free to play now!");
@@ -5143,8 +5527,15 @@ function renderOptions() {
     };
 
     if (!state.started) {
+        if (state.phase === "mode-select") {
+            setOptionsCentered(true);
+            renderModeSelection();
+            return;
+        }
+
         if (state.phase === "perk-select") {
-            setOptionsCentered(false);
+            // 특성 카드가 3장 이하(일반 게임 3장 / 데일리 챌린지 2~3장)면 세로 중앙 정렬
+            setOptionsCentered(state.perkChoices.length <= 3);
             renderPerkSelection();
             return;
         }
@@ -5309,6 +5700,16 @@ function renderCalcHistory() {
             `;
             }
 
+            if (item.kind === "modifier-activation") {
+                return `
+                <div class="calc-log-item">
+                    <p class="calc-log-row"><strong>특별 규칙 발동</strong></p>
+                    <p class="calc-log-row">· ${item.modifierName}</p>
+                    <p class="calc-log-row">· ${item.detail}</p>
+                </div>
+            `;
+            }
+
             const beforeValue = item.from;
             const formulaWithValues = formatFormulaWithValues(item.expression, item.from, item.modVal, item.turn);
             const resultValue = item.to;
@@ -5396,6 +5797,56 @@ function triggerPerkBadgeActivationFeedback(playSound = true) {
         toast.style.setProperty("--perk-toast-glitter", activePerk.glitterColor);
         toast.style.setProperty("--perk-toast-glitter-opacity", String(Math.min(0.9, activePerk.glitterIntensity + 0.15)));
     }
+
+    const toastLeft = els.perkBadgeBtn.offsetLeft + els.perkBadgeBtn.offsetWidth + 6;
+    const toastTop = els.perkBadgeBtn.offsetTop + els.perkBadgeBtn.offsetHeight / 2;
+    toast.style.left = `${toastLeft}px`;
+    toast.style.top = `${toastTop}px`;
+    host.appendChild(toast);
+
+    toast.addEventListener("animationend", () => {
+        toast.remove();
+    }, { once: true });
+
+    if (playSound) {
+        playPerkActivateSound();
+    }
+
+    window.setTimeout(() => {
+        els.perkBadgeBtn.classList.remove("is-activated");
+    }, 540);
+}
+
+// 데일리 챌린지 변형 발동 피드백 — 특성 토스트와 같은 자리에 뜨지만 흰색 고정 + "변형 효과 발동!!" 문구
+function triggerModifierBadgeActivationFeedback(playSound = true) {
+    if (!els.perkBadgeBtn) {
+        return;
+    }
+
+    els.perkBadgeBtn.classList.remove("is-activated");
+    void els.perkBadgeBtn.offsetWidth;
+    els.perkBadgeBtn.classList.add("is-activated");
+
+    const host = els.perkBadgeBtn.parentElement;
+    if (!host) {
+        return;
+    }
+
+    const existingToast = host.querySelector(".perk-activation-toast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement("span");
+    toast.className = "perk-activation-toast";
+    toast.textContent = "변형 효과 발동!!";
+    // 특성 색상과 무관하게 항상 흰색 고정
+    toast.style.setProperty("--perk-toast-bg", "#ffffff");
+    toast.style.setProperty("--perk-toast-color", "#13272b");
+    toast.style.setProperty("--perk-toast-border", "rgba(20, 35, 38, 0.24)");
+    toast.style.setProperty("--perk-toast-shadow", "rgba(20, 35, 38, 0.18)");
+    toast.style.setProperty("--perk-toast-glitter", "#ffffff");
+    toast.style.setProperty("--perk-toast-glitter-opacity", "0.5");
 
     const toastLeft = els.perkBadgeBtn.offsetLeft + els.perkBadgeBtn.offsetWidth + 6;
     const toastTop = els.perkBadgeBtn.offsetTop + els.perkBadgeBtn.offsetHeight / 2;
@@ -5622,7 +6073,7 @@ function bindEvents() {
     els.confirmYes.addEventListener("click", () => {
         els.confirmButtons.style.display = "none";
         els.startBtn.style.display = "block";
-        preparePerkSelection();
+        prepareModeSelection();
     });
 
     els.confirmNo.addEventListener("click", () => {
@@ -5631,6 +6082,12 @@ function bindEvents() {
     });
 
     els.options.addEventListener("click", (event) => {
+        const modeButton = event.target.closest("button[data-action='select-mode']");
+        if (modeButton) {
+            selectMode(modeButton.dataset.mode);
+            return;
+        }
+
         const perkButton = event.target.closest("button[data-action='select-perk']");
         if (perkButton) {
             const perkIndex = Number(perkButton.dataset.index);
@@ -5686,7 +6143,7 @@ function init() {
     bindEvents();
     bindLuckInfoEvents();
     bindCalcLogEvents();
-    preparePerkSelection();
+    prepareModeSelection();
     window.requestAnimationFrame(() => {
         centerPhoneFrameOnDesktop();
     });
@@ -5735,6 +6192,9 @@ function renderControl() {
         els.startBtn.classList.remove("is-hidden");
         if (state.phase === "finished") {
             els.startBtn.textContent = "다시 플레이하기";
+        } else if (state.phase === "mode-select") {
+            els.startBtn.textContent = "게임 모드를 선택하세요";
+            els.startBtn.disabled = true;
         } else if (state.phase === "perk-select") {
             els.startBtn.textContent = state.selectedPerkId ? "특성 확정 후 게임 시작" : "특성 선택 후 시작";
         } else {
