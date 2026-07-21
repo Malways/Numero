@@ -2515,7 +2515,7 @@ function renderUserSearchProfile(username, stats) {
             ? ` style="background:${perk.backgroundStyle}; border-color:${withAlpha(perk.glitterColor, 0.55)}; color:${perk.textColor || "#16292d"};"`
             : "";
         const dailyBadge = game.isDaily
-            ? `<span class="user-recent-perk user-recent-daily-badge">데일리 이벤트</span>`
+            ? `<span class="user-recent-perk user-recent-daily-badge">데일리 챌린지</span>`
             : "";
         return `
             <div class="user-recent-row">
